@@ -1,7 +1,92 @@
 version: 2.1
-orbs:
-  go: circleci/go@0.2.0
 
+orbs:
+  python: circleci/python@0.2.1
+
+  splunk-release:
+    executors:
+      python37:
+        docker:
+          - image: circleci/python:3.7
+    commands:
+      tag:
+        parameters:
+          gh_user:
+            description: Git Hub username
+            type: string
+          gh_token:
+            description: Git Hub token
+            type: string
+          tag_level:
+            description: Tag level
+            type: string
+        steps:
+          - run:
+              name: TAG
+              command: |
+                git remote set-url origin https://<<parameters.gh_user>>:<<parameters.gh_token>>@github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}.git
+                ./semtag <<parameters.tag_level>>
+      merge-to-master:
+        parameters:
+          gh_user:
+            description: Git Hub username
+            type: string
+          gh_token:
+            description: Git Hub token
+            type: string
+        steps:
+          - run:
+              name: Merge
+              command: |
+                git remote set-url origin https://<<parameters.gh_user>>:<<parameters.gh_token>>@github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}.git
+                git config --global user.email "addonreleasesrv@splunk.com"
+                git config --global user.name "Add on release service"
+                git pull origin master
+                git merge master -m "Merge from master"
+                git checkout master
+                git merge develop
+                git push
+    jobs:
+      tag:
+        parameters:
+          gh_user:
+            description: Git Hub username
+            type: string
+          gh_token:
+            description: Git Hub token
+            type: string
+          tag_level:
+            description: Tag level
+            type: string
+        executor: python37
+        steps:
+          - checkout
+          - tag:
+              tag_level: <<parameters.tag_level>>
+              gh_user: <<parameters.gh_user>>
+              gh_token: <<parameters.gh_token>>
+      merge-to-master:
+        executor: python37
+        parameters:
+          gh_user:
+            description: Git Hub username
+            type: string
+          gh_token:
+            description: Git Hub token
+            type: string
+        steps:
+          - checkout
+          - merge-to-master:
+              gh_user: <<parameters.gh_user>>
+              gh_token: <<parameters.gh_token>>
+
+executors:
+  linux:
+    machine:
+      image: ubuntu-1604:201903-01
+  macos:
+    macos:
+      xcode: 11.4
 jobs:
   build:
     docker:
@@ -25,7 +110,7 @@ jobs:
       - save_cache:
           key: poetry-cache-{{ checksum "poetry.lock" }}
           paths:
-            - ~/.cache/poetry
+            - ~/.cache/pypoetry
       - store_artifacts:
           path: dist
       - store_artifacts:
@@ -38,22 +123,116 @@ jobs:
           paths:
             - dist
             - output
-
-  test:
-    docker:
-      - image: circleci/python:3.7-node
+  test-unit:
+    parameters:
+      os:
+        type: executor
+      python-version:
+        type: string
+    executor: << parameters.os >>
     steps:
       - checkout
       - attach_workspace:
           at: /tmp/workspace
       - run:
-          name: Install Tools
+          name: install deps
           command: |
+            pip install --upgrade pip
+            pip install --upgrade virtualenv
+            unset PYENV_ROOT
+            curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
+            export PATH="$HOME/.pyenv/bin:$PATH"
+            eval "$(pyenv init -)"
+            pyenv install << parameters.python-version >>
+            pyenv global << parameters.python-version >>
+            pyenv local << parameters.python-version >>
             pip install /tmp/workspace/dist/*
-  publish:
-    docker:
-      - image: circleci/python:3.7-node
+            pip install pytest
+            pip install pytest-cov
+            pip install pytest-expect
+            pip install pyaml
+            pip install mock
+            mkdir test-results || true
+            python -m pytest --junitxml=test-results/results.xml --cov=solnlib --cov-report=html tests
+      - store_test_results:
+          path: test-results
+      - store_artifacts:
+          path: test-results
+      - store_artifacts:
+          path: htmlcov
+
+  test-splunk:
+    parameters:
+      os:
+        type: executor
+      splunk-version:
+        type: string
+      python-version:
+        type: string
+    executor: << parameters.os >>
     steps:
+      - checkout
+      - run: git submodule sync
+      - run: git submodule update --init
+      - run:
+          name: Install Splunk
+          command: |
+            pip install git+https://github.com/pixelb/crudini
+            export SPLUNK_PRODUCT=splunk
+            export SPLUNK_VERSION=$(crudini --get deps/build/addonfactory_test_matrix_splunk/splunk_matrix.conf "<<parameters.splunk-version>>" VERSION)
+            export SPLUNK_BUILD=$(crudini --get deps/build/addonfactory_test_matrix_splunk/splunk_matrix.conf "<<parameters.splunk-version>>" BUILD)
+            export SPLUNK_SLUG=$SPLUNK_VERSION-SPLUNK_BUILD
+            export SPLUNK_ARCH=x86_64
+            export SPLUNK_LINUX_FILENAME=splunk-${SPLUNK_VERSION}-${SPLUNK_BUILD}-Linux-${SPLUNK_ARCH}.tgz
+            export SPLUNK_BUILD_URL=https://download.splunk.com/products/${SPLUNK_PRODUCT}/releases/${SPLUNK_VERSION}/linux/${SPLUNK_LINUX_FILENAME}
+            echo $SPLUNK_BUILD_URL
+            export SPLUNK_HOME=/opt/splunk
+            wget -qO /tmp/splunk.tgz ${SPLUNK_BUILD_URL}
+            sudo tar -C /opt -zxf /tmp/splunk.tgz
+            sudo cp -r examples/data/solnlib_demo $SPLUNK_HOME/etc/apps
+            sudo cp -r solnlib $SPLUNK_HOME/etc/apps/solnlib_demo/bin/
+            sudo mkdir -p $SPLUNK_HOME/etc/apps/Splunk_TA_test/default/
+            sudo chown -R $USER:$USER /opt/splunk
+            ls $SPLUNK_HOME/etc/apps/solnlib_demo/bin/
+            echo [user_info] >$SPLUNK_HOME/etc/system/local/user-seed.conf
+            echo USERNAME=Admin >>$SPLUNK_HOME/etc/system/local/user-seed.conf
+            echo PASSWORD=Chang3d! >>$SPLUNK_HOME/etc/system/local/user-seed.conf
+            /opt/splunk/bin/splunk start --accept-license
+      #- python/load-cache
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: Install deps
+          command: |
+            pip install --upgrade pip
+            pip install --upgrade virtualenv
+            unset PYENV_ROOT
+            curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
+            export PATH="$HOME/.pyenv/bin:$PATH"
+            eval "$(pyenv init -)"
+            pyenv install << parameters.python-version >>
+            pyenv global << parameters.python-version >>
+            pyenv local << parameters.python-version >>
+            pip install /tmp/workspace/dist/*
+            pip install pytest
+            pip install pytest-cov
+            pip install pytest-expect
+            pip install pyaml
+            mkdir test-results || true
+            SPLUNK_HOME=/opt/splunk/ python -m pytest --junitxml=test-results/results.xml -v examples
+      - store_test_results:
+          path: test-results
+      - store_artifacts:
+          path: test-results
+      - store_artifacts:
+          path: htmlcov
+
+  publish-pypi:
+    docker:
+      - image: circleci/python:3.7
+    steps:
+      - setup_remote_docker:
+          docker_layer_caching: true
       - checkout
       - restore_cache:
           keys:
@@ -68,34 +247,126 @@ jobs:
             source $HOME/.poetry/env
             poetry install
             poetry run poetry-dynamic-versioning
-            poetry run build-ucc
-            poetry build
-            poetry publish -u ${TWINE_USERNAME} -p ${TWINE_PASSWORD}
-      - store_artifacts:
-          path: dist
-      - store_artifacts:
-          path: output
-      - persist_to_workspace:
-          # Must be an absolute path, or relative path from working_directory. This is a directory on the container which is
-          # taken to be the root directory of the workspace.
-          root: .
-          # Must be relative path from root
-          paths:
-            - dist
-            - output
+            poetry publish --build -u ${TWINE_USERNAME} -p ${TWINE_PASSWORD}
+
 workflows:
-  version: 2
-  build_test:
+  main:
     jobs:
       - build
-      - test:
+      # - test-unit:
+      #     requires:
+      #       - build
+      #     matrix:
+      #       parameters:
+      #         os: [linux]
+      #         python-version: ["2.7.17", "3.7.4"]
+      #     filters:
+      #       branches:
+      #         only: /.*/
+      # - test-splunk:
+      #     requires:
+      #       - build
+      #     matrix:
+      #       parameters:
+      #         os: [linux]
+      #         splunk-version: ["7.2", "7.3", "8.0"]
+      #         python-version: ["2.7.17", "3.7.4"]
+      #     filters:
+      #       branches:
+      #         only: /.*/
+      - approval-tag-alpha:
+          type: approval
+          filters:
+            branches:
+              only: develop
           requires:
             - build
-  build_release:
+      - splunk-release/tag:
+          name: tag-alpha
+          tag_level: a
+          gh_user: ${GH_USER}
+          gh_token: ${GH_PAT}
+          filters:
+            branches:
+              only: develop
+          requires:
+            - approval-tag-alpha
+      - approval-tag-beta:
+          requires:
+            - tag-alpha
+          type: approval
+          filters:
+            branches:
+              only: develop
+      - splunk-release/tag:
+          name: tag-beta
+          tag_level: b
+          gh_user: ${GH_USER}
+          gh_token: ${GH_PAT}
+          requires:
+            - approval-tag-beta
+      - approval-merge-beta-to-master:
+          requires:
+            - tag-beta
+          type: approval
+          filters:
+            branches:
+              only: develop
+      - splunk-release/merge-to-master:
+          name: merge-beta-to-master
+          gh_user: ${GH_USER}
+          gh_token: ${GH_PAT}
+          requires:
+            - approval-merge-beta-to-master
+          filters:
+            branches:
+              only: develop
+      - splunk-release/tag:
+          name: tag-candidate
+          tag_level: candidate
+          gh_user: ${GH_USER}
+          gh_token: ${GH_PAT}
+          filters:
+            branches:
+              only: master
+      - approval-tag-final-major:
+          type: approval
+          requires:
+            - tag-candidate
+      - splunk-release/tag:
+          name: tag-final-major
+          tag_level: final -s major
+          gh_user: ${GH_USER}
+          gh_token: ${GH_PAT}
+          requires:
+            - approval-tag-final-major
+      - approval-tag-final-minor:
+          type: approval
+          requires:
+            - tag-candidate
+      - splunk-release/tag:
+          name: tag-final-minor
+          tag_level: final -s minor
+          gh_user: ${GH_USER}
+          gh_token: ${GH_PAT}
+          requires:
+            - approval-tag-final-minor
+      - approval-tag-final-patch:
+          type: approval
+          requires:
+            - tag-candidate
+      - splunk-release/tag:
+          name: tag-final-patch
+          tag_level: final -s patch
+          gh_user: ${GH_USER}
+          gh_token: ${GH_PAT}
+          requires:
+            - approval-tag-final-patch
+  publish:
     jobs:
-      - publish:
+      - publish-pypi:
           filters:
             branches:
               ignore: /.*/
             tags:
-              only: /^v\d*\.\d*\.\d*/
+              only: /^v\d*\.\d*\.\d*.*$/
