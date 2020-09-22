@@ -10,6 +10,7 @@ python = "~2.7 || ^3.7"
 solnlib = '^3'
 splunk-sdk = "^1.6"
 future = "^0"
+splunktalib = "^1.1"
 
 [tool.poetry.dev-dependencies]
 pytest-expect = "^1.1.0"
