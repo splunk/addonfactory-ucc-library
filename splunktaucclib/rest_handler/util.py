@@ -10,8 +10,8 @@ from .error import RestError
 
 
 __all__ = [
-    'get_base_app_name',
-    'remove_http_proxy_env_vars',
+    "get_base_app_name",
+    "remove_http_proxy_env_vars",
 ]
 
 
@@ -20,6 +20,7 @@ def get_base_app_name():
     Base App name, which this script belongs to.
     """
     import __main__
+
     main_name = __main__.__file__
     absolute_path = os.path.normpath(main_name)
     parts = absolute_path.split(os.path.sep)
@@ -31,10 +32,7 @@ def get_base_app_name():
                 return parts[idx - 1]
         except (ValueError, IndexError):
             pass
-    raise RestError(
-        status=500,
-        message='Cannot get app name from file: %s' % main_name
-    )
+    raise RestError(status=500, message="Cannot get app name from file: %s" % main_name)
 
 
 def remove_http_proxy_env_vars():

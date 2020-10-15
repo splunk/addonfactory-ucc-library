@@ -12,8 +12,8 @@ from builtins import object
 from abc import abstractproperty
 
 __all__ = [
-    'RestSchemaError',
-    'RestSchema',
+    "RestSchemaError",
+    "RestSchema",
 ]
 
 
@@ -31,7 +31,7 @@ class RestSchema(object):
 
     @staticmethod
     def endpoint_name(name, namespace):
-        return '{}_{}'.format(namespace, name)
+        return "{}_{}".format(namespace, name)
 
     @abstractproperty
     def product(self):
