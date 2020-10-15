@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2020 2020
+#
+# SPDX-License-Identifier: Apache-2.0
 
 FIELD_PRODUCT = '_product'
 FIELD_REST_NAMESPACE = '_rest_namespace'

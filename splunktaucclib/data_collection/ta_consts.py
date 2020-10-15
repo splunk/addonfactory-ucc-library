@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2020 2020
+#
+# SPDX-License-Identifier: Apache-2.0
+
 server_uri = "server_uri"
 session_key = "session_key"
 version = "version"

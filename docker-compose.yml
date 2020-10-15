@@ -1,8 +1,7 @@
-##
-## SPDX-FileCopyrightText: 2020 Splunk, Inc. <sales@splunk.com>
-## SPDX-License-Identifier: LicenseRef-Splunk-1-2020
-##
-##
+# SPDX-FileCopyrightText: 2020 Splunk Inc.
+#
+# SPDX-License-Identifier: Apache-2.0
+
 version: "3.7"
 services:
   sc4s:

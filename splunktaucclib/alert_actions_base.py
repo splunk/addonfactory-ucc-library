@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2020 2020
+#
+# SPDX-License-Identifier: Apache-2.0
+
 from __future__ import print_function
 from splunktaucclib.splunk_aoblib.setup_util import Setup_Util
 from splunktaucclib.splunk_aoblib.rest_helper import TARestHelper

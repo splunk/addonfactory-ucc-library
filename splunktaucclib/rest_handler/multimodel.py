@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2020 2020
+#
+# SPDX-License-Identifier: Apache-2.0
+
 """REST handler for multiple models with different structure in one *.conf.
 It assumes that there are enumerable objects in every model,
 and they will be listed in ``modelMap`` in advance, that means

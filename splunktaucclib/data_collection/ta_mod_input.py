@@ -1,5 +1,9 @@
 #!/usr/bin/python
 
+# SPDX-FileCopyrightText: 2020 2020
+#
+# SPDX-License-Identifier: Apache-2.0
+
 """
 This is the main entry point for My TA
 """

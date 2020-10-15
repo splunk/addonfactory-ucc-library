@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2020 Splunk Inc.
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # README
 
 Splunk TA UCC Library Python (splunktaucclib) is an open source helper library used by Splunk Add-ons.

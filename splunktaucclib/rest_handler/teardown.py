@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2020 2020
+#
+# SPDX-License-Identifier: Apache-2.0
+
 """REST Manager for cleaning configuration in add-on.
 
 It will return endpoints that failed to be cleaned.

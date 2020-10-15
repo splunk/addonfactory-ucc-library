@@ -1,4 +1,9 @@
 #!/usr/bin/python
+
+# SPDX-FileCopyrightText: 2020 2020
+#
+# SPDX-License-Identifier: Apache-2.0
+
 from builtins import next
 from builtins import object
 from splunktaucclib.data_collection import ta_checkpoint_manager as cp

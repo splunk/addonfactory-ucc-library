@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2020 2020
+#
+# SPDX-License-Identifier: Apache-2.0
+
 """UCC Config Module
 This is for load/save configuration in UCC server or TA.
 The load/save action is based on specified schema.
