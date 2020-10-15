@@ -92,7 +92,7 @@ ALL_SETTING_TYPES = [
 
 def get_schema_path():
     dirname = os.path.dirname
-    basedir = dirname(dirname((dirname(__file__))))
+    basedir = dirname(dirname(dirname((dirname(__file__)))))
     return os.path.join(
         basedir, "appserver", "static", "js", "build", "globalConfig.json"
     )
