@@ -27,7 +27,7 @@ poetry-dynamic-versioning = { version = "^0.8", python = "^3.7" }
 tomlkit = "^0"
 reuse = "*"
 black = [
-    { version = "20.8b1" , python = "^3.7" }
+    { version = "20.8b1",  python = "^3.7" }
 ]
 
 [tool.poetry-dynamic-versioning]
