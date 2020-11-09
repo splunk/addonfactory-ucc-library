@@ -7,7 +7,11 @@ from __future__ import print_function
 import os.path
 
 from .error import RestError
-from splunk import admin
+
+try:
+    from splunk import admin
+except:
+    print('Some functions will not be available outside of a splunk hosted process')
 
 try:
     from splunktalib.common import util
