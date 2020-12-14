@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from past.builtins import basestring
 from builtins import str
 from builtins import next
 from builtins import range
