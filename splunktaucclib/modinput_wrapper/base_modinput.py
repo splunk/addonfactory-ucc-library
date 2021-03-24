@@ -7,14 +7,14 @@ import sys
 import json
 import tempfile
 
-from solnlib.packages.splunklib import modularinput as smi
+from splunklib import modularinput as smi
 from solnlib.log import Logs
 from solnlib.modular_input import checkpointer
 from solnlib import utils as sutils
 
 from splunktaucclib.global_config import GlobalConfig, GlobalConfigSchema
-from splunk_aoblib.rest_helper import TARestHelper
-from splunk_aoblib.setup_util import Setup_Util
+from splunktaucclib.splunk_aoblib.rest_helper import TARestHelper
+from splunktaucclib.splunk_aoblib.setup_util import Setup_Util
 
 DATA_INPUTS_OPTIONS = "data_inputs_options"
 AOB_TEST_FLAG = 'AOB_TEST'
@@ -63,21 +63,18 @@ class BaseModInput(smi.Script):
     def global_setup_util(self):
         """
         This is a private API used in AoB code internally. It is not allowed to be used in user's code.
-
         :return: setup util instance to read global configurations
         """
         return self.setup_util
 
     def get_app_name(self):
         """Get TA name.
-
         :return: the name of TA this modular input is in
         """
         raise NotImplemented
 
     def get_scheme(self):
         """Get basic scheme, with use_single_instance field set.
-
         :return: a basic input scheme
         """
         scheme = smi.Scheme(self.input_type)
@@ -86,10 +83,8 @@ class BaseModInput(smi.Script):
 
     def stream_events(self, inputs, ew):
         """The method called to stream events into Splunk.
-
         This method overrides method in splunklib modular input.
         It pre-processes the input args and call collect_events to stream events.
-
         :param inputs: An ``InputDefinition`` object.
         :param ew: An object with methods to write events and log messages to Splunk.
         """
@@ -135,16 +130,13 @@ class BaseModInput(smi.Script):
 
     def collect_events(self, event_writer):
         """Collect events and stream to Splunk using event writer provided.
-
         Note: This method is originally collect_events(self, inputs, event_writer).
-
         :param event_writer: An object with methods to write events and log messages to Splunk.
         """
         raise NotImplemented()
 
     def parse_input_args(self, inputs):
         """Parse input arguments, either from os environment when testing or from global configuration.
-
         :param inputs: An ``InputDefinition`` object.
         :return:
         """
@@ -157,12 +149,11 @@ class BaseModInput(smi.Script):
 
     def _parse_input_args_from_global_config(self, inputs):
         """Parse input arguments from global configuration.
-
         :param inputs:
         """
+        # dirname at this point will be <splunk_home>/etc/apps/<ta-name>/lib/splunktaucclib/modinput_wrapper, go up 3 dirs from this file to find the root TA directory
         dirname = os.path.dirname
-        config_path = os.path.join(dirname(dirname(dirname(dirname(dirname(__file__))))), 'appserver', 'static', 'js', 'build',
-                                   'globalConfig.json')
+        config_path = os.path.join(dirname(dirname(dirname(dirname(__file__)))), 'appserver', 'static', 'js', 'build','globalConfig.json')
         with open(config_path) as f:
             schema_json = ''.join([l for l in f])
         global_schema = GlobalConfigSchema(json.loads(schema_json))
@@ -198,7 +189,6 @@ class BaseModInput(smi.Script):
 
     def _parse_input_args_from_env(self, inputs):
         """Parse input arguments from os environment. This is used for testing inputs.
-
         :param inputs:
         """
         data_inputs_options = json.loads(os.environ.get(DATA_INPUTS_OPTIONS, '[]'))
@@ -224,25 +214,20 @@ class BaseModInput(smi.Script):
 
     def get_account_fields(self):
         """Get the names of account variables.
-
         Should be implemented in subclass.
-
         :return: a list of variable names
         """
         raise NotImplemented
 
     def get_checkbox_fields(self):
         """Get the names of checkbox variables.
-
         Should be implemented in subclass.
-
         :return: a list of variable names
         """
         raise NotImplemented
 
     def get_global_checkbox_fields(self):
         """Get the names of checkbox global parameters.
-
         :return: a list of global variable names
         """
         raise NotImplemented
@@ -255,14 +240,12 @@ class BaseModInput(smi.Script):
 
     def get_log_level(self):
         """Get the log level configured in global configuration.
-
         :return: log level set in global configuration or "INFO" by default.
         """
         return self.setup_util.get_log_level()
 
     def set_log_level(self, level):
         """Set the log level this python process uses.
-
         :param level: log level in `string`. Accept "DEBUG", "INFO", "WARNING", "ERROR" and "CRITICAL".
         """
         if isinstance(level, str):
@@ -275,42 +258,36 @@ class BaseModInput(smi.Script):
 
     def log(self, msg):
         """Log msg using logging level in global configuration.
-
         :param msg: log `string`
         """
         self.logger.log(level=self.log_level, msg=msg)
 
     def log_debug(self, msg):
         """Log msg using logging.DEBUG level.
-
         :param msg: log `string`
         """
         self.logger.debug(msg)
 
     def log_info(self, msg):
         """Log msg using logging.INFO level.
-
         :param msg: log `string`
         """
         self.logger.info(msg)
 
     def log_warning(self, msg):
         """Log msg using logging.WARNING level.
-
         :param msg: log `string`
         """
         self.logger.warning(msg)
 
     def log_error(self, msg):
         """Log msg using logging.ERROR level.
-
         :param msg: log `string`
         """
         self.logger.error(msg)
 
     def log_critical(self, msg):
         """Log msg using logging.CRITICAL level.
-
         :param msg: log `string`
         """
         self.logger.critical(msg)
@@ -321,18 +298,14 @@ class BaseModInput(smi.Script):
 
     def get_proxy(self):
         """Get proxy settings in global configuration.
-
         Proxy settings include fields "proxy_url", "proxy_port", "proxy_username", "proxy_password", "proxy_type" and "proxy_rdns".
-
         :return: a `dict` containing proxy parameters or empty `dict` if proxy is not set.
         """
         return self.setup_util.get_proxy_settings()
 
     def get_user_credential_by_username(self, username):
         """Get global credential information based on username.
-
         Credential settings include fields "name"(account id), "username" and "password".
-
         :param username: `string`
         :return: if credential with username exists, return a `dict`, else None.
         """
@@ -340,9 +313,7 @@ class BaseModInput(smi.Script):
 
     def get_user_credential_by_id(self, account_id):
         """Get global credential information based on account id.
-
         Credential settings include fields "name"(account id), "username" and "password".
-
         :param account_id: `string`
         :return: if credential with account_id exists, return a `dict`, else None.
         """
@@ -350,7 +321,6 @@ class BaseModInput(smi.Script):
 
     def get_global_setting(self, var_name):
         """Get customized setting value configured in global configuration.
-
         :param var_name: `string`
         :return: customized global configuration value or None
         """
@@ -362,7 +332,6 @@ class BaseModInput(smi.Script):
     # Functions to help create events.
     def new_event(self, data, time=None, host=None, index=None, source=None, sourcetype=None, done=True, unbroken=True):
         """Create a Splunk event object.
-
         :param data: ``string``, the event's text.
         :param time: ``float``, time in seconds, including up to 3 decimal places to represent milliseconds.
         :param host: ``string``, the event's host, ex: localhost.
@@ -379,17 +348,14 @@ class BaseModInput(smi.Script):
     # Basic get functions. To get params in input stanza.
     def get_input_type(self):
         """Get input type.
-
         :return: the modular input type
         """
         return self.input_type
 
     def get_input_stanza(self, input_stanza_name=None):
         """Get input stanzas.
-
         If stanza name is None, return a dict with stanza name as key and params as values.
         Else return a dict with param name as key and param value as value.
-
         :param input_stanza_name: None or `string`
         :return: `dict`
         """
@@ -399,10 +365,8 @@ class BaseModInput(smi.Script):
 
     def get_input_stanza_names(self):
         """Get all stanza names this modular input instance is given.
-
         For multi instance mode, a single string value will be returned.
         For single instance mode, stanza names will be returned in a list.
-
         :return: `string` or `list`
         """
         if self.input_stanzas:
@@ -416,12 +380,10 @@ class BaseModInput(smi.Script):
 
     def get_arg(self, arg_name, input_stanza_name=None):
         """Get the input argument.
-
         If input_stanza_name is not provided:
             For single instance mode, return a dict <input_name, arg_value>.
             For multi instance mode, return a single value or None.
         If input_stanza_name is provided, return a single value or None.
-
         :param arg_name: `string`, argument name
         :param input_stanza_name: None or `string`, a stanza name
         :return: `dict` or `string` or None
@@ -440,7 +402,6 @@ class BaseModInput(smi.Script):
 
     def get_output_index(self, input_stanza_name=None):
         """Get output Splunk index.
-
         :param input_stanza_name: `string`
         :return: `string` output index
         """
@@ -448,7 +409,6 @@ class BaseModInput(smi.Script):
 
     def get_sourcetype(self, input_stanza_name=None):
         """Get sourcetype to index.
-
         :param input_stanza_name: `string`
         :return: the sourcetype to index to
         """
@@ -458,7 +418,6 @@ class BaseModInput(smi.Script):
     def send_http_request(self, url, method, parameters=None, payload=None, headers=None, cookies=None, verify=True,
                           cert=None, timeout=None, use_proxy=True):
         """Send http request and get response.
-
         :param url: URL for the new Request object.
         :param method: method for the new Request object. Can be "GET", "POST", "PUT", "DELETE"
         :param parameters: (optional) Dictionary or bytes to be sent in the query string for the Request.
@@ -512,7 +471,6 @@ class BaseModInput(smi.Script):
 
     def get_check_point(self, key):
         """Get checkpoint.
-
         :param key: `string`
         :return: Checkpoint state if exists else None.
         """
@@ -522,7 +480,6 @@ class BaseModInput(smi.Script):
 
     def save_check_point(self, key, state):
         """Update checkpoint.
-
         :param key: Checkpoint key. `string`
         :param state: Checkpoint state.
         """
@@ -532,7 +489,6 @@ class BaseModInput(smi.Script):
 
     def batch_save_check_point(self, states):
         """Batch update checkpoint.
-
         :param states: a `dict` states with checkpoint key as key and checkpoint state as value.
         """
         if self.ckpt is None:
@@ -541,9 +497,9 @@ class BaseModInput(smi.Script):
 
     def delete_check_point(self, key):
         """Delete checkpoint.
-
         :param key: Checkpoint key. `string`
         """
         if self.ckpt is None:
             self._init_ckpt()
         self.ckpt.delete(key)
+
