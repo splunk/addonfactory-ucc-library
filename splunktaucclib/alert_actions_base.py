@@ -6,7 +6,7 @@ from __future__ import print_function
 from splunktaucclib.splunk_aoblib.setup_util import Setup_Util
 from splunktaucclib.splunk_aoblib.rest_helper import TARestHelper
 import logging
-from logging_helper import get_logger
+from splunktaucclib.logging_helper import get_logger
 from splunktaucclib.cim_actions import ModularAction
 import requests
 from builtins import str
