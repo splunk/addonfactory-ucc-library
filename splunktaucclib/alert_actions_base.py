@@ -226,7 +226,7 @@ class ModularAlertBase(ModularAction):
 
     def get_events(self):
         try:
-            self.result_handle = gzip.open(self.results_file, "rb")
+            self.result_handle = gzip.open(self.results_file, "rt")
             return (
                 self.pre_handle(num, result)
                 for num, result in enumerate(csv.DictReader(self.result_handle))
@@ -237,7 +237,7 @@ class ModularAlertBase(ModularAction):
             sys.exit(2)
 
     def prepare_meta_for_cam(self):
-        with gzip.open(self.results_file, "rb") as rf:
+        with gzip.open(self.results_file, "rt") as rf:
             for num, result in enumerate(csv.DictReader(rf)):
                 result.setdefault("rid", str(num))
                 self.update(result)
