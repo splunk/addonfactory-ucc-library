@@ -10,11 +10,11 @@ authors = ["rfaircloth-splunk <rfaircloth@splunk.com>"]
 license = "APACHE-2.0"
 
 [tool.poetry.dependencies]
-python = "~2.7 || ^3.7"
-solnlib = '^3'
+python = "^3.7"
+solnlib = '^4.0.0'
 splunk-sdk = "^1.6"
 future = "^0"
-splunktalib = "1.2.1"
+splunktalib = "^2.0.0"
 
 [tool.poetry.dev-dependencies]
 pytest-expect = "^1.1.0"
