@@ -1,0 +1,36 @@
+name: Snyk Scan
+
+on:
+  pull_request:
+    branches: [main]
+    types: [closed]
+
+jobs:
+  test:
+    if: github.event.pull_request.merged==true && (github.ref!='main' || (github.ref=='main' && github.event.pull_request.user.login!='dependabot'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+      - name: Install dependencies
+        run: |
+          curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
+      - uses: snyk/actions/setup@master
+      - name: snyk auth - authenticate snyk use environment variables to add token
+        run:  snyk auth ${{ secrets.SNYK_TOKEN }}
+      - run: mkdir snyk_output
+      - name: snyk test package/lib/requirements.txt
+        if: always()
+        run: |
+              source $HOME/.poetry/env
+              poetry install >/dev/null 2>&1
+              snyk test --severity-threshold=high --print-deps --file=pyproject.toml --package-manager=poetry --command=python3 --json-file-output=snyk_output/snyk-scan.json --sarif-file-output=snyk_output/snyk-scan.sarif
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: Snyk_test_results
+          path: snyk_output/*
+          if-no-files-found: ignore
