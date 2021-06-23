@@ -42,10 +42,6 @@ class GlobalConfigSchema(RestSchema):
         return ""
 
     @property
-    def version(self):
-        return self._meta["apiVersion"]
-
-    @property
     def inputs(self):
         return self._inputs
 
