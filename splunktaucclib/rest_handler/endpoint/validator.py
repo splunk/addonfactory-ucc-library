@@ -41,9 +41,10 @@ class Validator(object):
     Base class of validators.
     """
 
-    def __init__(self):
+    def __init__(self, max_size=20):
         # Validation error message queue
         self._msgs = []
+        self._max_queue_size = max_size
 
     def validate(self, value, data):
         """
@@ -78,6 +79,8 @@ class Validator(object):
             self._msgs.insert(0, msg)
         else:
             self._msgs.append(msg)
+        if len(self._msgs) > self._max_queue_size:
+            self._msgs = self._msgs[:self._max_queue_size]
 
 
 class ValidationFailed(Exception):
