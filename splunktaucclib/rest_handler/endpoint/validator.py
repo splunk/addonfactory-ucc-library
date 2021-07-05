@@ -13,6 +13,7 @@ import sys
 from builtins import object
 import re
 import json
+import warnings
 from inspect import isfunction
 
 
@@ -42,8 +43,7 @@ class Validator(object):
     """
 
     def __init__(self):
-        # Validation error message queue
-        self._msgs = []
+        self._msg = ""
 
     def validate(self, value, data):
         """
@@ -64,20 +64,22 @@ class Validator(object):
 
         :return:
         """
-        return self._msgs[0] if self._msgs else "Invalid input value"
+        return self._msg if self._msg else "Invalid input value"
 
-    def put_msg(self, msg, high_priority=False):
+    def put_msg(self, msg, *args, **kwargs):
         """
         Put message content into pool.
 
         :param msg: error message content
-        :param high_priority: is this message with high priority
         :return:
         """
-        if high_priority:
-            self._msgs.insert(0, msg)
-        else:
-            self._msgs.append(msg)
+        if args or "high_priority" in kwargs:
+            warnings.warn(
+                "`high_priority` arg is deprecated and at a time a single message string is kept in memory."
+                " The last message passed to `put_msg` is returned by `msg` property.",
+                DeprecationWarning
+            )
+        self._msg = msg
 
 
 class ValidationFailed(Exception):
