@@ -77,7 +77,7 @@ class Validator(object):
             warnings.warn(
                 "`high_priority` arg is deprecated and at a time a single message string is kept in memory."
                 " The last message passed to `put_msg` is returned by `msg` property.",
-                DeprecationWarning,
+                FutureWarning,
             )
         self._msg = msg
 
