@@ -8,9 +8,6 @@ Note: It manages inputs.conf
 
 """
 
-from future import standard_library
-
-standard_library.install_aliases()
 import sys
 import json
 import logging

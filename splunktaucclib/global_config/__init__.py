@@ -7,9 +7,6 @@ Global Config Module
 """
 
 
-from future import standard_library
-
-standard_library.install_aliases()
 import urllib.parse
 from solnlib.splunk_rest_client import SplunkRestClient
 
