@@ -2,8 +2,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from six import string_types as basestring
-import six
 import collections
 import csv
 import json
@@ -151,7 +149,7 @@ class ModularAction:
         ## use | sendalert param.action_name=$action_name$
         self.action_name = self.configuration.get("action_name") or action_name
         ## use sid to determine action_mode
-        if isinstance(self.sid, basestring) and "scheduler" in self.sid:
+        if isinstance(self.sid, str) and "scheduler" in self.sid:
             self.action_mode = "saved"
         else:
             self.action_mode = "adhoc"
@@ -315,7 +313,7 @@ class ModularAction:
         self.orig_sid = result.get("orig_sid", "")
         ## This is for events/results that were created as the result of a previous action
         self.orig_rid = result.get("orig_rid", "")
-        if "rid" in result and isinstance(result["rid"], (basestring, int)):
+        if "rid" in result and isinstance(result["rid"], (str, int)):
             self.rid = str(result["rid"])
             if self.sid_snapshot:
                 self.rid = "{}.{}".format(self.rid, self.sid_snapshot)
@@ -386,7 +384,7 @@ class ModularAction:
             if (
                 key.startswith("__mv_")
                 and val
-                and isinstance(val, basestring)
+                and isinstance(val, str)
                 and val.startswith("$")
                 and val.endswith("$")
             ):
@@ -411,7 +409,7 @@ class ModularAction:
                     if key.startswith("__mv"):
                         val = val.replace("$$", "$")
                     ## escape quotes
-                    if isinstance(val, basestring):
+                    if isinstance(val, str):
                         val = val.replace('"', r"\"")
                     ## check map
                     if mapexp(real_key):
