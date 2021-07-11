@@ -6,11 +6,10 @@
 This module provides Read-Write lock.
 """
 
-from builtins import object
 import threading
 
 
-class _ReadLocker(object):
+class _ReadLocker:
     def __init__(self, lock):
         self.lock = lock
 
@@ -22,7 +21,7 @@ class _ReadLocker(object):
         return False
 
 
-class _WriteLocker(object):
+class _WriteLocker:
     def __init__(self, lock):
         self.lock = lock
 
@@ -34,7 +33,7 @@ class _WriteLocker(object):
         return False
 
 
-class RWLock(object):
+class RWLock:
     """Simple Read-Write lock.
 
     Allow multiple read but only one writing concurrently.

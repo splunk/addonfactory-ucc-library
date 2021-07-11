@@ -4,8 +4,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from __future__ import absolute_import
-from builtins import object
 import time
 import threading
 from . import ta_consts as c
@@ -51,7 +49,7 @@ event_tuple = namedtuple(
 )
 
 
-class TADataCollector(object):
+class TADataCollector:
     def __init__(
         self,
         tconfig,

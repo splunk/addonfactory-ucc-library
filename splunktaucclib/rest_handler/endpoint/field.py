@@ -2,16 +2,14 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from __future__ import absolute_import
 
-from builtins import object
 from ..error import RestError
 
 
 __all__ = ["RestField"]
 
 
-class RestField(object):
+class RestField:
     """
     REST Field.
     """

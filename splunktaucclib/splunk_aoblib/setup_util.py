@@ -2,9 +2,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from builtins import str
-from builtins import range
-from builtins import object
 import json
 import os
 
@@ -92,13 +89,13 @@ ALL_SETTING_TYPES = [
 
 def get_schema_path():
     dirname = os.path.dirname
-    basedir = dirname(dirname(dirname((dirname(__file__)))))
+    basedir = dirname(dirname(dirname(dirname(__file__))))
     return os.path.join(
         basedir, "appserver", "static", "js", "build", "globalConfig.json"
     )
 
 
-class Setup_Util(object):
+class Setup_Util:
     def __init__(self, uri, session_key, logger=None):
         self.__uri = uri
         self.__session_key = session_key

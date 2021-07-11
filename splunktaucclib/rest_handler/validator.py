@@ -5,10 +5,8 @@
 """Validators
 """
 
-from __future__ import absolute_import
 
 import sys
-from builtins import object
 import re
 import json
 
@@ -31,7 +29,7 @@ __all__ = [
 basestring = str if sys.version_info[0] == 3 else basestring
 
 
-class Validator(object):
+class Validator:
     """Base class of validators."""
 
     _name = None  # Validator name.
@@ -113,7 +111,7 @@ class Userdefined(Validator):
         """
         :param values: The collection of valid values
         """
-        super(Userdefined, self).__init__()
+        super().__init__()
         self._validator, self._args, self._kwargs = validator, args, kwargs
 
     def validate(self, value, data):
@@ -133,7 +131,7 @@ class Enum(Validator):
         """
         :param values: The collection of valid values
         """
-        super(Enum, self).__init__()
+        super().__init__()
         try:
             self._values = set(values)
         except:
@@ -165,7 +163,7 @@ class Range(Validator):
         assert (minVal is None or minVal_bool) and (
             maxVal is None or maxVal_bool
         ), "``minVal`` & ``maxVal`` should be numeric"
-        super(Range, self).__init__()
+        super().__init__()
         self._minVal, self._maxVal = minVal, maxVal
 
         if None not in (self._minVal, self._maxVal):
@@ -212,7 +210,7 @@ class String(Validator):
         assert (minLen is None or minLen_bool) and (
             maxLen is None or maxLen_bool
         ), "``minLen`` & ``maxLen`` should be numeric"
-        super(String, self).__init__()
+        super().__init__()
         self._minLen = 0 if minLen is not None and minLen < 0 else minLen
         self._maxLen = 0 if maxLen is not None and maxLen < 0 else maxLen
 
@@ -241,7 +239,7 @@ class Pattern(Validator):
             to be matched.
         :param flags: flags value for regular expression.
         """
-        super(Pattern, self).__init__()
+        super().__init__()
         self._regexp = re.compile(regexp, flags=flags)
         self._msg = "Not matching the pattern"
 
@@ -257,7 +255,7 @@ class Host(Pattern):
             r"^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*"
             r"([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
         )
-        super(Host, self).__init__(regexp, flags=re.I)
+        super().__init__(regexp, flags=re.I)
         self._msg = "Invalid hostname"
 
 
@@ -265,7 +263,7 @@ class Port(Range):
     """Port number."""
 
     def __init__(self):
-        super(Port, self).__init__(0, 65535)
+        super().__init__(0, 65535)
         self._msg = "Port number should be an integer between 0 and 65535"
 
     def validate(self, value, data):
@@ -273,7 +271,7 @@ class Port(Range):
             value = int(value)
         except ValueError:
             return False
-        return super(Port, self).validate(value, data)
+        return super().validate(value, data)
 
 
 class RequiredIf(Validator):

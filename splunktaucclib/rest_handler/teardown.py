@@ -8,7 +8,6 @@ It will return endpoints that failed to be cleaned.
 
 """
 
-from __future__ import absolute_import
 
 from future import standard_library
 

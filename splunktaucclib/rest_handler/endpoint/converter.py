@@ -6,10 +6,8 @@
 Converters for Splunk configuration.
 """
 
-from __future__ import absolute_import
 
 import sys
-from builtins import object
 import base64
 import json
 
@@ -30,7 +28,7 @@ __all__ = [
 ]
 
 
-class Converter(object):
+class Converter:
     """
     Converting data: encode for in-coming request
         and decode for out-coming response.
@@ -90,7 +88,7 @@ class ChainOf(Converter):
 
         :param converters: a list of converters
         """
-        super(ChainOf, self).__init__()
+        super().__init__()
         self._converters = converters
 
     def encode(self, value, request):
@@ -135,7 +133,7 @@ class UserDefined(Converter):
         :param args:
         :param kwargs:
         """
-        super(UserDefined, self).__init__()
+        super().__init__()
         self._encoder = encoder
         self._decoder = decoder or self._encoder
         self._args = args
@@ -185,7 +183,7 @@ class Unifier(Normaliser):
         :param case_sensitive: if it is False,
             it will return lower case
         """
-        super(Unifier, self).__init__()
+        super().__init__()
         self._case_sensitive = case_sensitive
         self._default = default
         self._value_map = {}
@@ -223,7 +221,7 @@ class Boolean(Unifier):
 
         :param default: default for unrecognizable input of boolean.
         """
-        super(Boolean, self).__init__(
+        super().__init__(
             value_map={
                 "1": Boolean.VALUES_TRUE,
                 "0": Boolean.VALUES_FALSE,
@@ -247,7 +245,7 @@ class Mapping(Converter):
         :param case_sensitive: if it is False,
             it will return lower case
         """
-        super(Mapping, self).__init__()
+        super().__init__()
         self._case_sensitive = case_sensitive
         self._map_interface, self._map_storage = {}, {}
         for interface, storage in value_map.items():

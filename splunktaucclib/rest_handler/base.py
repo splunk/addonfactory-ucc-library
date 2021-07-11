@@ -5,9 +5,7 @@
 """Base Handler Class of REST Manager.
 """
 
-from __future__ import absolute_import
 import sys
-from builtins import object
 import logging
 import json
 import copy
@@ -118,7 +116,7 @@ class BaseRestHandler(admin.MConfigHandler):
             except ResourceNotFound:
                 self.exist4sync = False
             except Exception as exc:
-                RH_Err.ctl(1102, msgx="object=%s, err=%s" % (self.callerArgs.id, exc))
+                RH_Err.ctl(1102, msgx="object={}, err={}".format(self.callerArgs.id, exc))
             else:
                 self.exist4sync = True
         self._cred_mgmt = self.get_cred_mgmt(self.endpoint)
@@ -184,9 +182,9 @@ class BaseRestHandler(admin.MConfigHandler):
 
     def get_cred_mgmt(self, endpoint):
         # credential fields
-        self.encryptedArgs = set(
-            [(self.keyMap.get(arg) or arg) for arg in self.encryptedArgs]
-        )
+        self.encryptedArgs = {
+            (self.keyMap.get(arg) or arg) for arg in self.encryptedArgs
+        }
         user, app = self.user_app()
         return CredMgmt(
             sessionKey=self.getSessionKey(),
@@ -385,7 +383,7 @@ class BaseRestHandler(admin.MConfigHandler):
             except ResourceNotFound:
                 RH_Err.ctl(
                     1021,
-                    msgx="endpoint=%s, item=%s" % (self.endpoint, name),
+                    msgx="endpoint={}, item={}".format(self.endpoint, name),
                     shouldPrint=False,
                     shouldRaise=False,
                 )
@@ -621,7 +619,7 @@ class BaseRestHandler(admin.MConfigHandler):
             stulog.logger.info(msg)
 
 
-class BaseModel(object):
+class BaseModel:
     """Model of Data.
     It ensure that key/value stored in *.conf are mapped to storage key/value,
     key/value shown to user are mapped to interface key/value.

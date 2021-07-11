@@ -13,9 +13,7 @@ via REST or *.conf directly.
 This handler is for some global settings like proxy, logging, etc.
 """
 
-from __future__ import absolute_import
 
-from builtins import object
 import logging
 
 import splunk
@@ -84,9 +82,9 @@ class MultiModelRestHandler(base.BaseRestHandler):
         self.__dict__.update(attrs)
 
         # credential fields
-        self.encryptedArgs = set(
-            [(self.keyMap.get(arg) or arg) for arg in self.encryptedArgs]
-        )
+        self.encryptedArgs = {
+            (self.keyMap.get(arg) or arg) for arg in self.encryptedArgs
+        }
         user, app = self.user_app()
         self._cred_mgmt = CredMgmt(
             sessionKey=self.getSessionKey(),
@@ -142,10 +140,10 @@ class MultiModelRestHandler(base.BaseRestHandler):
             RH_Err.ctl(-1, exc, logLevel=logging.INFO)
 
     def _getHandlerName(self):
-        return "%s.%s" % (self.__class__.__name__, self.model.__name__)
+        return "{}.{}".format(self.__class__.__name__, self.model.__name__)
 
 
-class MultiModel(object):
+class MultiModel:
     """Mapping from object name to model, which means stanzas with
     different structure will be stored in same endpoint.
     """

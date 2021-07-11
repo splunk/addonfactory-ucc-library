@@ -4,8 +4,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from builtins import next
-from builtins import object
 from splunktaucclib.data_collection import ta_checkpoint_manager as cp
 import splunktaucclib.data_collection.ta_data_collector as tdc
 
@@ -27,7 +25,7 @@ def build_event(
     )
 
 
-class TaDataClient(object):
+class TaDataClient:
     def __init__(
         self,
         all_conf_contents,
@@ -70,7 +68,7 @@ def create_data_collector(
 def client_adapter(job_func):
     class TaDataClientAdapter(TaDataClient):
         def __init__(self, all_conf_contents, meta_config, task_config, ckpt, chp_mgr):
-            super(TaDataClientAdapter, self).__init__(
+            super().__init__(
                 all_conf_contents, meta_config, task_config, ckpt, chp_mgr
             )
             self._execute_times = 0
@@ -82,7 +80,7 @@ def client_adapter(job_func):
             """
 
             # normaly base class just set self._stop as True
-            super(TaDataClientAdapter, self).stop()
+            super().stop()
 
         def get(self):
             """

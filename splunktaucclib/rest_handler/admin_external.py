@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from __future__ import absolute_import
 
 from functools import wraps
 from splunk import admin
@@ -67,7 +66,7 @@ def get_splunkd_endpoint():
         return splunkd_uri
 
 
-class AdminExternalHandler(HookMixin, admin.MConfigHandler, object):
+class AdminExternalHandler(HookMixin, admin.MConfigHandler):
 
     # Leave it for setting REST model
     endpoint = None

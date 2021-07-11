@@ -38,7 +38,7 @@ class BaseModInput(smi.Script):
                        'critical': logging.CRITICAL}
 
     def __init__(self, app_namespace, input_name, use_single_instance=False):
-        super(BaseModInput, self).__init__()
+        super().__init__()
         self.use_single_instance = use_single_instance
         self._canceled = False
         self.input_type = input_name
@@ -442,12 +442,12 @@ class BaseModInput(smi.Script):
         if proxy and proxy.get('proxy_url') and proxy.get('proxy_type'):
             uri = proxy['proxy_url']
             if proxy.get('proxy_port'):
-                uri = '{0}:{1}'.format(uri, proxy.get('proxy_port'))
+                uri = '{}:{}'.format(uri, proxy.get('proxy_port'))
             if proxy.get('proxy_username') and proxy.get('proxy_password'):
-                uri = '{0}://{1}:{2}@{3}/'.format(proxy['proxy_type'], proxy[
+                uri = '{}://{}:{}@{}/'.format(proxy['proxy_type'], proxy[
                     'proxy_username'], proxy['proxy_password'], uri)
             else:
-                uri = '{0}://{1}'.format(proxy['proxy_type'], uri)
+                uri = '{}://{}'.format(proxy['proxy_type'], uri)
         return uri
 
     # Checkpointing related functions

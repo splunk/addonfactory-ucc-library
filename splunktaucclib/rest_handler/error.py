@@ -6,7 +6,6 @@
 Error Handling.
 """
 
-from __future__ import absolute_import
 
 __all__ = ["STATUS_CODES", "RestError"]
 
@@ -41,9 +40,9 @@ class RestError(Exception):
             "Unknown Error",
         )
         self.message = message
-        err_msg = "REST Error [%(status)s]: %(reason)s -- %(message)s" % {
-            "status": self.status,
-            "reason": self.reason,
-            "message": self.message,
-        }
-        super(RestError, self).__init__(err_msg)
+        err_msg = "REST Error [{status}]: {reason} -- {message}".format(
+            status=self.status,
+            reason=self.reason,
+            message=self.message,
+        )
+        super().__init__(err_msg)
