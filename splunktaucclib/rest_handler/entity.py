@@ -2,15 +2,13 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from __future__ import absolute_import
 
-from builtins import object
 from .eai import RestEAI
 
 __all__ = ["RestEntity"]
 
 
-class RestEntity(object):
+class RestEntity:
     def __init__(self, name, content, model, user, app, acl=None):
         self.name = name
         self.content = content

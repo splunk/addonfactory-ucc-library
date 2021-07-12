@@ -2,11 +2,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from __future__ import absolute_import
-from future import standard_library
-
-standard_library.install_aliases()
-from builtins import object
 from . import ta_consts as c
 import splunktalib.state_store as ss
 import splunktaucclib.common.log as stulog
@@ -14,7 +9,7 @@ import re
 import urllib.request, urllib.parse, urllib.error
 
 
-class TACheckPointMgr(object):
+class TACheckPointMgr:
     SEPARATOR = "___"
 
     def __init__(self, meta_config, task_config):
@@ -57,7 +52,7 @@ class TACheckPointMgr(object):
         key_str = TACheckPointMgr.SEPARATOR.join(divide_value)
         qualified_key_str = ""
         for i in range(len(key_str)):
-            if re.match("[^\w]", key_str[i]):
+            if re.match(r"[^\w]", key_str[i]):
                 qualified_key_str += urllib.parse.quote(key_str[i])
             else:
                 qualified_key_str += key_str[i]

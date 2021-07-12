@@ -2,10 +2,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from __future__ import absolute_import
 
 # EAI fields
-from builtins import object
 
 EAI_ACL = "eai:acl"
 EAI_ATTRIBUTES = "eai:attributes"
@@ -21,7 +19,7 @@ EAI_ATTRIBUTES_REQUIRED = "requiredFields"
 EAI_ATTRIBUTES_WILDCARD = "wildcardFields"
 
 
-class RestEAI(object):
+class RestEAI:
     def __init__(self, model, user, app, acl=None):
         self.model = model
         default_acl = {

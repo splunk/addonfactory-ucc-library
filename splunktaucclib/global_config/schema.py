@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from __future__ import absolute_import
 
 import traceback
 
@@ -17,7 +16,7 @@ class GlobalConfigSchema(RestSchema):
         :param args:
         :param kwargs:
         """
-        super(GlobalConfigSchema, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._content = content
         self._inputs = []
         self._configs = []

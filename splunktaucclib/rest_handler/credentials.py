@@ -5,12 +5,7 @@
 """Credentials Management for REST Endpoint
 """
 
-from __future__ import absolute_import
 
-from future import standard_library
-
-standard_library.install_aliases()
-from builtins import object
 import json
 import urllib.parse
 from solnlib.credentials import (
@@ -28,7 +23,7 @@ __all__ = [
 ]
 
 
-class RestCredentialsContext(object):
+class RestCredentialsContext:
     """
     Credentials' context, including realm, username and password.
     """
@@ -82,14 +77,14 @@ class RestCredentialsContext(object):
             raise RestError(500, "Fail to load encrypted string, invalid JSON")
 
 
-class RestCredentials(object):
+class RestCredentials:
     """
     Credential Management stored in passwords.conf
     """
 
     # Changed password constant to six '*' to make it consistent with solnlib password constant
-    PASSWORD = u"******"
-    EMPTY_VALUE = u""
+    PASSWORD = "******"
+    EMPTY_VALUE = ""
 
     def __init__(self, splunkd_uri, session_key, endpoint):
         self._splunkd_uri = splunkd_uri

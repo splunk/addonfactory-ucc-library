@@ -2,10 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from __future__ import absolute_import
-from __future__ import division
 import sys
-from builtins import object
 import socket
 from . import ta_consts as c
 import os.path as op
@@ -18,7 +15,7 @@ from splunktalib.common import util
 basestring = str if sys.version_info[0] == 3 else basestring
 
 # methods can be overrided by subclass : process_task_configs
-class TaConfig(object):
+class TaConfig:
     _current_hostname = socket.gethostname()
     _appname = util.get_appname_from_path(op.abspath(__file__))
 

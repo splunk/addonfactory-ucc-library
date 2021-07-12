@@ -6,12 +6,7 @@
 Global Config Module
 """
 
-from __future__ import absolute_import
 
-from future import standard_library
-
-standard_library.install_aliases()
-from builtins import object
 import urllib.parse
 from solnlib.splunk_rest_client import SplunkRestClient
 
@@ -29,7 +24,7 @@ __all__ = [
 ]
 
 
-class GlobalConfig(object):
+class GlobalConfig:
     def __init__(self, splunkd_uri, session_key, schema):
         """
         Global Config.

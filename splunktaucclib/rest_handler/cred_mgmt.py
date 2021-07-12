@@ -5,9 +5,7 @@
 """Credential Management for REST Endpoint
 """
 
-from __future__ import absolute_import
 
-from builtins import object
 import json
 
 import splunk
@@ -22,7 +20,7 @@ from splunktalib.credentials import CredentialManager as CredMgr
 __all__ = ["CredMgmt"]
 
 
-class CredMgmt(object):
+class CredMgmt:
     """Credential Management stored in app.conf
 
     Note: Override it if customized form of ``realm``, ``username``,

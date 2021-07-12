@@ -2,12 +2,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from builtins import str
-from builtins import next
-from builtins import range
-from six import string_types as basestring
-import six
-from builtins import object
 import collections
 import csv
 import json
@@ -34,7 +28,7 @@ class InvalidResultID(Exception):
     pass
 
 
-class ModularAction(object):
+class ModularAction:
     DEFAULT_MSGFIELDS = [
         "signature",
         "action_name",
@@ -111,7 +105,7 @@ class ModularAction(object):
         ## if sid contains rt_scheduler with snapshot-sid; drop snapshot-sid
         ## sometimes self.sid may be an integer (1465593470.1228)
         try:
-            rtsid = re.match("^(rt_scheduler.*)\.(\d+)$", self.sid)
+            rtsid = re.match(r"^(rt_scheduler.*)\.(\d+)$", self.sid)
             if rtsid:
                 self.sid = rtsid.group(1)
                 self.sid_snapshot = rtsid.group(2)
@@ -155,7 +149,7 @@ class ModularAction(object):
         ## use | sendalert param.action_name=$action_name$
         self.action_name = self.configuration.get("action_name") or action_name
         ## use sid to determine action_mode
-        if isinstance(self.sid, basestring) and "scheduler" in self.sid:
+        if isinstance(self.sid, str) and "scheduler" in self.sid:
             self.action_mode = "saved"
         else:
             self.action_mode = "adhoc"
@@ -178,7 +172,7 @@ class ModularAction(object):
         """
         if self.info_file:
             try:
-                with open(self.info_file, "rU") as fh:
+                with open(self.info_file) as fh:
                     self.info = next(csv.DictReader(fh))
             except Exception as e:
                 self.message("Could not retrieve info.csv", level=logging.WARN)
@@ -242,7 +236,7 @@ class ModularAction(object):
             if (x not in ModularAction.DEFAULT_MSGFIELDS) and re.match("[A-Za-z_]+", x)
         ]
         ## MSG
-        msg = "%s %s" % (
+        msg = "{} {}".format(
             ModularAction.DEFAULT_MESSAGE,
             " ".join(['{i}="{{d[{i}]}}"'.format(i=i) for i in newargs]),
         )
@@ -280,7 +274,7 @@ class ModularAction(object):
                 ## attributes of "argsdict"
                 message = msg.format(d=argsdict)
                 ## prune empty string key-value pairs
-                for match in re.finditer('[A-Za-z_]+=""(\s|$)', message):
+                for match in re.finditer(r'[A-Za-z_]+=""(\s|$)', message):
                     message = message.replace(match.group(0), "", 1)
                 message = message.strip()
                 self.logger.log(level, message)
@@ -319,10 +313,10 @@ class ModularAction(object):
         self.orig_sid = result.get("orig_sid", "")
         ## This is for events/results that were created as the result of a previous action
         self.orig_rid = result.get("orig_rid", "")
-        if "rid" in result and isinstance(result["rid"], (basestring, int)):
+        if "rid" in result and isinstance(result["rid"], (str, int)):
             self.rid = str(result["rid"])
             if self.sid_snapshot:
-                self.rid = "%s.%s" % (self.rid, self.sid_snapshot)
+                self.rid = "{}.{}".format(self.rid, self.sid_snapshot)
             ## add result info to list of named tuples
             self.rids.append(self.rid_ntuple(self.orig_sid, self.rid, self.orig_rid))
         else:
@@ -390,7 +384,7 @@ class ModularAction(object):
             if (
                 key.startswith("__mv_")
                 and val
-                and isinstance(val, basestring)
+                and isinstance(val, str)
                 and val.startswith("$")
                 and val.endswith("$")
             ):
@@ -415,13 +409,13 @@ class ModularAction(object):
                     if key.startswith("__mv"):
                         val = val.replace("$$", "$")
                     ## escape quotes
-                    if isinstance(val, basestring):
+                    if isinstance(val, str):
                         val = val.replace('"', r"\"")
                     ## check map
                     if mapexp(real_key):
-                        _raw += ', %s="%s"' % ("orig_" + real_key.lstrip("_"), val)
+                        _raw += ', {}="{}"'.format("orig_" + real_key.lstrip("_"), val)
                     else:
-                        _raw += ', %s="%s"' % (real_key, val)
+                        _raw += ', {}="{}"'.format(real_key, val)
                 processed_keys.append(real_key)
 
         return _raw
@@ -499,7 +493,7 @@ class ModularAction(object):
 
         if self.events:
             ## sanitize file extension
-            if not fext or not re.match("^[\w-]+$", fext):
+            if not fext or not re.match(r"^[\w-]+$", fext):
                 self.logger.warn(
                     "Requested file extension was ignored due to invalid characters"
                 )
@@ -523,7 +517,7 @@ class ModularAction(object):
                 fout = header_line + default_breaker + (default_breaker).join(chunk)
                 ## write output string
                 try:
-                    fn = "%s_%s.stash_%s" % (
+                    fn = "{}_{}.stash_{}".format(
                         mktimegm(time.gmtime()),
                         random.randint(0, 100000),
                         fext,

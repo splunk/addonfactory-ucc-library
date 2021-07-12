@@ -2,12 +2,10 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from builtins import str
-from builtins import object
 import requests
 
 
-class TARestHelper(object):
+class TARestHelper:
     def __init__(self, logger=None):
         self.logger = logger
         self.http_session = None

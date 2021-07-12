@@ -6,9 +6,7 @@
 REST Schema
 """
 
-from __future__ import absolute_import
 
-from builtins import object
 from abc import abstractproperty
 
 __all__ = [
@@ -21,7 +19,7 @@ class RestSchemaError(Exception):
     pass
 
 
-class RestSchema(object):
+class RestSchema:
     """
     REST Scheme.
     """

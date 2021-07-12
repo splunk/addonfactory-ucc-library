@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from builtins import object
 import os.path as op
 import threading
 import re
@@ -61,7 +60,7 @@ def format_input_name_for_file(name):
     return "{}_B64_{}".format(qualified_name_str, base64_name)
 
 
-class ConfigSchemaHandler(object):
+class ConfigSchemaHandler:
     _app_name = util.get_appname_from_path(op.abspath(__file__))
     # Division schema keys.
     TYPE = "type"
@@ -138,7 +137,7 @@ class ConfigSchemaHandler(object):
         return division_metrics
 
 
-class DivisionRule(object):
+class DivisionRule:
     def __init__(self, endpoint, metric, type, separator, refer):
         self._endpoint = endpoint
         self._metric = metric

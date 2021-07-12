@@ -2,14 +2,12 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from __future__ import print_function
 from splunktaucclib.splunk_aoblib.setup_util import Setup_Util
 from splunktaucclib.splunk_aoblib.rest_helper import TARestHelper
 import logging
 from splunktaucclib.logging_helper import get_logger
 from splunktaucclib.cim_actions import ModularAction
 import requests
-from builtins import str
 import csv
 import gzip
 import sys
@@ -28,7 +26,7 @@ class ModularAlertBase(ModularAction):
         # self._logger_name = "modalert_" + alert_name
         self._logger_name = alert_name + "_modalert"
         self._logger = get_logger(self._logger_name)
-        super(ModularAlertBase, self).__init__(
+        super().__init__(
             sys.stdin.read(), self._logger, alert_name
         )
         self.setup_util_module = None
@@ -111,16 +109,16 @@ class ModularAlertBase(ModularAction):
         if proxy and proxy.get("proxy_url") and proxy.get("proxy_type"):
             uri = proxy["proxy_url"]
             if proxy.get("proxy_port"):
-                uri = "{0}:{1}".format(uri, proxy.get("proxy_port"))
+                uri = "{}:{}".format(uri, proxy.get("proxy_port"))
             if proxy.get("proxy_username") and proxy.get("proxy_password"):
-                uri = "{0}://{1}:{2}@{3}/".format(
+                uri = "{}://{}:{}@{}/".format(
                     proxy["proxy_type"],
                     proxy["proxy_username"],
                     proxy["proxy_password"],
                     uri,
                 )
             else:
-                uri = "{0}://{1}".format(proxy["proxy_type"], uri)
+                uri = "{}://{}".format(proxy["proxy_type"], uri)
         return uri
 
     def send_http_request(
@@ -231,7 +229,7 @@ class ModularAlertBase(ModularAction):
                 self.pre_handle(num, result)
                 for num, result in enumerate(csv.DictReader(self.result_handle))
             )
-        except IOError:
+        except OSError:
             msg = "Error: {}."
             self.log_error(msg.format("No search result. Cannot send alert action."))
             sys.exit(2)
@@ -266,7 +264,7 @@ class ModularAlertBase(ModularAction):
 
         try:
             status = self.process_event()
-        except IOError:
+        except OSError:
             msg = "Error: {}."
             self.log_error(msg.format("No search result. Cannot send alert action."))
             sys.exit(2)

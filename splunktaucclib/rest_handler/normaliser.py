@@ -5,16 +5,14 @@
 """Normalisers
 """
 
-from __future__ import absolute_import
 
 import sys
-from builtins import object
 
 __all__ = ["Normaliser", "Boolean", "StringLower", "StringUpper"]
 basestring = str if sys.version_info[0] == 3 else basestring
 
 
-class Normaliser(object):
+class Normaliser:
     """Base class of Normaliser."""
 
     _name = None
@@ -48,7 +46,7 @@ class Userdefined(Normaliser):
         """
         :param values: The collection of valid values
         """
-        super(Userdefined, self).__init__()
+        super().__init__()
         self._normaliser, self._args, self._kwargs = normaliser, args, kwargs
 
     def normalize(self, value):
@@ -66,7 +64,7 @@ class Boolean(Normaliser):
     """
 
     def __init__(self, default=True):
-        super(Boolean, self).__init__()
+        super().__init__()
         self._default = "1" if default else "0"
 
     def normalize(self, value):

@@ -2,9 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from __future__ import absolute_import
 
-from builtins import object
 from ..util import get_base_app_name
 from ..error import RestError
 
@@ -18,7 +16,7 @@ __all__ = [
 ]
 
 
-class RestModel(object):
+class RestModel:
     def __init__(self, fields, name=None):
         """
         REST Model.
@@ -29,7 +27,7 @@ class RestModel(object):
         self.fields = fields
 
 
-class RestEndpoint(object):
+class RestEndpoint:
     """
     REST Endpoint.
     """
@@ -97,7 +95,7 @@ class SingleModel(RestEndpoint):
         :param args:
         :param kwargs:
         """
-        super(SingleModel, self).__init__(user=user, app=app, *args, **kwargs)
+        super().__init__(user=user, app=app, *args, **kwargs)
         self.need_reload = True
 
         self._model = model
@@ -128,7 +126,7 @@ class MultipleModel(RestEndpoint):
         :param args:
         :param kwargs:
         """
-        super(MultipleModel, self).__init__(user=user, app=app, *args, **kwargs)
+        super().__init__(user=user, app=app, *args, **kwargs)
         self.need_reload = True
 
         self.conf_name = conf_name
@@ -151,7 +149,7 @@ class DataInputModel(RestEndpoint):
     """
 
     def __init__(self, input_type, model, user="nobody", app=None, *args, **kwargs):
-        super(DataInputModel, self).__init__(user=user, app=app, *args, **kwargs)
+        super().__init__(user=user, app=app, *args, **kwargs)
 
         self.input_type = input_type
         self._model = model

@@ -5,9 +5,7 @@
 """Error control
 """
 
-from __future__ import absolute_import
 
-from builtins import object
 import sys
 import re
 import logging
@@ -47,7 +45,7 @@ ERROR_MAPPING = {
 }
 
 
-class RestHandlerError(object):
+class RestHandlerError:
     """Control Error in Splunk Add-on REST API.
     code-message mapping for errors:
         code < 1000: splunkd internal error, occurred while
@@ -65,7 +63,7 @@ class RestHandlerError(object):
 
     def __str__(self):
         msgx = (self._msgx and self._msgx != self._msg) and " - %s" % self._msgx or ""
-        return "REST ERROR[%s]: %s%s" % (self._code, self._msg, msgx)
+        return "REST ERROR[{}]: {}{}".format(self._code, self._msg, msgx)
 
     def _conv(self, exc):
         """Convert a Exception form 'splunk.rest.simpleRequest'"""
@@ -141,7 +139,7 @@ class RestHandlerError(object):
             else ""
         )
 
-        stulog.logger.log(logLevel, "%s%s" % (err, tb), exc_info=1)
+        stulog.logger.log(logLevel, "{}{}".format(err, tb), exc_info=1)
         if shouldPrint:
             sys.stdout.write(str(err))
         if shouldRaise:

@@ -2,10 +2,9 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from builtins import object
 
 
-class BaseHookMixin(object):
+class BaseHookMixin:
     """Base Hook Mixin class"""
 
     def create_hook(self, session_key, config_name, stanza_id, payload):

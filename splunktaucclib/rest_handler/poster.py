@@ -2,12 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from __future__ import absolute_import
 
-from future import standard_library
-
-standard_library.install_aliases()
-from builtins import object
 import urllib.request, urllib.parse, urllib.error
 import json
 import re
@@ -125,7 +120,7 @@ class PosterModel(base.BaseModel):
     allowedMethods = ()
 
 
-class PosterMapping(object):
+class PosterMapping:
     """Mapping from object name to poster model."""
 
     # mapping object name to handler model class

@@ -7,13 +7,8 @@ This is for load/save configuration in UCC server or TA.
 The load/save action is based on specified schema.
 """
 
-from __future__ import absolute_import
 
-from future import standard_library
-
-standard_library.install_aliases()
 import sys
-from builtins import object
 import json
 import logging
 import traceback
@@ -54,10 +49,10 @@ def log(msg, msgx="", level=logging.INFO, need_tb=False):
         return
 
     msgx = " - " + msgx if msgx else ""
-    content = "UCC Config Module: %s%s" % (msg, msgx)
+    content = "UCC Config Module: {}{}".format(msg, msgx)
     if need_tb:
         stack = "".join(traceback.format_stack())
-        content = "%s\r\n%s" % (content, stack)
+        content = "{}\r\n{}".format(content, stack)
     stulog.logger.log(level, content, exc_info=1)
 
 
@@ -67,7 +62,7 @@ class ConfigException(UCCException):
     pass
 
 
-class Config(object):
+class Config:
     """UCC Config Module"""
 
     # Placeholder stands for any field

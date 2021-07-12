@@ -2,9 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from __future__ import absolute_import
 
-from builtins import object
 import copy
 import json
 from multiprocessing.pool import ThreadPool
@@ -28,15 +26,15 @@ class GlobalConfigError(Exception):
     pass
 
 
-class Configuration(object):
+class Configuration:
     """
     Splunk Configuration Handler.
     """
 
-    FILTERS = [u"eai:appName", u"eai:acl", u"eai:userName"]
-    ENTITY_NAME = u"name"
-    SETTINGS = u"settings"
-    NOT_FOUND = u"[404]: Not Found"
+    FILTERS = ["eai:appName", "eai:acl", "eai:userName"]
+    ENTITY_NAME = "name"
+    SETTINGS = "settings"
+    NOT_FOUND = "[404]: Not Found"
 
     def __init__(self, splunkd_client, schema):
         """
@@ -242,7 +240,7 @@ class Configuration(object):
 
 class Inputs(Configuration):
     def __init__(self, splunkd_client, schema):
-        super(Inputs, self).__init__(splunkd_client, schema)
+        super().__init__(splunkd_client, schema)
         self._splunkd_client = splunkd_client
         self._schema = schema
         self._references = None
@@ -346,7 +344,7 @@ class Configs(Configuration):
 
 class Settings(Configuration):
 
-    TYPE_NAME = u"settings"
+    TYPE_NAME = "settings"
 
     def load(self):
         """
@@ -374,7 +372,7 @@ class Settings(Configuration):
         return self._schema.settings
 
     def _search_configuration_schema(self, type_name, configuration_name):
-        return super(Settings, self)._search_configuration_schema(
+        return super()._search_configuration_schema(
             configuration_name,
             configuration_name,
         )
