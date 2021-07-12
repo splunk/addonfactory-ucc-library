@@ -75,7 +75,7 @@ class Validator:
             warnings.warn(
                 "`high_priority` arg is deprecated and at a time a single message string is kept in memory."
                 " The last message passed to `put_msg` is returned by `msg` property.",
-                DeprecationWarning
+                FutureWarning,
             )
         self._msg = msg
 
@@ -441,7 +441,7 @@ class Host(Pattern):
             r"([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
         )
         super().__init__(regexp, flags=re.I)
-        self.put_msg("Invalid hostname", high_priority=True)
+        self.put_msg("Invalid hostname")
 
 
 class Port(Number):
@@ -457,7 +457,6 @@ class Port(Number):
         )
         self.put_msg(
             "Invalid port number, it should be a integer between 0 and 65535",
-            high_priority=True,
         )
 
 
@@ -472,7 +471,7 @@ class Email(Pattern):
             r"(?:[A-Z0-9](?:[A-Z0-9-]{0,62}[A-Z0-9])?\.){1,8}[A-Z]{2,63}$"
         )
         super().__init__(regexp, flags=re.I)
-        self.put_msg("Invalid email address", high_priority=True)
+        self.put_msg("Invalid email address")
 
 
 class JsonString(Validator):
