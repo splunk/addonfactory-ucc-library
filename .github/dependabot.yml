@@ -1,25 +1,6 @@
 
 version: 2
 updates:
-  # Keep package.json (& lockfiles) up to date as soon as
-  # new versions are published to the npm registry
-  - package-ecosystem: "gitsubmodule"
-    directory: "/"
-    schedule:
-      interval: "daily"
-  - package-ecosystem: "gitsubmodule"
-    directory: "/deps/apps/addonfactory_test_matrix_splunk"
-    schedule:
-      interval: "daily"
-  - package-ecosystem: "gitsubmodule"
-    directory: "/deps/apps/splunk_env_indexer"
-    schedule:
-      interval: "daily"
-  - package-ecosystem: "gitsubmodule"
-    directory: "/deps/apps/Splunk_SA_CIM"
-    schedule:
-      interval: "daily"
-  # Keep Dockerfile up to date, batching pull requests weekly
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
