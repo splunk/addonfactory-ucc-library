@@ -3,15 +3,6 @@ Upstream-Name: splunktaucclib
 Upstream-Contact: Splunk Inc. <addonfactory@splunk.com>
 Source: https://github.com/splunk/addonfactory-ucc-library
 
-# Sample paragraph, commented out:
-#
-# Files: src/*
-# Copyright: $YEAR $NAME <$CONTACT>
-# License: ...
-Files: .circleci/config.yml .github .gitmodules .gitignore Dockerfile-splunk poetry.lock
+Files: .circleci/config.yml .github .gitignore poetry.lock
 Copyright: 2020 Splunk, Inc. <addonfactory@splunk.com>
-License: Apache-2.0
-
-Files: semtag
-Copyright: 2020 Nico Hormazábal <pnikosis>
 License: Apache-2.0
