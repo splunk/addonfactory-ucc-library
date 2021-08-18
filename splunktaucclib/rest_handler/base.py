@@ -57,15 +57,15 @@ def user_caps(mgmt_uri, session_key):
     """
     url = mgmt_uri + "/services/authentication/current-context"
 
-    resp, cont = splunkd_request(
+    response = splunkd_request(
         url, session_key, method="GET", data={"output_mode": "json"}, retry=3
     )
-    if resp is None:
+    if response is None:
         RH_Err.ctl(500, logging.ERROR, "Fail to get capabilities of sessioned user")
-    elif resp.status not in (200, "200"):
-        RH_Err.ctl(resp.status, logging.ERROR, cont)
+    elif response.status_code not in (200, "200"):
+        RH_Err.ctl(response.status_code, logging.ERROR, response.content)
 
-    cont = json.loads(cont)
+    cont = json.loads(response.content)
     caps = cont["entry"][0]["content"]["capabilities"]
     return set(caps)
 

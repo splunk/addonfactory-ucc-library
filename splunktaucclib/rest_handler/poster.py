@@ -154,17 +154,17 @@ class PosterMapping:
             proxyInfoEndpoint=self.proxyInfoEndpoint,
         )
         data = {"output_mode": "json", "--get-clear-credential--": "1"}
-        resp, cont = splunkd_request(url, sessionKey, data=data, retry=3)
-        if resp is None or resp.status != 200:
+        response = splunkd_request(url, sessionKey, data=data, retry=3)
+        if response is None or response.status_code != 200:
             RH_Err.ctl(
                 1104,
                 msgx="failed to load proxy info. {err}".format(
-                    err=code_to_msg(resp, cont) if resp else cont
+                    err=code_to_msg(response) if response else response.content
                 ),
             )
 
         try:
-            proxy_info = json.loads(cont)["entry"][0]["content"]
+            proxy_info = json.loads(response.content)["entry"][0]["content"]
         except IndexError | KeyError:
             proxy_info = {}
 
