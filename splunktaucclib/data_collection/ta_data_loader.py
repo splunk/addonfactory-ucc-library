@@ -138,7 +138,7 @@ class TADataLoader:
 
 
 class GlobalDataLoader:
-    """ Singleton, inited when started"""
+    """Singleton, inited when started"""
 
     __instance = None
 

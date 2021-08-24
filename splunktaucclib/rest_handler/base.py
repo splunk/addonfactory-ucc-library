@@ -116,7 +116,9 @@ class BaseRestHandler(admin.MConfigHandler):
             except ResourceNotFound:
                 self.exist4sync = False
             except Exception as exc:
-                RH_Err.ctl(1102, msgx="object={}, err={}".format(self.callerArgs.id, exc))
+                RH_Err.ctl(
+                    1102, msgx="object={}, err={}".format(self.callerArgs.id, exc)
+                )
             else:
                 self.exist4sync = True
         self._cred_mgmt = self.get_cred_mgmt(self.endpoint)

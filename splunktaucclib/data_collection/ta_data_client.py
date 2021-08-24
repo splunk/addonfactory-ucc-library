@@ -68,9 +68,7 @@ def create_data_collector(
 def client_adapter(job_func):
     class TaDataClientAdapter(TaDataClient):
         def __init__(self, all_conf_contents, meta_config, task_config, ckpt, chp_mgr):
-            super().__init__(
-                all_conf_contents, meta_config, task_config, ckpt, chp_mgr
-            )
+            super().__init__(all_conf_contents, meta_config, task_config, ckpt, chp_mgr)
             self._execute_times = 0
             self._gen = job_func(self._all_conf_contents, self._task_config, self._ckpt)
 
