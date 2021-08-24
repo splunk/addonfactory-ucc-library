@@ -2,15 +2,18 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-import sys
-import socket
-from . import ta_consts as c
 import os.path as op
-import splunktalib.splunk_cluster as sc
-from . import ta_helper as th
-import splunktaucclib.common.log as stulog
+import socket
+import sys
+
 import splunktalib.modinput as modinput
+import splunktalib.splunk_cluster as sc
 from splunktalib.common import util
+
+import splunktaucclib.common.log as stulog
+
+from . import ta_consts as c
+from . import ta_helper as th
 
 basestring = str if sys.version_info[0] == 3 else basestring
 

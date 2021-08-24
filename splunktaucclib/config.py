@@ -8,18 +8,18 @@ The load/save action is based on specified schema.
 """
 
 
-import sys
 import json
 import logging
-import traceback
+import sys
 import time
+import traceback
+from urllib.parse import quote
 
-from splunktalib.rest import splunkd_request, code_to_msg
 from splunktalib.common import util as sc_util
+from splunktalib.rest import code_to_msg, splunkd_request
 
 import splunktaucclib.common.log as stulog
 from splunktaucclib.common import UCCException
-from urllib.parse import quote
 
 basestring = str if sys.version_info[0] == 3 else basestring
 LOGGING_STOPPED = False

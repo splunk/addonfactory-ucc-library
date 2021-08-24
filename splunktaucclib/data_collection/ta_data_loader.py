@@ -7,14 +7,13 @@ Data Loader main entry point
 """
 
 
+import configparser
 import os.path as op
 import queue
-import configparser
-
 
 import splunktalib.concurrent.concurrent_executor as ce
-import splunktalib.timer_queue as tq
 import splunktalib.schedule.job as sjob
+import splunktalib.timer_queue as tq
 from splunktalib.common import log
 
 

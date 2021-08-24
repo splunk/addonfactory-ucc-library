@@ -10,12 +10,10 @@ import json
 
 import splunk
 from splunk import rest
-
-from .util import getBaseAppName
-from .error_ctl import RestHandlerError
-
 from splunktalib.credentials import CredentialManager as CredMgr
 
+from .error_ctl import RestHandlerError
+from .util import getBaseAppName
 
 __all__ = ["CredMgmt"]
 

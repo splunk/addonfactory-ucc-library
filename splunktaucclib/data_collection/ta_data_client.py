@@ -4,8 +4,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from splunktaucclib.data_collection import ta_checkpoint_manager as cp
 import splunktaucclib.data_collection.ta_data_collector as tdc
+from splunktaucclib.data_collection import ta_checkpoint_manager as cp
 
 
 def build_event(

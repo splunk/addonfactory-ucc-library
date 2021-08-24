@@ -2,8 +2,9 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-import sys
 import logging
+import sys
+
 import splunktalib.common.log as stclog
 
 basestring = str if sys.version_info[0] == 3 else basestring

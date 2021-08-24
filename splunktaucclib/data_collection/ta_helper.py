@@ -2,17 +2,19 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-import os.path as op
-import threading
-import re
-from datetime import datetime
-from calendar import timegm
-import splunktaucclib.common.log as stulog
-import splunktaucclib.config as sc
-from splunktalib.common import util
-from splunktaucclib.data_collection import ta_consts as c
 import hashlib
 import json
+import os.path as op
+import re
+import threading
+from calendar import timegm
+from datetime import datetime
+
+from splunktalib.common import util
+
+import splunktaucclib.common.log as stulog
+import splunktaucclib.config as sc
+from splunktaucclib.data_collection import ta_consts as c
 
 
 def utc2timestamp(human_time):

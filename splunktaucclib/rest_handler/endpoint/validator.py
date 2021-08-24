@@ -7,13 +7,11 @@ Validators for Splunk configuration.
 """
 
 
-import sys
-
-import re
 import json
+import re
+import sys
 import warnings
 from inspect import isfunction
-
 
 __all__ = [
     "Validator",

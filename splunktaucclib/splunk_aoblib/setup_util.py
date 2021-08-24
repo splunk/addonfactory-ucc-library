@@ -9,7 +9,6 @@ import solnlib.utils as utils
 
 from splunktaucclib.global_config import GlobalConfig, GlobalConfigSchema
 
-
 """
 Usage Examples:
 setup_util = Setup_Util(uri, session_key)

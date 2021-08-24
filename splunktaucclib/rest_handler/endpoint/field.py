@@ -5,7 +5,6 @@
 
 from ..error import RestError
 
-
 __all__ = ["RestField"]
 
 
