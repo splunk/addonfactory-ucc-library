@@ -6,9 +6,9 @@
 """
 
 
-import sys
-import re
 import json
+import re
+import sys
 
 from . import error_ctl
 

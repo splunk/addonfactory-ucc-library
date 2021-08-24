@@ -29,3 +29,6 @@ enable = true
 [build-system]
 requires = ["poetry>=1.0.0"]
 build-backend = "poetry.masonry.api"
+
+[tool.isort]
+profile = "black"

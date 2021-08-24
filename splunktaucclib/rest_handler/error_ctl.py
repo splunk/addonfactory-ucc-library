@@ -6,15 +6,14 @@
 """
 
 
-import sys
-import re
 import logging
+import re
+import sys
 import traceback
 
 from splunk import RESTException
 
 import splunktaucclib.common.log as stulog
-
 
 __all__ = ["RestHandlerError", "ERROR_MAPPING"]
 

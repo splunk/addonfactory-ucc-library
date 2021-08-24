@@ -4,12 +4,15 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-import time
 import threading
-from . import ta_consts as c
-import splunktaucclib.common.log as stulog
-import splunktalib.common.util as scu
+import time
 from collections import namedtuple
+
+import splunktalib.common.util as scu
+
+import splunktaucclib.common.log as stulog
+
+from . import ta_consts as c
 
 evt_fmt = (
     "<stream><event><host>{0}</host>"

@@ -3,15 +3,16 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
+import os
 from functools import wraps
-from splunk import admin
+
 from solnlib.splunkenv import get_splunkd_uri
 from solnlib.utils import is_true
+from splunk import admin
 
 from .eai import EAI_FIELDS
+from .endpoint import DataInputModel, MultipleModel, SingleModel
 from .handler import RestHandler
-import os
-from .endpoint import SingleModel, DataInputModel, MultipleModel
 
 try:
     from custom_hook_mixin import CustomHookMixin as HookMixin

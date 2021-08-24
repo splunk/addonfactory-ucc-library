@@ -8,11 +8,11 @@ Global Config Module
 
 
 import urllib.parse
+
 from solnlib.splunk_rest_client import SplunkRestClient
 
-from .configuration import Inputs, Configs, Settings, GlobalConfigError, Configuration
+from .configuration import Configs, Configuration, GlobalConfigError, Inputs, Settings
 from .schema import GlobalConfigSchema
-
 
 __all__ = [
     "GlobalConfigError",

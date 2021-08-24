@@ -10,9 +10,9 @@ import logging.handlers
 import os
 import random
 import re
-import splunk.rest as rest
 import time
 
+import splunk.rest as rest
 from splunk.clilib.bundle_paths import make_splunkhome_path
 from splunk.util import mktimegm, normalizeBoolean
 

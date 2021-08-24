@@ -3,9 +3,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-from ..util import get_base_app_name
 from ..error import RestError
-
+from ..util import get_base_app_name
 
 __all__ = [
     "RestModel",

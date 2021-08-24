@@ -5,22 +5,22 @@
 """Base Handler Class of REST Manager.
 """
 
-import sys
-import logging
-import json
 import copy
 import itertools
+import json
+import logging
+import sys
 from inspect import ismethod
 from os import path as op
 
-from splunk import admin, entity, rest, ResourceNotFound, RESTException
+from splunk import ResourceNotFound, RESTException, admin, entity, rest
 from splunktalib.common import util as sc_util
 from splunktalib.rest import splunkd_request
 
 import splunktaucclib.common.log as stulog
-from splunktaucclib.rest_handler.util import makeConfItem
-from splunktaucclib.rest_handler.error_ctl import RestHandlerError as RH_Err
 from splunktaucclib.rest_handler.cred_mgmt import CredMgmt
+from splunktaucclib.rest_handler.error_ctl import RestHandlerError as RH_Err
+from splunktaucclib.rest_handler.util import makeConfItem
 
 __all__ = ["user_caps", "BaseRestHandler", "BaseModel", "ResourceHandler"]
 

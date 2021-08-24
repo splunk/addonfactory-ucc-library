@@ -8,14 +8,11 @@
 
 import json
 import urllib.parse
-from solnlib.credentials import (
-    CredentialManager,
-    CredentialNotExistException,
-)
 
-from .util import get_base_app_name
+from solnlib.credentials import CredentialManager, CredentialNotExistException
+
 from .error import RestError
-
+from .util import get_base_app_name
 
 __all__ = [
     "RestCredentialsContext",

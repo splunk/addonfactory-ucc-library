@@ -9,9 +9,8 @@ from multiprocessing.pool import ThreadPool
 
 from splunklib.binding import HTTPError
 
-from ..rest_handler.schema import RestSchema
 from ..rest_handler.handler import RestHandler
-
+from ..rest_handler.schema import RestSchema
 
 __all__ = [
     "GlobalConfigError",

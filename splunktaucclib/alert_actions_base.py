@@ -2,15 +2,17 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from splunktaucclib.splunk_aoblib.setup_util import Setup_Util
-from splunktaucclib.splunk_aoblib.rest_helper import TARestHelper
-import logging
-from splunktaucclib.logging_helper import get_logger
-from splunktaucclib.cim_actions import ModularAction
-import requests
 import csv
 import gzip
+import logging
 import sys
+
+import requests
+
+from splunktaucclib.cim_actions import ModularAction
+from splunktaucclib.logging_helper import get_logger
+from splunktaucclib.splunk_aoblib.rest_helper import TARestHelper
+from splunktaucclib.splunk_aoblib.setup_util import Setup_Util
 
 try:
     from splunk.clilib.bundle_paths import make_splunkhome_path
@@ -146,7 +148,7 @@ class ModularAlertBase(ModularAction):
         )
 
     def build_http_connection(self, config, timeout=120, disable_ssl_validation=False):
-        from httplib2 import socks, ProxyInfo, Http
+        from httplib2 import Http, ProxyInfo, socks
 
         """
         :config: dict like, proxy and account information are in the following

@@ -11,13 +11,13 @@ import json
 import traceback
 import urllib.parse
 from functools import wraps
-from splunklib import binding
+
 from solnlib.splunk_rest_client import SplunkRestClient
+from splunklib import binding
 
-from .error import RestError
-from .entity import RestEntity
 from .credentials import RestCredentials
-
+from .entity import RestEntity
+from .error import RestError
 
 __all__ = ["RestHandler"]
 

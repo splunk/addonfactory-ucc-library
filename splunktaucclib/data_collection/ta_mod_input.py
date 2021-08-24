@@ -11,16 +11,18 @@ This is the main entry point for My TA
 import os.path as op
 import sys
 import time
-import splunktalib.modinput as modinput
+
 import splunktalib.common.util as utils
-import splunktaucclib.common.log as stulog
-from splunktaucclib.data_collection import ta_data_loader as dl
-from splunktaucclib.data_collection import ta_config as tc
-from splunktaucclib.data_collection import ta_checkpoint_manager as cpmgr
-import splunktalib.orphan_process_monitor as opm
 import splunktalib.file_monitor as fm
+import splunktalib.modinput as modinput
+import splunktalib.orphan_process_monitor as opm
+
+import splunktaucclib.common.log as stulog
 from splunktaucclib.common import load_schema_file as ld
+from splunktaucclib.data_collection import ta_checkpoint_manager as cpmgr
+from splunktaucclib.data_collection import ta_config as tc
 from splunktaucclib.data_collection import ta_data_client as tdc
+from splunktaucclib.data_collection import ta_data_loader as dl
 
 utils.remove_http_proxy_env_vars()
 

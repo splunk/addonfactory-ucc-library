@@ -7,9 +7,9 @@ Converters for Splunk configuration.
 """
 
 
-import sys
 import base64
 import json
+import sys
 
 basestring = str if sys.version_info[0] == 3 else basestring
 

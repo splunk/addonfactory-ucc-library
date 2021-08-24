@@ -3,14 +3,15 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-import urllib.request, urllib.parse, urllib.error
 import json
 import re
+import urllib.error
+import urllib.parse
+import urllib.request
 
 from splunk import admin, rest
-
-from splunktalib.rest import splunkd_request, code_to_msg, build_http_connection
 from splunktalib.common.util import is_true
+from splunktalib.rest import build_http_connection, code_to_msg, splunkd_request
 
 from . import base
 from .error_ctl import RestHandlerError as RH_Err

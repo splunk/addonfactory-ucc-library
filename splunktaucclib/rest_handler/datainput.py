@@ -8,17 +8,16 @@ Note: It manages inputs.conf
 
 """
 
-import sys
+import collections
 import json
 import logging
-import collections
+import sys
 from urllib.parse import quote
 
 from splunk import admin, rest
 
 from . import base, util
 from .error_ctl import RestHandlerError as RH_Err
-
 
 __all__ = ["DataInputHandler", "DataInputModel"]
 basestring = str if sys.version_info[0] == 3 else basestring

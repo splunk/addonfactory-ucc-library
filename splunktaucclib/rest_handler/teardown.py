@@ -16,12 +16,10 @@ from itertools import chain as iter_chain
 from urllib.parse import quote
 
 from splunk import admin, rest
-
 from splunktalib.rest import splunkd_request
 
 from . import base
 from .error_ctl import RestHandlerError as RH_Err
-
 
 __all__ = ["DataInputHandler", "DataInputModel"]
 

@@ -5,14 +5,14 @@
 import json
 import traceback
 from urllib.parse import urlparse
-from solnlib.splunkenv import get_splunkd_uri
-from solnlib.splunk_rest_client import SplunkRestClient
+
 from solnlib.conf_manager import ConfManager
-from splunktaucclib.rest_handler.error import RestError
-from splunktaucclib.rest_handler.admin_external import (
-    AdminExternalHandler,
-)
+from solnlib.splunk_rest_client import SplunkRestClient
+from solnlib.splunkenv import get_splunkd_uri
+
 from splunktaucclib.rest_handler import util
+from splunktaucclib.rest_handler.admin_external import AdminExternalHandler
+from splunktaucclib.rest_handler.error import RestError
 
 
 def _migrate_error_handle(func):

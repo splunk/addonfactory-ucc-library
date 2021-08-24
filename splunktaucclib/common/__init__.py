@@ -2,8 +2,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-import json
 import hashlib
+import json
 
 
 def load_schema_file(schema_file):

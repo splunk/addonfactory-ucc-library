@@ -2,11 +2,16 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from . import ta_consts as c
-import splunktalib.state_store as ss
-import splunktaucclib.common.log as stulog
 import re
-import urllib.request, urllib.parse, urllib.error
+import urllib.error
+import urllib.parse
+import urllib.request
+
+import splunktalib.state_store as ss
+
+import splunktaucclib.common.log as stulog
+
+from . import ta_consts as c
 
 
 class TACheckPointMgr:

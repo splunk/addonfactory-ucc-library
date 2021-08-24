@@ -1,16 +1,16 @@
 # encoding = utf-8
-import importlib
 import copy
+import importlib
+import json
 import logging
 import os
 import sys
-import json
 import tempfile
 
-from splunklib import modularinput as smi
+from solnlib import utils as sutils
 from solnlib.log import Logs
 from solnlib.modular_input import checkpointer
-from solnlib import utils as sutils
+from splunklib import modularinput as smi
 
 from splunktaucclib.global_config import GlobalConfig, GlobalConfigSchema
 from splunktaucclib.splunk_aoblib.rest_helper import TARestHelper
