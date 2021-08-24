@@ -302,9 +302,7 @@ class Number(Validator):
 
         msg = None
         if not self._min_val and self._max_val and value > self._max_val:
-            msg = "Value should be smaller than {max_val}".format(
-                max_val=self._max_val
-            )
+            msg = "Value should be smaller than {max_val}".format(max_val=self._max_val)
         elif not self._max_val and self._min_val and value < self._min_val:
             msg = "Value should be no smaller than {min_val}".format(
                 min_val=self._min_val

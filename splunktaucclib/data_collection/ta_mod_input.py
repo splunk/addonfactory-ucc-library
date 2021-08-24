@@ -98,9 +98,7 @@ def _handle_file_changes(data_loader):
 
 
 def _get_conf_files(local_file_list):
-    cur_dir = op.dirname(
-        op.dirname(op.dirname(op.dirname(op.abspath(__file__))))
-    )
+    cur_dir = op.dirname(op.dirname(op.dirname(op.dirname(op.abspath(__file__)))))
     files = []
     for f in local_file_list:
         files.append(op.join(cur_dir, "local", f))

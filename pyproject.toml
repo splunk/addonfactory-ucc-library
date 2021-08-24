@@ -22,9 +22,6 @@ pytest-cov = "^2"
 poetry-dynamic-versioning = "^0.8"
 tomlkit = "^0"
 reuse = "*"
-black = [
-    { version = "20.8b1",  python = "^3.7" }
-]
 
 [tool.poetry-dynamic-versioning]
 enable = true
