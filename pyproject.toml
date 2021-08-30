@@ -22,7 +22,7 @@ pytest-cov = "^2"
 poetry-dynamic-versioning = "^0.13"
 tomlkit = "^0"
 reuse = "*"
-pre-commit = "^2.14.0"
+pre-commit = "^2.14.1"
 
 [tool.poetry-dynamic-versioning]
 enable = true
