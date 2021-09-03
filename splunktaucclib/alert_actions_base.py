@@ -7,10 +7,9 @@ import gzip
 import logging
 import sys
 
-import requests
+from solnlib import log
 
 from splunktaucclib.cim_actions import ModularAction
-from splunktaucclib.logging_helper import get_logger
 from splunktaucclib.splunk_aoblib.rest_helper import TARestHelper
 from splunktaucclib.splunk_aoblib.setup_util import Setup_Util
 
@@ -25,9 +24,8 @@ sys.path.insert(0, make_splunkhome_path(["etc", "apps", "Splunk_SA_CIM", "lib"])
 class ModularAlertBase(ModularAction):
     def __init__(self, ta_name, alert_name):
         self._alert_name = alert_name
-        # self._logger_name = "modalert_" + alert_name
         self._logger_name = alert_name + "_modalert"
-        self._logger = get_logger(self._logger_name)
+        self._logger = log.Logs().get_logger(self._logger_name)
         super().__init__(sys.stdin.read(), self._logger, alert_name)
         self.setup_util_module = None
         self.setup_util = None
