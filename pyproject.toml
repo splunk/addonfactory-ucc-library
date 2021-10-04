@@ -18,7 +18,7 @@ splunktalib = "^2.0.0"
 [tool.poetry.dev-dependencies]
 pytest-expect = "^1.1.0"
 pytest = "^6.2"
-pytest-cov = "^2"
+pytest-cov = "^3"
 poetry-dynamic-versioning = "^0.13"
 tomlkit = "^0"
 reuse = "*"
