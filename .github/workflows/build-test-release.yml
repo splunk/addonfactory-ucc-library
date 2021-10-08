@@ -129,7 +129,7 @@ jobs:
         with:
           name: Package
           path: dist/
-          
+
   publish:
     if: always()
     needs:
@@ -144,7 +144,7 @@ jobs:
       - name: exit without publish if PR
         if: github.event_name == 'pull_request'
         run: |
-        exit 1
+          exit 1
       - name: Checkout
         uses: actions/checkout@v2
         with:
