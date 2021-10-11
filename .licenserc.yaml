@@ -31,5 +31,6 @@ header:
     - "docs/**"
     - "tests/**"
     - ".*"
+    - ".reuse"
 
   comment: on-failure

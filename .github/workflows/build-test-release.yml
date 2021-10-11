@@ -63,6 +63,20 @@ jobs:
           bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/v1.6.3/scripts/download-actionlint.bash)
       - uses: pre-commit/action@v2.0.3
 
+  review_secrets:
+    name: security-detect-secrets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: false
+          fetch-depth: "0"
+      - name: Trufflehog Actions Scan
+        uses: edplato/trufflehog-actions-scan@v0.9j-beta
+        with:
+          scanArguments: "--max_dept 50 -x .github/workflows/exclude-patterns.txt"
+          
   semgrep:
     runs-on: ubuntu-latest
     name: security-sast-semgrep
