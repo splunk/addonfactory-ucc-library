@@ -51,21 +51,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # needed only when you want License-Eye to comment on the pull request.
 
-  lint:
+  pre-commit:
     runs-on: ubuntu-latest
-    name: quality-lint
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
         with:
-          # Full git history is needed to get a proper list of changed files within `super-linter`
-          fetch-depth: 0
-      - name: quality-lint
-        uses: github/super-linter@v4
-        env:
-          VALIDATE_ALL_CODEBASE: false
-          DEFAULT_BRANCH: main
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          FILTER_REGEX_EXCLUDE: README.md
+          python-version: "3.7"
+      - name: Install actionlint
+        run: |
+          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/v1.6.3/scripts/download-actionlint.bash)
+      - uses: pre-commit/action@v2.0.3
 
   semgrep:
     runs-on: ubuntu-latest
@@ -131,18 +127,16 @@ jobs:
           path: dist/
 
   publish:
-    if: always()
     needs:
-      - compliance-dependencies
       - compliance-copyrights
-      - lint
+      - pre-commit
       - semgrep
       - snyk
       - build
     runs-on: ubuntu-latest
     steps:
       - name: exit without publish if PR
-        if: github.event_name == 'pull_request'
+        if: ${{ github.event_name == 'pull_request' }}
         run: |
           exit 1
       - name: Checkout
