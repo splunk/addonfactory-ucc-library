@@ -1,4 +1,4 @@
-# This is a basic workflow to help you get started with Actions
+
 
 name: CI
 
@@ -7,9 +7,12 @@ on:
   # Triggers the workflow on push or pull request events but only for the main branch
   push:
     branches:
-      - "github-action-migration"
+      - "main"
+      - "develop"
     tags:
       - "v[0-9]+.[0-9]+.[0-9]+"
+  pull_request:
+    branches: [main, develop]
 jobs: 
   compliance-dependencies:
     name: Compliance Dependencies
