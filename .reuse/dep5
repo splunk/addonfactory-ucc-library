@@ -1,8 +1,0 @@
-Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: splunktaucclib
-Upstream-Contact: Splunk Inc. <addonfactory@splunk.com>
-Source: https://github.com/splunk/addonfactory-ucc-library
-
-Files: .circleci/config.yml .github .gitignore poetry.lock
-Copyright: 2020 Splunk, Inc. <addonfactory@splunk.com>
-License: Apache-2.0
