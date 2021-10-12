@@ -30,12 +30,8 @@ splunktalib = "^2.0.0"
 [tool.poetry.dev-dependencies]
 pytest = "^6.2"
 pytest-cov = "^3"
-tomlkit = "^0"
-reuse = "*"
 pre-commit = "^2.15.0"
 
-[tool.poetry-dynamic-versioning]
-enable = true
 
 [build-system]
 requires = ["poetry>=1.0.0"]
