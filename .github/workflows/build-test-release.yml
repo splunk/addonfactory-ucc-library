@@ -139,7 +139,7 @@ jobs:
           path: dist/
 
   publish:
-    if: github.event_name != 'pull_request'
+    if: always()
     needs:
       - pre-commit
       - semgrep
@@ -147,7 +147,26 @@ jobs:
       - build
       - review_secrets
     runs-on: ubuntu-latest
+    env:
+      NEEDS: ${{ toJson(needs) }}
     steps:
+      - name: check if tests have passed or skipped
+        if: github.event_name != 'pull_request'
+        id: check
+        shell: bash
+        run: |
+          RUN_PUBLISH=$(echo "$NEEDS" | jq ".[] |  select(  ( .result != \"skipped\" ) and .result != \"success\" ) | length == 0")
+          if [[ $RUN_PUBLISH != *'false'* ]]
+          then
+              echo "::set-output name=run-publish::true"
+          else
+              echo "::set-output name=run-publish::false"
+          fi
+      - name: exit without publish
+        if: ${{ steps.check.outputs.run-publish == 'false' || github.event_name == 'pull_request'}}
+        run: |
+          echo " some test job failed. "
+          exit 1
       - name: Checkout
         uses: actions/checkout@v2
         with:
