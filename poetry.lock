@@ -242,7 +242,7 @@ python-versions = "*"
 
 [[package]]
 name = "splunktalib"
-version = "2.2.1"
+version = "2.2.2"
 description = "Supporting library for Splunk Add-ons"
 category = "main"
 optional = false
@@ -437,8 +437,8 @@ splunk-sdk = [
     {file = "splunk-sdk-1.6.18.tar.gz", hash = "sha256:edc0959786f5dcab225ba98633c310dbf7584977849f6c2152a0e5090b5e2561"},
 ]
 splunktalib = [
-    {file = "splunktalib-2.2.1-py3-none-any.whl", hash = "sha256:80504590c6fe8bf51961bcf215375a2c7e9a323830ed2f9e10c8da5b4611ca47"},
-    {file = "splunktalib-2.2.1.tar.gz", hash = "sha256:dd51f957a6e04bb2ec58a216ae2bcf9d73c6010e1e0c3a95a4f80c2ff380c8b4"},
+    {file = "splunktalib-2.2.2-py3-none-any.whl", hash = "sha256:267c614da7a8755d5666e683a005fd2abf80f7d53f7e851408bbf7765d47583a"},
+    {file = "splunktalib-2.2.2.tar.gz", hash = "sha256:d047c18f9d5dd66d149f9432b7d278374f31c68ee232a4a9cf3b37dd4a6ae782"},
 ]
 toml = [
     {file = "toml-0.10.2-py2.py3-none-any.whl", hash = "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b"},
