@@ -79,7 +79,7 @@ class MultiModelRestHandler(base.BaseRestHandler):
         if name not in self.modelMap:
             RH_Err.ctl(
                 404,
-                msgx="object={name}".format(name=name, handler=self.__class__.__name__),
+                msgx=f"object={name}",
             )
         self.model = self.modelMap[name]
 
@@ -152,7 +152,7 @@ class MultiModelRestHandler(base.BaseRestHandler):
             RH_Err.ctl(-1, exc, logLevel=logging.INFO)
 
     def _getHandlerName(self):
-        return "{}.{}".format(self.__class__.__name__, self.model.__name__)
+        return f"{self.__class__.__name__}.{self.model.__name__}"
 
 
 class MultiModel:

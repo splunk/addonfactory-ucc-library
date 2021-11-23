@@ -115,7 +115,7 @@ class SingleModel(RestEndpoint):
 
     @property
     def internal_endpoint(self):
-        return "configs/conf-{}".format(self.conf_name)
+        return f"configs/conf-{self.conf_name}"
 
     def model(self, name):
         return self._model
@@ -145,7 +145,7 @@ class MultipleModel(RestEndpoint):
 
     @property
     def internal_endpoint(self):
-        return "configs/conf-{}".format(self.conf_name)
+        return f"configs/conf-{self.conf_name}"
 
     def model(self, name):
         try:
@@ -167,7 +167,7 @@ class DataInputModel(RestEndpoint):
 
     @property
     def internal_endpoint(self):
-        return "data/inputs/{}".format(self.input_type)
+        return f"data/inputs/{self.input_type}"
 
     def model(self, name):
         return self._model

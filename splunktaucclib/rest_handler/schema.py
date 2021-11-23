@@ -41,7 +41,7 @@ class RestSchema:
 
     @staticmethod
     def endpoint_name(name, namespace):
-        return "{}_{}".format(namespace, name)
+        return f"{namespace}_{name}"
 
     @abstractproperty
     def product(self):

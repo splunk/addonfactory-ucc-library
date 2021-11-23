@@ -304,7 +304,7 @@ class Number(Validator):
 
         msg = None
         if not self._min_val and self._max_val and value > self._max_val:
-            msg = "Value should be smaller than {max_val}".format(max_val=self._max_val)
+            msg = f"Value should be smaller than {self._max_val}"
         elif not self._max_val and self._min_val and value < self._min_val:
             msg = "Value should be no smaller than {min_val}".format(
                 min_val=self._min_val
@@ -400,7 +400,7 @@ class Datetime(Validator):
         try:
             datetime.datetime.strptime(value, self._format)
         except ValueError as exc:
-            error = 'Wrong datetime with format "{}": {}'.format(self._format, str(exc))
+            error = f'Wrong datetime with format "{self._format}": {str(exc)}'
             self.put_msg(error)
             return False
         return True

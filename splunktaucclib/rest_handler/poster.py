@@ -42,7 +42,7 @@ class PosterHandler(base.BaseRestHandler):
         assert hasattr(self, "modelMap") and isinstance(
             self.modelMap, dict
         ), RH_Err.ctl(
-            1002, msgx="{}.modelMap".format(self.__class__.__name__), shouldPrint=False
+            1002, msgx=f"{self.__class__.__name__}.modelMap", shouldPrint=False
         )
 
         if self.requestedAction != admin.ACTION_EDIT:
@@ -54,7 +54,7 @@ class PosterHandler(base.BaseRestHandler):
     def setModel(self, name):
         # get model for object
         if name not in self.modelMap:
-            RH_Err.ctl(404, msgx="object={name}".format(name=name))
+            RH_Err.ctl(404, msgx=f"object={name}")
         self.model = self.modelMap[name]
 
         # load attributes from model

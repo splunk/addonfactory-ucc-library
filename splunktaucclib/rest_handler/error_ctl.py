@@ -74,7 +74,7 @@ class RestHandlerError:
 
     def __str__(self):
         msgx = (self._msgx and self._msgx != self._msg) and " - %s" % self._msgx or ""
-        return "REST ERROR[{}]: {}{}".format(self._code, self._msg, msgx)
+        return f"REST ERROR[{self._code}]: {self._msg}{msgx}"
 
     def _conv(self, exc):
         """Convert a Exception form 'splunk.rest.simpleRequest'"""
@@ -150,7 +150,7 @@ class RestHandlerError:
             else ""
         )
 
-        stulog.logger.log(logLevel, "{}{}".format(err, tb), exc_info=1)
+        stulog.logger.log(logLevel, f"{err}{tb}", exc_info=1)
         if shouldPrint:
             sys.stdout.write(str(err))
         if shouldRaise:
