@@ -21,9 +21,6 @@ Converters for Splunk configuration.
 
 import base64
 import json
-import sys
-
-basestring = str if sys.version_info[0] == 3 else basestring
 
 __all__ = [
     "Converter",
@@ -209,7 +206,7 @@ class Unifier(Normaliser):
                 self._value_map[val_old] = val_new
 
     def normalize(self, value, data):
-        need_lower = not self._case_sensitive and isinstance(value, basestring)
+        need_lower = not self._case_sensitive and isinstance(value, str)
         val_old = value.lower() if need_lower else value
         val_default = self._default or value
         return self._value_map.get(val_old, val_default)

@@ -15,11 +15,8 @@
 #
 
 import logging
-import sys
 
 import splunktalib.common.log as stclog
-
-basestring = str if sys.version_info[0] == 3 else basestring
 
 _level_by_name = {
     "DEBUG": logging.DEBUG,
@@ -34,7 +31,7 @@ _level_by_name = {
 def _get_log_level(log_level, default_level=logging.INFO):
     if not log_level:
         return default_level
-    if isinstance(log_level, basestring):
+    if isinstance(log_level, str):
         log_level = log_level.upper()
         for k, v in _level_by_name.items():
             if k.startswith(log_level):

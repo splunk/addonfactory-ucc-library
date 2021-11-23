@@ -20,7 +20,6 @@
 
 import json
 import re
-import sys
 
 from . import error_ctl
 
@@ -38,7 +37,6 @@ __all__ = [
     "Port",
     "RequiredIf",
 ]
-basestring = str if sys.version_info[0] == 3 else basestring
 
 
 class Validator:
@@ -166,12 +164,8 @@ class Range(Validator):
         :param minVal: If not None, values less than ``minVal`` are invalid.
         :param maxVal: If not None, values larger than ``maxVal`` are invalid.
         """
-        try:
-            minVal_bool = isinstance(minVal, (int, long, float))
-            maxVal_bool = isinstance(maxVal, (int, long, float))
-        except:
-            minVal_bool = isinstance(minVal, (int, float))
-            maxVal_bool = isinstance(maxVal, (int, float))
+        minVal_bool = isinstance(minVal, (int, float))
+        maxVal_bool = isinstance(maxVal, (int, float))
         assert (minVal is None or minVal_bool) and (
             maxVal is None or maxVal_bool
         ), "``minVal`` & ``maxVal`` should be numeric"
@@ -213,12 +207,8 @@ class String(Validator):
         :param maxLen: If not None,
             strings longer than ``maxLen`` are invalid.
         """
-        try:
-            minLen_bool = isinstance(minLen, (int, long, float))
-            maxLen_bool = isinstance(maxLen, (int, long, float))
-        except:
-            minLen_bool = isinstance(minLen, (int, float))
-            maxLen_bool = isinstance(maxLen, (int, float))
+        minLen_bool = isinstance(minLen, (int, float))
+        maxLen_bool = isinstance(maxLen, (int, float))
         assert (minLen is None or minLen_bool) and (
             maxLen is None or maxLen_bool
         ), "``minLen`` & ``maxLen`` should be numeric"
@@ -239,7 +229,7 @@ class String(Validator):
         failed = (self._minLen is not None and len(value) < self._minLen) or (
             self._maxLen is not None and len(value) > self._maxLen
         )
-        return False if (not isinstance(value, basestring)) or failed else True
+        return False if (not isinstance(value, str)) or failed else True
 
 
 class Pattern(Validator):

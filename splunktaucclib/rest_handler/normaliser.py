@@ -18,10 +18,7 @@
 """
 
 
-import sys
-
 __all__ = ["Normaliser", "Boolean", "StringLower", "StringUpper"]
-basestring = str if sys.version_info[0] == 3 else basestring
 
 
 class Normaliser:
@@ -82,7 +79,7 @@ class Boolean(Normaliser):
     def normalize(self, value):
         if isinstance(value, (bool, int)):
             return value and "1" or "0"
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             return self._default
         value = value.strip().lower()
 
@@ -98,7 +95,7 @@ class StringLower(Normaliser):
     """Normalize a string to all lower cases."""
 
     def normalize(self, value):
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             return value.strip().lower()
         return value
 
@@ -107,6 +104,6 @@ class StringUpper(Normaliser):
     """Normalize a string to all upper cases."""
 
     def normalize(self, value):
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             return value.strip().upper()
         return value
