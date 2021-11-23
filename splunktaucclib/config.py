@@ -21,7 +21,6 @@ from splunktalib.rest import code_to_msg, splunkd_request
 import splunktaucclib.common.log as stulog
 from splunktaucclib.common import UCCException
 
-basestring = str if sys.version_info[0] == 3 else basestring
 LOGGING_STOPPED = False
 
 
@@ -303,7 +302,7 @@ class Config:
         )
         for field in Config.META_FIELDS:
             assert field in ucc_config_schema and isinstance(
-                ucc_config_schema[field], basestring
+                ucc_config_schema[field], str
             ), ('Missing or invalid field "%s" in given schema' % field)
             setattr(self, field, ucc_config_schema[field])
 

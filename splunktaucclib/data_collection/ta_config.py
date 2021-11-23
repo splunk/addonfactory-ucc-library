@@ -15,7 +15,6 @@ import splunktaucclib.common.log as stulog
 from . import ta_consts as c
 from . import ta_helper as th
 
-basestring = str if sys.version_info[0] == 3 else basestring
 
 # methods can be overrided by subclass : process_task_configs
 class TaConfig:
@@ -200,7 +199,7 @@ class TaConfig:
         return task_configs
 
     def _get_stanza_name(self, input_item):
-        if isinstance(input_item, basestring):
+        if isinstance(input_item, str):
             in_name = input_item
         else:
             in_name = input_item[c.name]
