@@ -131,7 +131,7 @@ class MultipleModel(RestEndpoint):
         """
 
         :param conf_name:
-        :type conf_name: basestring
+        :type conf_name: str
         :param models: list of RestModel
         :type models: list
         :param args:

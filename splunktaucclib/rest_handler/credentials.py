@@ -77,7 +77,7 @@ class RestCredentialsContext:
         RestCredentials context ``password``.
         Load data from string.
         :param string: data has been decrypted
-        :type string: basestring
+        :type string: str
         :return:
         """
         try:

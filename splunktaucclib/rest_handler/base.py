@@ -36,7 +36,6 @@ from splunktaucclib.rest_handler.util import makeConfItem
 
 __all__ = ["user_caps", "BaseRestHandler", "BaseModel", "ResourceHandler"]
 
-basestring = str if sys.version_info[0] == 3 else basestring
 APP_NAME = sc_util.get_appname_from_path(op.abspath(__file__))
 
 
@@ -709,7 +708,7 @@ class BaseModel:
                 continue
             if isinstance(vs, list) or isinstance(vs, dict) or isinstance(vs, tuple):
                 data[k] = [
-                    self.normalisers[k].normalize(v) if isinstance(v, basestring) else v
+                    self.normalisers[k].normalize(v) if isinstance(v, str) else v
                     for v in vs
                 ]
             else:

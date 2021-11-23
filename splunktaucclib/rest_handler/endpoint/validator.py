@@ -21,7 +21,6 @@ Validators for Splunk configuration.
 
 import json
 import re
-import sys
 import warnings
 from inspect import isfunction
 
@@ -42,7 +41,6 @@ __all__ = [
     "Email",
     "JsonString",
 ]
-basestring = str if sys.version_info[0] == 3 else basestring
 
 
 class Validator:
@@ -292,17 +290,11 @@ class Number(Validator):
         self._is_int = is_int
 
     def _check(self, val):
-        try:
-            return val is None or isinstance(val, (int, long, float))
-        except NameError:
-            return val is None or isinstance(val, (int, float))
+        return val is None or isinstance(val, (int, float))
 
     def validate(self, value, data):
         try:
-            try:
-                value = long(value) if self._is_int else float(value)
-            except NameError:
-                value = int(value) if self._is_int else float(value)
+            value = int(value) if self._is_int else float(value)
         except ValueError:
             self.put_msg(
                 "Invalid format for %s value"
@@ -358,13 +350,10 @@ class String(Validator):
     def _check(self, val):
         if val is None:
             return True
-        try:
-            return isinstance(val, (int, long)) and val >= 0
-        except NameError:
-            return isinstance(val, (int)) and val >= 0
+        return isinstance(val, int) and val >= 0
 
     def validate(self, value, data):
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             self.put_msg("Input value should be string")
             return False
 

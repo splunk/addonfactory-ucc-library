@@ -32,7 +32,6 @@ from . import base, util
 from .error_ctl import RestHandlerError as RH_Err
 
 __all__ = ["DataInputHandler", "DataInputModel"]
-basestring = str if sys.version_info[0] == 3 else basestring
 
 
 class DataInputHandler(base.BaseRestHandler):
@@ -190,7 +189,7 @@ class DataInputHandler(base.BaseRestHandler):
         return err["messages"][0]["text"]
 
     def convert(self, data):
-        if isinstance(data, basestring):
+        if isinstance(data, str):
             return data.encode("utf-8")
         elif isinstance(data, collections.Mapping):
             return dict(list(map(self.convert, iter(data.items()))))
