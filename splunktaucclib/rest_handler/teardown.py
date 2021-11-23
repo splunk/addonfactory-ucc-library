@@ -43,7 +43,7 @@ class TeardownHandler(base.BaseRestHandler):
         admin.MConfigHandler.__init__(self, *args, **kwargs)
 
         assert hasattr(self, "targets") and self.targets, RH_Err.ctl(
-            1002, msgx="{}.targets".format(self._getHandlerName()), shouldPrint=False
+            1002, msgx=f"{self._getHandlerName()}.targets", shouldPrint=False
         )
         assert hasattr(self, "getArgs") and ismethod(self.getArgs), RH_Err.ctl(
             1002, msgx="%s.getArgs" % (self._getHandlerName()), shouldPrint=False

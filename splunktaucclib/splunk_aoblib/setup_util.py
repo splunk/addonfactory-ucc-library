@@ -185,9 +185,7 @@ class Setup_Util:
                     for s in s_v:
                         field_type = s.get("type")
                         if not field_type:
-                            self.log_error(
-                                "unknown type for customized var:{}".format(s)
-                            )
+                            self.log_error(f"unknown type for customized var:{s}")
                             continue
                         self.__cached_global_settings["customized_settings"][
                             s.get("name", "")
@@ -278,7 +276,7 @@ class Setup_Util:
             if account.get("name", None) == account_id:
                 return account
         self.log_error(
-            "Credential account with account id {} can not be found".format(account_id)
+            f"Credential account with account id {account_id} can not be found"
         )
         return None
 
@@ -287,9 +285,7 @@ class Setup_Util:
         for account in credential_settings:
             if account.get("username", None) == username:
                 return account
-        self.log_error(
-            "Credential account with username {} can not be found".format(username)
-        )
+        self.log_error(f"Credential account with username {username} can not be found")
         return None
 
     def get_customized_setting(self, key):

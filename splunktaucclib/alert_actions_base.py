@@ -255,7 +255,7 @@ class ModularAlertBase(ModularAction):
     def run(self, argv):
         status = 0
         if len(argv) < 2 or argv[1] != "--execute":
-            msg = 'Error: argv="{}", expected="--execute"'.format(argv)
+            msg = f'Error: argv="{argv}", expected="--execute"'
             print(msg, file=sys.stderr)
             sys.exit(1)
 

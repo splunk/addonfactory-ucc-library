@@ -41,7 +41,7 @@ class DataInputHandler(base.BaseRestHandler):
         base.BaseRestHandler.__init__(self, *args, **kwargs)
         assert hasattr(self, "dataInputName") and self.dataInputName, RH_Err.ctl(
             1002,
-            msgx="{}.dataInputName".format(self._getHandlerName()),
+            msgx=f"{self._getHandlerName()}.dataInputName",
             shouldPrint=False,
         )
 

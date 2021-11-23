@@ -328,7 +328,7 @@ class ModularAction:
         if "rid" in result and isinstance(result["rid"], (str, int)):
             self.rid = str(result["rid"])
             if self.sid_snapshot:
-                self.rid = "{}.{}".format(self.rid, self.sid_snapshot)
+                self.rid = f"{self.rid}.{self.sid_snapshot}"
             ## add result info to list of named tuples
             self.rids.append(self.rid_ntuple(self.orig_sid, self.rid, self.orig_rid))
         else:
@@ -427,7 +427,7 @@ class ModularAction:
                     if mapexp(real_key):
                         _raw += ', {}="{}"'.format("orig_" + real_key.lstrip("_"), val)
                     else:
-                        _raw += ', {}="{}"'.format(real_key, val)
+                        _raw += f', {real_key}="{val}"'
                 processed_keys.append(real_key)
 
         return _raw

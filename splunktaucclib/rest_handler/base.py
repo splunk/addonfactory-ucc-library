@@ -127,9 +127,7 @@ class BaseRestHandler(admin.MConfigHandler):
             except ResourceNotFound:
                 self.exist4sync = False
             except Exception as exc:
-                RH_Err.ctl(
-                    1102, msgx="object={}, err={}".format(self.callerArgs.id, exc)
-                )
+                RH_Err.ctl(1102, msgx=f"object={self.callerArgs.id}, err={exc}")
             else:
                 self.exist4sync = True
         self._cred_mgmt = self.get_cred_mgmt(self.endpoint)
@@ -396,7 +394,7 @@ class BaseRestHandler(admin.MConfigHandler):
             except ResourceNotFound:
                 RH_Err.ctl(
                     1021,
-                    msgx="endpoint={}, item={}".format(self.endpoint, name),
+                    msgx=f"endpoint={self.endpoint}, item={name}",
                     shouldPrint=False,
                     shouldRaise=False,
                 )
@@ -694,9 +692,7 @@ class BaseModel:
                 if not self.validators[k].validate(v, args):
                     RH_Err.ctl(
                         1100,
-                        msgx=(
-                            "{msg} - field={k}".format(msg=self.validators[k].msg, k=k)
-                        ),
+                        msgx=(f"{self.validators[k].msg} - field={k}"),
                         logLevel=logging.INFO,
                     )
         return args
