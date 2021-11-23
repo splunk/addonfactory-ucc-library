@@ -16,7 +16,6 @@
 
 import os.path as op
 import socket
-import sys
 
 import splunktalib.modinput as modinput
 import splunktalib.splunk_cluster as sc
