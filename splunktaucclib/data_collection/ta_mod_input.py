@@ -80,7 +80,7 @@ def _setup_signal_handler(data_loader, ta_short_name):
     """
 
     def _handle_exit(signum, frame):
-        stulog.logger.info("{} receives exit signal".format(ta_short_name))
+        stulog.logger.info(f"{ta_short_name} receives exit signal")
         if data_loader is not None:
             data_loader.tear_down()
 
@@ -93,7 +93,7 @@ def _handle_file_changes(data_loader):
     """
 
     def _handle_refresh(changed_files):
-        stulog.logger.info("Detect {} changed, reboot itself".format(changed_files))
+        stulog.logger.info(f"Detect {changed_files} changed, reboot itself")
         data_loader.tear_down()
 
     return _handle_refresh
@@ -213,7 +213,7 @@ def main(
         else:
             usage()
     else:
-        stulog.logger.info("Start {} task".format(ta_short_name))
+        stulog.logger.info(f"Start {ta_short_name} task")
         try:
             run(
                 collector_cls,
@@ -223,6 +223,6 @@ def main(
                 log_suffix=log_suffix,
             )
         except Exception as e:
-            stulog.logger.exception("{} task encounter exception".format(ta_short_name))
-        stulog.logger.info("End {} task".format(ta_short_name))
+            stulog.logger.exception(f"{ta_short_name} task encounter exception")
+        stulog.logger.info(f"End {ta_short_name} task")
     sys.exit(0)

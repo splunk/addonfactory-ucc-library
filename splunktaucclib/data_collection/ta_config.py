@@ -31,7 +31,7 @@ class TaConfig:
                 + "_"
                 + th.format_input_name_for_file(self._stanza_name)
             )
-            stulog.logger.info("Start {} task".format(self._stanza_name))
+            stulog.logger.info(f"Start {self._stanza_name} task")
         self._task_configs = []
         self._client_schema = client_schema
         self._server_info = sc.ServerInfo(
@@ -93,9 +93,7 @@ class TaConfig:
                     "should be a positive integer".format(task_config[c.interval])
                 )
         self._task_configs = all_task_configs
-        stulog.logger.info(
-            "Totally generated {} task configs".format(len(self._task_configs))
-        )
+        stulog.logger.info(f"Totally generated {len(self._task_configs)} task configs")
 
     # Override this method if some transforms or validations needs to be done
     # before task_configs is exposed

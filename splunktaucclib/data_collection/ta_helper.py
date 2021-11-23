@@ -59,7 +59,7 @@ def format_input_name_for_file(name):
 
     base64_name = base64.b64encode(name.encode("utf-8"), b"__").decode("ascii")
     qualified_name_str = re.sub(r"[^a-zA-Z0-9]+", "_", name)
-    return "{}_B64_{}".format(qualified_name_str, base64_name)
+    return f"{qualified_name_str}_B64_{base64_name}"
 
 
 class ConfigSchemaHandler:

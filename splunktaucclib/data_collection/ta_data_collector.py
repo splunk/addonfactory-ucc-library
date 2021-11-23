@@ -83,9 +83,9 @@ class TADataCollector:
         return self._task_config[c.interval]
 
     def _get_logger_prefix(self):
-        pairs = ['{}="{}"'.format(c.stanza_name, self._task_config[c.stanza_name])]
+        pairs = [f'{c.stanza_name}="{self._task_config[c.stanza_name]}"']
         for key in self._task_config[c.divide_key]:
-            pairs.append('{}="{}"'.format(key, self._task_config[key]))
+            pairs.append(f'{key}="{self._task_config[key]}"')
         return "[{}]".format(" ".join(pairs))
 
     def stop(self):
@@ -145,7 +145,7 @@ class TADataCollector:
             self._checkpoint_manager,
         )
 
-        stulog.logger.debug("{} Set {}={} ".format(self._p, c.ckpt_dict, ckpt))
+        stulog.logger.debug(f"{self._p} Set {c.ckpt_dict}={ckpt} ")
         return data_client
 
     def index_data(self):
@@ -167,7 +167,7 @@ class TADataCollector:
 
                 self._do_safe_index()
             except Exception:
-                stulog.logger.exception("{} Failed to index data".format(self._p))
+                stulog.logger.exception(f"{self._p} Failed to index data")
             stulog.logger.info(
                 "{} End of indexing data for checkpoint_key={}".format(
                     self._p, checkpoint_key
@@ -213,13 +213,13 @@ class TADataCollector:
                     if not self._write_events(ckpt, events):
                         break
             except StopIteration:
-                stulog.logger.debug("{} Finished this round".format(self._p))
+                stulog.logger.debug(f"{self._p} Finished this round")
                 break
             except Exception:
-                stulog.logger.exception("{} Failed to get msg".format(self._p))
+                stulog.logger.exception(f"{self._p} Failed to get msg")
                 break
         self.stop()
         try:
             self._client.get()
         except StopIteration:
-            stulog.logger.debug("{} Invoke client.get() after stop ".format(self._p))
+            stulog.logger.debug(f"{self._p} Invoke client.get() after stop ")
