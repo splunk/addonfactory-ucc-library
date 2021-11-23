@@ -22,7 +22,6 @@ The load/save action is based on specified schema.
 
 import json
 import logging
-import sys
 import time
 import traceback
 from urllib.parse import quote

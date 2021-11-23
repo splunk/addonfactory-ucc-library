@@ -17,13 +17,11 @@ import hashlib
 import json
 import os.path as op
 import re
-import threading
 from calendar import timegm
 from datetime import datetime
 
 from splunktalib.common import util
 
-import splunktaucclib.common.log as stulog
 import splunktaucclib.config as sc
 from splunktaucclib.data_collection import ta_consts as c
 
