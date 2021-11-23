@@ -53,10 +53,7 @@ def get_md5(data):
     :return:
     """
     assert data is not None, "The input cannot be None"
-    try:
-        string_type = isinstance(data, (unicode, str))
-    except:
-        string_type = isinstance(data, (str))
+    string_type = isinstance(data, str)
     if string_type:
         return hashlib.sha256(data.encode("utf-8")).hexdigest()
     elif isinstance(data, (list, tuple, dict)):
