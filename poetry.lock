@@ -212,7 +212,7 @@ use_chardet_on_py3 = ["chardet (>=3.0.2,<5)"]
 
 [[package]]
 name = "solnlib"
-version = "4.4.0"
+version = "4.4.1"
 description = "The Splunk Software Development Kit for Splunk Solutions"
 category = "main"
 optional = false
@@ -426,8 +426,8 @@ requests = [
     {file = "requests-2.26.0.tar.gz", hash = "sha256:b8aa58f8cf793ffd8782d3d8cb19e66ef36f7aba4353eec859e74678b01b07a7"},
 ]
 solnlib = [
-    {file = "solnlib-4.4.0-py3-none-any.whl", hash = "sha256:739124810450bb62ad78221939ea83aa991062b295e5f59af99667378d12bd5d"},
-    {file = "solnlib-4.4.0.tar.gz", hash = "sha256:edb5b99b3f1d6b6df36ab7cec87658d685737b19e716366de690a656c95971b2"},
+    {file = "solnlib-4.4.1-py3-none-any.whl", hash = "sha256:c15fc4946b5a7bbb5328bfa510cadee6d586d71416302196ecd1ee9292f60044"},
+    {file = "solnlib-4.4.1.tar.gz", hash = "sha256:e857bf54025b9f47b7400779833a320bf0fea774a4ae78b65f9980526dc203ef"},
 ]
 sortedcontainers = [
     {file = "sortedcontainers-2.4.0-py2.py3-none-any.whl", hash = "sha256:a163dcaede0f1c021485e957a39245190e74249897e2ae4b2aa38595db237ee0"},
