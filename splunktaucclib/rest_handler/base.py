@@ -21,7 +21,6 @@ import copy
 import itertools
 import json
 import logging
-import sys
 from inspect import ismethod
 from os import path as op
 
@@ -68,15 +67,15 @@ def user_caps(mgmt_uri, session_key):
     """
     url = mgmt_uri + "/services/authentication/current-context"
 
-    resp, cont = splunkd_request(
+    resp = splunkd_request(
         url, session_key, method="GET", data={"output_mode": "json"}, retry=3
     )
     if resp is None:
         RH_Err.ctl(500, logging.ERROR, "Fail to get capabilities of sessioned user")
-    elif resp.status not in (200, "200"):
-        RH_Err.ctl(resp.status, logging.ERROR, cont)
+    elif resp.status_code not in (200, "200"):
+        RH_Err.ctl(resp.status_code, logging.ERROR, resp.text)
 
-    cont = json.loads(cont)
+    cont = resp.json()
     caps = cont["entry"][0]["content"]["capabilities"]
     return set(caps)
 
@@ -288,7 +287,7 @@ class BaseRestHandler(admin.MConfigHandler):
     def handleCreate(self, confInfo):
         try:
             self.get(self.callerArgs.id)
-        except:
+        except Exception:
             pass
         else:
             RH_Err.ctl(

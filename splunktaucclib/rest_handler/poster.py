@@ -15,17 +15,17 @@
 #
 
 
-import json
 import re
 import urllib.error
 import urllib.parse
 import urllib.request
 
+import requests
 from splunk import admin, rest
 from splunktalib.common.util import is_true
-from splunktalib.rest import build_http_connection, code_to_msg, splunkd_request
+from splunktalib.rest import code_to_msg, splunkd_request
 
-from . import base
+from . import base, util
 from .error_ctl import RestHandlerError as RH_Err
 
 
@@ -75,7 +75,8 @@ class PosterHandler(base.BaseRestHandler):
             app=app,
         )
         proxy_enabled = proxy_info.get("proxy_enabled", False)
-        http = build_http_connection(proxy_info if proxy_enabled else {})
+        proxy_uri = util.get_proxy_uri(proxy_info if proxy_enabled else {})
+        proxies = {"http": proxy_uri, "https": proxy_uri}
         try:
             url = self.callerArgs.data["splunk_poster_url"][0]
             for regex in self.allowedURLs:
@@ -97,15 +98,18 @@ class PosterHandler(base.BaseRestHandler):
                 "Content-Type": "application/x-www-form-urlencoded",
             }
 
-            resp, content = http.request(
-                url,
+            resp = requests.request(
                 method=method,
+                url=url,
                 headers=headers,
-                body=urllib.parse.urlencode(payload),
+                data=urllib.parse.urlencode(payload),
+                timeout=120,
+                proxies=proxies,
+                verify=True,
             )
-            content = json.loads(content)
-            if resp.status not in (200, 201, "200", "201"):
-                RH_Err.ctl(resp.status, msgx=content)
+            content = resp.json()
+            if resp.status_code not in (200, 201):
+                RH_Err.ctl(resp.status_code, msgx=content)
 
             for key, val in content.items():
                 confInfo[self.callerArgs.id][key] = val
@@ -167,17 +171,12 @@ class PosterMapping:
             proxyInfoEndpoint=self.proxyInfoEndpoint,
         )
         data = {"output_mode": "json", "--get-clear-credential--": "1"}
-        resp, cont = splunkd_request(url, sessionKey, data=data, retry=3)
-        if resp is None or resp.status != 200:
-            RH_Err.ctl(
-                1104,
-                msgx="failed to load proxy info. {err}".format(
-                    err=code_to_msg(resp, cont) if resp else cont
-                ),
-            )
+        resp = splunkd_request(url, sessionKey, data=data, retry=3)
+        if resp is None or resp.status_code != 200:
+            RH_Err.ctl(1104, msgx=f"failed to load proxy info. {code_to_msg(resp)}")
 
         try:
-            proxy_info = json.loads(cont)["entry"][0]["content"]
+            proxy_info = resp.json()["entry"][0]["content"]
         except IndexError | KeyError:
             proxy_info = {}
 
