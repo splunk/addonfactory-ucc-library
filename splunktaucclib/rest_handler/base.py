@@ -72,7 +72,7 @@ def user_caps(mgmt_uri, session_key):
     )
     if resp is None:
         RH_Err.ctl(500, logging.ERROR, "Fail to get capabilities of sessioned user")
-    elif resp.status_code not in (200, "200"):
+    elif resp.status_code != 200:
         RH_Err.ctl(resp.status_code, logging.ERROR, resp.text)
 
     cont = resp.json()

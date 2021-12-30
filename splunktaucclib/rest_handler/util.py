@@ -15,7 +15,7 @@
 #
 
 import os.path
-from typing import Optional
+from typing import Any, Dict, Optional
 
 import solnlib.utils as utils
 
@@ -100,7 +100,7 @@ def remove_http_proxy_env_vars():
             del os.environ[k.upper()]
 
 
-def get_proxy_uri(proxy) -> Optional[str]:
+def get_proxy_uri(proxy: Dict[str, Any]) -> Optional[str]:
     """
     :proxy: dict like, proxy information are in the following
             format {
