@@ -356,8 +356,8 @@ class Config:
 
     def try_fix_corrupted_json(self, corrupted_json, value_err):
         """
-        When L3 (one of our customers) was testing, they encountered a bug that 'access_token_encrypted'
-        or 'refresh_token' got corrupted when it was saved in the conf file
+        A bug was encountered that 'access_token_encrypted' or 'refresh_token'
+        got corrupted when it was saved in the conf file
         (because of the way how we save encrypted data).
         """
         # value_err.message is in this format:
