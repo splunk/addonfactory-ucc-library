@@ -22,6 +22,7 @@ import sys
 from solnlib import log
 
 from splunktaucclib.cim_actions import ModularAction
+from splunktaucclib.rest_handler import util
 from splunktaucclib.splunk_aoblib.rest_helper import TARestHelper
 from splunktaucclib.splunk_aoblib.setup_util import Setup_Util
 
@@ -114,22 +115,8 @@ class ModularAlertBase(ModularAction):
         return self.setup_util.get_proxy_settings()
 
     def _get_proxy_uri(self):
-        uri = None
         proxy = self.get_proxy()
-        if proxy and proxy.get("proxy_url") and proxy.get("proxy_type"):
-            uri = proxy["proxy_url"]
-            if proxy.get("proxy_port"):
-                uri = "{}:{}".format(uri, proxy.get("proxy_port"))
-            if proxy.get("proxy_username") and proxy.get("proxy_password"):
-                uri = "{}://{}:{}@{}/".format(
-                    proxy["proxy_type"],
-                    proxy["proxy_username"],
-                    proxy["proxy_password"],
-                    uri,
-                )
-            else:
-                uri = "{}://{}".format(proxy["proxy_type"], uri)
-        return uri
+        return util.get_proxy_uri(proxy)
 
     def send_http_request(
         self,
@@ -158,71 +145,10 @@ class ModularAlertBase(ModularAction):
         )
 
     def build_http_connection(self, config, timeout=120, disable_ssl_validation=False):
-        from httplib2 import Http, ProxyInfo, socks
-
-        """
-        :config: dict like, proxy and account information are in the following
-                format {
-                    "username": xx,
-                    "password": yy,
-                    "proxy_url": zz,
-                    "proxy_port": aa,
-                    "proxy_username": bb,
-                    "proxy_password": cc,
-                    "proxy_type": http,http_no_tunnel,sock4,sock5,
-                    "proxy_rdns": 0 or 1,
-                }
-        :return: Http2.Http object
-        """
-        if not config:
-            config = {}
-
-        proxy_type_to_code = {
-            "http": socks.PROXY_TYPE_HTTP,
-            "http_no_tunnel": socks.PROXY_TYPE_HTTP_NO_TUNNEL,
-            "socks4": socks.PROXY_TYPE_SOCKS4,
-            "socks5": socks.PROXY_TYPE_SOCKS5,
-        }
-        if config.get("proxy_type") in proxy_type_to_code:
-            proxy_type = proxy_type_to_code[config["proxy_type"]]
-        else:
-            proxy_type = socks.PROXY_TYPE_HTTP
-
-        rdns = config.get("proxy_rdns")
-
-        proxy_info = None
-        if config.get("proxy_url") and config.get("proxy_port"):
-            if config.get("proxy_username") and config.get("proxy_password"):
-                proxy_info = ProxyInfo(
-                    proxy_type=proxy_type,
-                    proxy_host=config["proxy_url"],
-                    proxy_port=int(config["proxy_port"]),
-                    proxy_user=config["proxy_username"],
-                    proxy_pass=config["proxy_password"],
-                    proxy_rdns=rdns,
-                )
-            else:
-                proxy_info = ProxyInfo(
-                    proxy_type=proxy_type,
-                    proxy_host=config["proxy_url"],
-                    proxy_port=int(config["proxy_port"]),
-                    proxy_rdns=rdns,
-                )
-        if proxy_info:
-            http = Http(
-                proxy_info=proxy_info,
-                timeout=timeout,
-                disable_ssl_certificate_validation=disable_ssl_validation,
-            )
-        else:
-            http = Http(
-                timeout=timeout,
-                disable_ssl_certificate_validation=disable_ssl_validation,
-            )
-
-        if config.get("username") and config.get("password"):
-            http.add_credentials(config["username"], config["password"])
-        return http
+        raise NotImplementedError(
+            "Replace the usage of this function to send_http_request function of same class "
+            "or use requests.request method"
+        )
 
     def process_event(self, *args, **kwargs):
         raise NotImplemented()

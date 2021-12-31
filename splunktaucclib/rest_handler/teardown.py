@@ -99,7 +99,7 @@ class TeardownHandler(base.BaseRestHandler):
 
     def clean(self, endpoint):
         url = self.make_uri(endpoint) + "?count=-1"
-        resp, cont = splunkd_request(
+        resp = splunkd_request(
             url,
             self.getSessionKey(),
             method="GET",
@@ -109,10 +109,10 @@ class TeardownHandler(base.BaseRestHandler):
 
         if resp is None:
             return {url: "Unknown reason"}
-        if resp.status != 200:
-            return {url: self.convertErrMsg(cont)}
+        if resp.status_code != 200:
+            return {url: self.convertErrMsg(resp.text)}
 
-        cont = json.loads(cont)
+        cont = resp.json()
         ents = [ent["name"] for ent in cont.get("entry", [])]
         errs = {}
         for ent in ents:
@@ -120,7 +120,7 @@ class TeardownHandler(base.BaseRestHandler):
             if not self.distinguish(endpoint, ent, **args):
                 continue
             url_ent = self.make_uri(endpoint, entry=ent)
-            resp, cont = splunkd_request(
+            resp = splunkd_request(
                 url_ent,
                 self.getSessionKey(),
                 method="DELETE",
@@ -130,7 +130,7 @@ class TeardownHandler(base.BaseRestHandler):
 
             if resp is None:
                 errs[url_ent] = "Unknown reason"
-            if resp.status != 200:
+            if resp.status_code != 200:
                 errs[url_ent] = self.convertErrMsg(cont)
         return errs
 

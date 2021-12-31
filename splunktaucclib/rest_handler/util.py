@@ -15,17 +15,20 @@
 #
 
 import os.path
+from typing import Any, Dict, Optional
+
+import solnlib.utils as utils
 
 from .error import RestError
 
 try:
     from splunk import admin
-except:
+except Exception:
     print("Some functions will not be available outside of a splunk hosted process")
 
 try:
     from splunktalib.common import util
-except:
+except Exception:
     print('Python Lib for Splunk add-on "splunktalib" is required')
     raise BaseException()
 
@@ -95,3 +98,44 @@ def remove_http_proxy_env_vars():
             del os.environ[k]
         elif k.upper() in os.environ:
             del os.environ[k.upper()]
+
+
+def get_proxy_uri(proxy: Dict[str, Any]) -> Optional[str]:
+    """
+    :proxy: dict like, proxy information are in the following
+            format {
+                "proxy_url": zz,
+                "proxy_port": aa,
+                "proxy_username": bb,
+                "proxy_password": cc,
+                "proxy_type": http,sock4,sock5,
+                "proxy_rdns": 0 or 1,
+            }
+    :return: proxy uri or None
+    """
+    uri = None
+    if proxy and proxy.get("proxy_url") and proxy.get("proxy_type"):
+        uri = proxy["proxy_url"]
+        # socks5 causes the DNS resolution to happen on the client
+        # socks5h causes the DNS resolution to happen on the proxy server
+        if proxy.get("proxy_type") == "socks5" and utils.is_true(
+            proxy.get("proxy_rdns")
+        ):
+            proxy["proxy_type"] = "socks5h"
+        # setting default value of proxy_type to "http" if
+        # its value is not from ["http", "socks4", "socks5"]
+        if proxy.get("proxy_type") not in ["http", "socks4", "socks5"]:
+            proxy["proxy_type"] = "http"
+        if proxy.get("proxy_port"):
+            uri = "{}:{}".format(uri, proxy.get("proxy_port"))
+        if proxy.get("proxy_username") and proxy.get("proxy_password"):
+            uri = "{}://{}:{}@{}/".format(
+                proxy["proxy_type"],
+                proxy["proxy_username"],
+                proxy["proxy_password"],
+                uri,
+            )
+        else:
+            uri = "{}://{}".format(proxy["proxy_type"], uri)
+
+    return uri
