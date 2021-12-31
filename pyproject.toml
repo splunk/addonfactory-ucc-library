@@ -25,7 +25,7 @@ license = "APACHE-2.0"
 python = "^3.7"
 solnlib = "^4.0.0"
 splunk-sdk = "^1.6.16"
-splunktalib = "^2.0.0"
+splunktalib = "^3.0.0b1"
 requests = "^2.26.0"
 PySocks = "^1.7.1"
 
