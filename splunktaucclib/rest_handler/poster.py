@@ -98,7 +98,7 @@ class PosterHandler(base.BaseRestHandler):
                 "Content-Type": "application/x-www-form-urlencoded",
             }
 
-            resp = requests.request(
+            resp = requests.request(  # nosemgrep: python.requests.best-practice.use-raise-for-status.use-raise-for-status  # noqa: E501
                 method=method,
                 url=url,
                 headers=headers,

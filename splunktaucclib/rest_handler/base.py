@@ -285,7 +285,7 @@ class BaseRestHandler(admin.MConfigHandler):
         self.handleList(confInfo)
 
     def handleCreate(self, confInfo):
-        try:
+        try:  # nosemgrep: gitlab.bandit.B110
             self.get(self.callerArgs.id)
         except Exception:
             pass
