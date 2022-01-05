@@ -239,7 +239,7 @@ python-versions = "*"
 
 [[package]]
 name = "splunktalib"
-version = "3.0.0b1"
+version = "3.0.0"
 description = "Supporting library for Splunk Add-ons"
 category = "main"
 optional = false
@@ -302,7 +302,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "e046fbe18cc7c4b43039236600e9f874b61d9907087433ab9b7173338e2f60db"
+content-hash = "4a797bacd9604253483214207acaa9201f5f42c113236420c17304b93a9864fd"
 
 [metadata.files]
 atomicwrites = [
@@ -435,8 +435,8 @@ splunk-sdk = [
     {file = "splunk-sdk-1.6.18.tar.gz", hash = "sha256:edc0959786f5dcab225ba98633c310dbf7584977849f6c2152a0e5090b5e2561"},
 ]
 splunktalib = [
-    {file = "splunktalib-3.0.0b1-py3-none-any.whl", hash = "sha256:a22a5bf7e5451b94acc491a9d5c62c01778896e9705b481c825a7513b3634a4d"},
-    {file = "splunktalib-3.0.0b1.tar.gz", hash = "sha256:141341f522641d9e24362445daeb23aef502b1fbf4a3bb90ae196cfd0b6c64fb"},
+    {file = "splunktalib-3.0.0-py3-none-any.whl", hash = "sha256:371aa9ba95e4535458f2a8b981a50f039a1f973818f27ef542ecd827cae5f462"},
+    {file = "splunktalib-3.0.0.tar.gz", hash = "sha256:0a4e87b8b94f2cdd6be21f00e40d07e8167fcbd5540ac492fe3586b1ec98c25a"},
 ]
 toml = [
     {file = "toml-0.10.2-py2.py3-none-any.whl", hash = "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b"},
