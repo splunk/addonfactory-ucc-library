@@ -116,7 +116,6 @@ jobs:
     needs:
       - pre-commit
       - semgrep
-      - snyk
       - build
       - review_secrets
     runs-on: ubuntu-latest
