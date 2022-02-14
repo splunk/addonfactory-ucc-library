@@ -30,7 +30,7 @@ requests = "^2.26.0"
 PySocks = "^1.7.1"
 
 [tool.poetry.dev-dependencies]
-pytest = "^6.2"
+pytest = "^7.0"
 pytest-cov = "^3"
 
 
