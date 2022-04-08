@@ -23,14 +23,14 @@ jobs:
           WorkDir: .
           UsePython3: "3.7"        
       - name: ort-action-artifacts-reports
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: analysis-reports
           path: |
             .ort/reports/*
         if: always()
       - name: ort-action-artifacts-analyzer
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: analysis-analyzer
           path: |
@@ -99,7 +99,7 @@ jobs:
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
           poetry build
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         if: always() 
         with:
           name: Package
