@@ -231,7 +231,7 @@ python-versions = "*"
 
 [[package]]
 name = "splunk-sdk"
-version = "1.6.20"
+version = "1.7.0"
 description = "The Splunk Software Development Kit for Python."
 category = "main"
 optional = false
@@ -418,7 +418,7 @@ sortedcontainers = [
     {file = "sortedcontainers-2.4.0.tar.gz", hash = "sha256:25caa5a06cc30b6b83d11423433f65d1f9d76c4c6a0c90e3379eaa43b9bfdb88"},
 ]
 splunk-sdk = [
-    {file = "splunk-sdk-1.6.20.tar.gz", hash = "sha256:cac4954bdd94443f180baa9fce9208dd0ce67ad1ef125e3b7f9aa91e52e94101"},
+    {file = "splunk-sdk-1.7.0.tar.gz", hash = "sha256:5ea24843f4c7a74ca0ed44645e7e9c78d0a57e70c08960b9f22b90fcfcc3242e"},
 ]
 splunktalib = [
     {file = "splunktalib-3.0.0-py3-none-any.whl", hash = "sha256:371aa9ba95e4535458f2a8b981a50f039a1f973818f27ef542ecd827cae5f462"},
