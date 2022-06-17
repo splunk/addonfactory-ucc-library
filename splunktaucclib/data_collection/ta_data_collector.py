@@ -20,7 +20,7 @@ import threading
 import time
 from collections import namedtuple
 
-import splunktalib.common.util as scu
+import defusedxml.sax.saxutils as xss
 
 import splunktaucclib.common.log as stulog
 
@@ -32,7 +32,7 @@ evt_fmt = (
     "<sourcetype><![CDATA[{2}]]></sourcetype>"
     "<time>{3}</time>"
     "<index>{4}</index><data>"
-    "<![CDATA[{5}]]></data></event></stream>"
+    "{5}</data></event></stream>"
 )
 
 unbroken_evt_fmt = (
@@ -43,7 +43,7 @@ unbroken_evt_fmt = (
     "<sourcetype><![CDATA[{2}]]></sourcetype>"
     "<time>{3}</time>"
     "<index>{4}</index>"
-    "<data><![CDATA[{5}]]></data>"
+    "<data>{5}</data>"
     "{6}"
     "</event>"
     "</stream>"
@@ -123,7 +123,7 @@ class TADataCollector:
                     event.sourcetype or "",
                     event.time or "",
                     event.index or "",
-                    scu.escape_cdata(event.raw_data),
+                    xss.escape(event.raw_data),
                     "<done/>" if event.is_done else "",
                 )
             else:
@@ -133,7 +133,7 @@ class TADataCollector:
                     event.sourcetype or "",
                     event.time or "",
                     event.index or "",
-                    scu.escape_cdata(event.raw_data),
+                    xss.escape(event.raw_data),
                 )
             evts.append(evt)
         return evts
