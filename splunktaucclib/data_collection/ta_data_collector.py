@@ -18,8 +18,9 @@
 
 import threading
 import time
-import defusedxml.sax.saxutils as xss
 from collections import namedtuple
+
+import defusedxml.sax.saxutils as xss
 
 import splunktaucclib.common.log as stulog
 
