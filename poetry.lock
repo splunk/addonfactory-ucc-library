@@ -209,7 +209,7 @@ use_chardet_on_py3 = ["chardet (>=3.0.2,<5)"]
 
 [[package]]
 name = "solnlib"
-version = "4.6.1"
+version = "4.6.2"
 description = "The Splunk Software Development Kit for Splunk Solutions"
 category = "main"
 optional = false
@@ -219,7 +219,7 @@ python-versions = ">=3.7,<4.0"
 defusedxml = ">=0.7.1,<0.8.0"
 requests = ">=2.28.0,<3.0.0"
 sortedcontainers = ">=2.2,<3.0"
-splunk-sdk = ">=1.6.16,<2.0.0"
+splunk-sdk = ">=1.6.18"
 
 [[package]]
 name = "sortedcontainers"
@@ -231,7 +231,7 @@ python-versions = "*"
 
 [[package]]
 name = "splunk-sdk"
-version = "1.6.20"
+version = "1.7.0"
 description = "The Splunk Software Development Kit for Python."
 category = "main"
 optional = false
@@ -294,7 +294,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "9e96b9cf4411e1b45a1b3f0b6d3f0ef4505e10fa83791c991112b75780d05d35"
+content-hash = "fcf235f8508652a8eca9af1beeda05e3c1d6b90a939060bec186c7e79d69da3a"
 
 [metadata.files]
 atomicwrites = [
@@ -410,15 +410,15 @@ requests = [
     {file = "requests-2.28.0.tar.gz", hash = "sha256:d568723a7ebd25875d8d1eaf5dfa068cd2fc8194b2e483d7b1f7c81918dbec6b"},
 ]
 solnlib = [
-    {file = "solnlib-4.6.1-py3-none-any.whl", hash = "sha256:ed5d7513ea0d949f4552260400195886a33eed2e18f912ee0b85c8cb949bd74a"},
-    {file = "solnlib-4.6.1.tar.gz", hash = "sha256:00acba7088f573c09993930e05ad0d614209138de55cb576ab62261d74c6c8b4"},
+    {file = "solnlib-4.6.2-py3-none-any.whl", hash = "sha256:738bafec69425acaeef1b3b74376f6741c2eb830856f2086d079d7465cd13ddf"},
+    {file = "solnlib-4.6.2.tar.gz", hash = "sha256:86bf29c1f56e6c87d55ccd66317d106e317dfdc4f9ff2c9ea60f1cadb70daeec"},
 ]
 sortedcontainers = [
     {file = "sortedcontainers-2.4.0-py2.py3-none-any.whl", hash = "sha256:a163dcaede0f1c021485e957a39245190e74249897e2ae4b2aa38595db237ee0"},
     {file = "sortedcontainers-2.4.0.tar.gz", hash = "sha256:25caa5a06cc30b6b83d11423433f65d1f9d76c4c6a0c90e3379eaa43b9bfdb88"},
 ]
 splunk-sdk = [
-    {file = "splunk-sdk-1.6.20.tar.gz", hash = "sha256:cac4954bdd94443f180baa9fce9208dd0ce67ad1ef125e3b7f9aa91e52e94101"},
+    {file = "splunk-sdk-1.7.0.tar.gz", hash = "sha256:5ea24843f4c7a74ca0ed44645e7e9c78d0a57e70c08960b9f22b90fcfcc3242e"},
 ]
 splunktalib = [
     {file = "splunktalib-3.0.0-py3-none-any.whl", hash = "sha256:371aa9ba95e4535458f2a8b981a50f039a1f973818f27ef542ecd827cae5f462"},
