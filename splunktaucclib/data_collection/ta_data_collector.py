@@ -20,11 +20,19 @@ import threading
 import time
 from collections import namedtuple
 
-import defusedxml.sax.saxutils as xss
-
 import splunktaucclib.common.log as stulog
 
 from . import ta_consts as c
+
+
+def _escape(data):
+    """Escape &, <, and > in a string of data."""
+    # must do ampersand first
+    data = data.replace("&", "&amp;")
+    data = data.replace(">", "&gt;")
+    data = data.replace("<", "&lt;")
+    return data
+
 
 evt_fmt = (
     "<stream><event><host>{0}</host>"
@@ -123,7 +131,7 @@ class TADataCollector:
                     event.sourcetype or "",
                     event.time or "",
                     event.index or "",
-                    xss.escape(event.raw_data),
+                    _escape(event.raw_data),
                     "<done/>" if event.is_done else "",
                 )
             else:
@@ -133,7 +141,7 @@ class TADataCollector:
                     event.sourcetype or "",
                     event.time or "",
                     event.index or "",
-                    xss.escape(event.raw_data),
+                    _escape(event.raw_data),
                 )
             evts.append(evt)
         return evts
