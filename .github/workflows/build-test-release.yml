@@ -101,12 +101,26 @@ jobs:
           name: Package
           path: dist/
 
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.7
+      - name: run tests
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          poetry install
+          poetry run pytest tests/unit
+
   publish:
     needs:
       - pre-commit
       - semgrep
       - build
       - review_secrets
+      - unit-tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
