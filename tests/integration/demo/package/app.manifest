@@ -1,0 +1,57 @@
+{
+    "schemaVersion": "2.0.0",
+    "info": {
+        "title": "demo",
+        "id": {
+            "group": null,
+            "name": "demo",
+            "version": "0.0.1"
+        },
+        "author": [
+            {
+                "name": "Artem Rys",
+                "email": "email@example.com",
+                "company": "Splunk, Inc"
+            }
+        ],
+        "releaseDate": null,
+        "description": "Demo",
+        "classification": {
+            "intendedAudience": "IT Professionals",
+            "categories": [
+                "Security, Fraud & Compliance"
+            ],
+            "developmentStatus": "Production/Stable"
+        },
+        "commonInformationModels": null,
+        "license": {
+            "name": null,
+            "text": "LICENSES/Apache-2.0.txt",
+            "uri": null
+        },
+        "privacyPolicy": {
+            "name": null,
+            "text": null,
+            "uri": null
+        },
+        "releaseNotes": {
+            "name": "README",
+            "text": "README.txt",
+            "uri": ""
+        }
+    },
+    "dependencies": null,
+    "tasks": null,
+    "inputGroups": null,
+    "incompatibleApps": null,
+    "platformRequirements": null,
+    "supportedDeployments": [
+        "_standalone",
+        "_distributed",
+        "_search_head_clustering"
+    ],
+    "targetWorkloads": [
+        "_search_heads",
+        "_indexers"
+    ]
+}

@@ -9,7 +9,17 @@ on:
       - "v[0-9]+.[0-9]+.[0-9]+"
   pull_request:
     branches: [main, develop]
-jobs: 
+jobs:
+  meta:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix_supportedSplunk: ${{ steps.matrix.outputs.supportedSplunk }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: matrix
+        id: matrix
+        uses: splunk/addonfactory-test-matrix-action@v1
+
   fossa-scan:
     continue-on-error: true
     runs-on: ubuntu-latest
@@ -96,7 +106,7 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
           poetry build
       - uses: actions/upload-artifact@v3
-        if: always() 
+        if: always()
         with:
           name: Package
           path: dist/
@@ -114,6 +124,56 @@ jobs:
           poetry install
           poetry run pytest tests/unit
 
+  integration-tests:
+    runs-on: ubuntu-latest
+    needs:
+      - meta
+      - unit-tests
+    strategy:
+      matrix:
+        splunk: ${{ fromJson(needs.meta.outputs.matrix_supportedSplunk) }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.7
+      - name: install poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          poetry install
+      - name: build demo add-on
+        run: |
+          poetry run ucc-gen \
+            --source=tests/integration/demo/package \
+            --config=tests/integration/demo/globalConfig.json \
+            --ta-version=0.0.1
+          poetry build
+          pip install wheel
+          pip install dist/*.whl --target output/demo/lib
+          poetry run slim package output/demo
+      - name: install Splunk
+        run: |
+          export SPLUNK_PRODUCT=splunk
+          export SPLUNK_VERSION=${{ matrix.splunk.version }}
+          export SPLUNK_BUILD=${{ matrix.splunk.build }}
+          export SPLUNK_SLUG=$SPLUNK_VERSION-$SPLUNK_BUILD
+          export SPLUNK_ARCH=x86_64
+          export SPLUNK_LINUX_FILENAME=splunk-${SPLUNK_VERSION}-${SPLUNK_BUILD}-Linux-${SPLUNK_ARCH}.tgz
+          export SPLUNK_BUILD_URL=https://download.splunk.com/products/${SPLUNK_PRODUCT}/releases/${SPLUNK_VERSION}/linux/${SPLUNK_LINUX_FILENAME}
+          echo "$SPLUNK_BUILD_URL"
+          export SPLUNK_HOME=/opt/splunk
+          wget -qO /tmp/splunk.tgz "${SPLUNK_BUILD_URL}"
+          sudo tar -C /opt -zxf /tmp/splunk.tgz
+          sudo chown -R "$USER":"$USER" /opt/splunk
+          echo -e "[user_info]\nUSERNAME=Admin\nPASSWORD=Chang3d"'!' | sudo tee -a /opt/splunk/etc/system/local/user-seed.conf
+          echo 'OPTIMISTIC_ABOUT_FILE_LOCKING=1' | sudo tee -a /opt/splunk/etc/splunk-launch.conf
+          sudo /opt/splunk/bin/splunk start --accept-license
+          sudo /opt/splunk/bin/splunk install app demo-0.0.1.tar.gz -auth admin:Chang3d!
+          sudo /opt/splunk/bin/splunk restart
+      - name: run tests
+        run: |
+          poetry run pytest tests/integration
+
   publish:
     needs:
       - pre-commit
@@ -121,6 +181,7 @@ jobs:
       - build
       - review_secrets
       - unit-tests
+      - integration-tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
