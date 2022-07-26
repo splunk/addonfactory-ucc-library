@@ -16,7 +16,7 @@
 
 [tool.poetry]
 name = "splunktaucclib"
-version = "6.0.4"
+version = "6.0.5"
 description = ""
 authors = ["Splunk <addonfactory@splunk.com>"]
 license = "APACHE-2.0"
