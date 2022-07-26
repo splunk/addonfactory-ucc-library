@@ -138,11 +138,6 @@ def run(collector_cls, settings, checkpoint_cls=None, config_cls=None, log_suffi
         return
     meta_config = tconfig.get_meta_config()
 
-    if tconfig.is_shc_but_not_captain():
-        # In SHC env, only captain is able to collect data
-        stulog.logger.debug("This search header is not captain, will exit.")
-        return
-
     loader = dl.create_data_loader(meta_config)
 
     jobs = [
