@@ -289,9 +289,7 @@ class RestCredentials:
             host=self._splunkd_info.hostname,
             port=self._splunkd_info.port,
         )
-
-        all_passwords = credential_manager._get_all_passwords()
-        # filter by realm
+        all_passwords = credential_manager.get_clear_passwords_in_realm()
         realm_passwords = [x for x in all_passwords if x["realm"] == self._realm]
         return self._merge_passwords(data, realm_passwords)
 
