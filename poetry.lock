@@ -7,14 +7,6 @@ optional = false
 python-versions = ">=3.7,<4.0"
 
 [[package]]
-name = "atomicwrites"
-version = "1.4.0"
-description = "Atomic file writes."
-category = "dev"
-optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-
-[[package]]
 name = "attrs"
 version = "21.2.0"
 description = "Classes Without Boilerplate"
@@ -23,10 +15,10 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [package.extras]
-dev = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "mypy", "pytest-mypy-plugins", "zope.interface", "furo", "sphinx", "sphinx-notfound-page", "pre-commit"]
-docs = ["furo", "sphinx", "zope.interface", "sphinx-notfound-page"]
-tests = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "mypy", "pytest-mypy-plugins", "zope.interface"]
-tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "mypy", "pytest-mypy-plugins"]
+dev = ["coverage[toml] (>=5.0.2)", "furo", "hypothesis", "mypy", "pre-commit", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins", "six", "sphinx", "sphinx-notfound-page", "zope.interface"]
+docs = ["furo", "sphinx", "sphinx-notfound-page", "zope.interface"]
+tests = ["coverage[toml] (>=5.0.2)", "hypothesis", "mypy", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins", "six", "zope.interface"]
+tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "mypy", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins", "six"]
 
 [[package]]
 name = "certifi"
@@ -118,9 +110,9 @@ typing-extensions = {version = ">=3.6.4", markers = "python_version < \"3.8\""}
 zipp = ">=0.5"
 
 [package.extras]
-docs = ["sphinx", "jaraco.packaging (>=8.2)", "rst.linker (>=1.9)"]
+docs = ["jaraco.packaging (>=8.2)", "rst.linker (>=1.9)", "sphinx"]
 perf = ["ipython"]
-testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-cov", "pytest-enabler (>=1.0.1)", "packaging", "pep517", "pyfakefs", "flufl.flake8", "pytest-perf (>=0.9.2)", "pytest-black (>=0.3.7)", "pytest-mypy", "importlib-resources (>=1.3)"]
+testing = ["flufl.flake8", "importlib-resources (>=1.3)", "packaging", "pep517", "pyfakefs", "pytest (>=6)", "pytest-black (>=0.3.7)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=1.0.1)", "pytest-flake8", "pytest-mypy", "pytest-perf (>=0.9.2)"]
 
 [[package]]
 name = "importlib-resources"
@@ -134,8 +126,8 @@ python-versions = ">=3.7"
 zipp = {version = ">=3.1.0", markers = "python_version < \"3.10\""}
 
 [package.extras]
-docs = ["sphinx", "jaraco.packaging (>=9)", "rst.linker (>=1.9)"]
-testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-cov", "pytest-enabler (>=1.0.1)", "pytest-black (>=0.3.7)", "pytest-mypy (>=0.9.1)"]
+docs = ["jaraco.packaging (>=9)", "rst.linker (>=1.9)", "sphinx"]
+testing = ["pytest (>=6)", "pytest-black (>=0.3.7)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=1.0.1)", "pytest-flake8", "pytest-mypy (>=0.9.1)"]
 
 [[package]]
 name = "iniconfig"
@@ -209,8 +201,8 @@ python-versions = ">=3.6"
 importlib-metadata = {version = ">=0.12", markers = "python_version < \"3.8\""}
 
 [package.extras]
-testing = ["pytest-benchmark", "pytest"]
-dev = ["tox", "pre-commit"]
+dev = ["pre-commit", "tox"]
+testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
 name = "py"
@@ -246,14 +238,13 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [[package]]
 name = "pytest"
-version = "7.1.2"
+version = "7.1.3"
 description = "pytest: simple powerful testing with Python"
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 
 [package.dependencies]
-atomicwrites = {version = ">=1.0", markers = "sys_platform == \"win32\""}
 attrs = ">=19.2.0"
 colorama = {version = "*", markers = "sys_platform == \"win32\""}
 importlib-metadata = {version = ">=0.12", markers = "python_version < \"3.8\""}
@@ -279,7 +270,7 @@ coverage = {version = ">=5.2.1", extras = ["toml"]}
 pytest = ">=4.6"
 
 [package.extras]
-testing = ["virtualenv", "pytest-xdist", "six", "process-tests", "hunter", "fields"]
+testing = ["fields", "hunter", "process-tests", "pytest-xdist", "six", "virtualenv"]
 
 [[package]]
 name = "requests"
@@ -308,7 +299,7 @@ optional = false
 python-versions = ">=2.7"
 
 [package.extras]
-dev = ["Django (>=1.11)", "nose2", "tox", "check-manifest", "coverage", "flake8", "wheel", "zest.releaser", "readme-renderer (<25.0)", "colorama (<=0.4.1)"]
+dev = ["Django (>=1.11)", "check-manifest", "colorama (<=0.4.1)", "coverage", "flake8", "nose2", "readme-renderer (<25.0)", "tox", "wheel", "zest.releaser"]
 doc = ["sphinx", "sphinx-rtd-theme"]
 
 [[package]]
@@ -407,7 +398,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4"
 
 [package.extras]
 brotli = ["brotlipy (>=0.6.0)"]
-secure = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "certifi", "ipaddress"]
+secure = ["certifi", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "ipaddress", "pyOpenSSL (>=0.14)"]
 socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
 [[package]]
@@ -419,8 +410,8 @@ optional = false
 python-versions = ">=3.6"
 
 [package.extras]
-docs = ["sphinx", "jaraco.packaging (>=8.2)", "rst.linker (>=1.9)"]
-testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-cov", "pytest-enabler (>=1.0.1)", "jaraco.itertools", "func-timeout", "pytest-black (>=0.3.7)", "pytest-mypy"]
+docs = ["jaraco.packaging (>=8.2)", "rst.linker (>=1.9)", "sphinx"]
+testing = ["func-timeout", "jaraco.itertools", "pytest (>=4.6)", "pytest-black (>=0.3.7)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=1.0.1)", "pytest-flake8", "pytest-mypy"]
 
 [metadata]
 lock-version = "1.1"
@@ -431,10 +422,6 @@ content-hash = "477422a2e16a9a5326d773a075d6fa2af8b26f5e3a52d0c0900523d393908d70
 addonfactory-splunk-conf-parser-lib = [
     {file = "addonfactory_splunk_conf_parser_lib-0.3.4-py3-none-any.whl", hash = "sha256:f2eb25bd03d4fd464b8b0304a87d5dc1e2935c42a6c262c6461b9b73b8e30217"},
     {file = "addonfactory_splunk_conf_parser_lib-0.3.4.tar.gz", hash = "sha256:e550105c8c85a6f553688e5b1f4f55ae7ca758a1a428cbce1e0b9b73b9f4e35d"},
-]
-atomicwrites = [
-    {file = "atomicwrites-1.4.0-py2.py3-none-any.whl", hash = "sha256:6d1784dea7c0c8d4a5172b6c620f40b6e4cbfdf96d783691f2e1302a7b88e197"},
-    {file = "atomicwrites-1.4.0.tar.gz", hash = "sha256:ae70396ad1a434f9c7046fd2dd196fc04b12f9e91ffb859164193be8b6168a7a"},
 ]
 attrs = [
     {file = "attrs-21.2.0-py2.py3-none-any.whl", hash = "sha256:149e90d6d8ac20db7a955ad60cf0e6881a3f20d37096140088356da6c716b0b1"},
@@ -504,7 +491,10 @@ coverage = [
     {file = "coverage-6.4.4-pp36.pp37.pp38-none-any.whl", hash = "sha256:f67cf9f406cf0d2f08a3515ce2db5b82625a7257f88aad87904674def6ddaec1"},
     {file = "coverage-6.4.4.tar.gz", hash = "sha256:e16c45b726acb780e1e6f88b286d3c10b3914ab03438f32117c4aa52d7f30d58"},
 ]
-defusedxml = []
+defusedxml = [
+    {file = "defusedxml-0.7.1-py2.py3-none-any.whl", hash = "sha256:a352e7e428770286cc899e2542b6cdaedb2b4953ff269a210103ec58f6198a61"},
+    {file = "defusedxml-0.7.1.tar.gz", hash = "sha256:1bb3032db185915b62d7c6209c5a8792be6a32ab2fedacc84e01b52c51aa3e69"},
+]
 dunamai = [
     {file = "dunamai-1.12.0-py3-none-any.whl", hash = "sha256:00b9c1ef58d4950204f76c20f84afe7a28d095f77feaa8512dbb172035415e61"},
     {file = "dunamai-1.12.0.tar.gz", hash = "sha256:fac4f09e2b8a105bd01f8c50450fea5aa489a6c439c949950a65f0dd388b0d20"},
@@ -512,7 +502,10 @@ dunamai = [
 future = [
     {file = "future-0.18.2.tar.gz", hash = "sha256:b1bead90b70cf6ec3f0710ae53a525360fa360d306a86583adc6bf83a4db537d"},
 ]
-idna = []
+idna = [
+    {file = "idna-3.3-py3-none-any.whl", hash = "sha256:84d9dd047ffa80596e0f246e2eab0b391788b0503584e8945f2368256d2735ff"},
+    {file = "idna-3.3.tar.gz", hash = "sha256:9d643ff0a55b762d5cdb124b8eaa99c66322e2157b69160bc32796e824360e6d"},
+]
 importlib-metadata = [
     {file = "importlib_metadata-4.8.2-py3-none-any.whl", hash = "sha256:53ccfd5c134223e497627b9815d5030edf77d2ed573922f7a0b8f8bb81a1c100"},
     {file = "importlib_metadata-4.8.2.tar.gz", hash = "sha256:75bdec14c397f528724c1bfd9709d660b33a4d2e77387a3358f20b848bb5e5fb"},
@@ -614,16 +607,23 @@ pyrsistent = [
     {file = "pyrsistent-0.18.1-cp39-cp39-win_amd64.whl", hash = "sha256:e24a828f57e0c337c8d8bb9f6b12f09dfdf0273da25fda9e314f0b684b415a07"},
     {file = "pyrsistent-0.18.1.tar.gz", hash = "sha256:d4d61f8b993a7255ba714df3aca52700f8125289f84f704cf80916517c46eb96"},
 ]
-pysocks = []
+pysocks = [
+    {file = "PySocks-1.7.1-py27-none-any.whl", hash = "sha256:08e69f092cc6dbe92a0fdd16eeb9b9ffbc13cadfe5ca4c7bd92ffb078b293299"},
+    {file = "PySocks-1.7.1-py3-none-any.whl", hash = "sha256:2725bd0a9925919b9b51739eea5f9e2bae91e83288108a9ad338b2e3a4435ee5"},
+    {file = "PySocks-1.7.1.tar.gz", hash = "sha256:3f8804571ebe159c380ac6de37643bb4685970655d3bba243530d6558b799aa0"},
+]
 pytest = [
-    {file = "pytest-7.1.2-py3-none-any.whl", hash = "sha256:13d0e3ccfc2b6e26be000cb6568c832ba67ba32e719443bfe725814d3c42433c"},
-    {file = "pytest-7.1.2.tar.gz", hash = "sha256:a06a0425453864a270bc45e71f783330a7428defb4230fb5e6a731fde06ecd45"},
+    {file = "pytest-7.1.3-py3-none-any.whl", hash = "sha256:1377bda3466d70b55e3f5cecfa55bb7cfcf219c7964629b967c37cf0bda818b7"},
+    {file = "pytest-7.1.3.tar.gz", hash = "sha256:4f365fec2dff9c1162f834d9f18af1ba13062db0c708bf7b946f8a5c76180c39"},
 ]
 pytest-cov = [
     {file = "pytest-cov-3.0.0.tar.gz", hash = "sha256:e7f0f5b1617d2210a2cabc266dfe2f4c75a8d32fb89eafb7ad9d06f6d076d470"},
     {file = "pytest_cov-3.0.0-py3-none-any.whl", hash = "sha256:578d5d15ac4a25e5f961c938b85a05b09fdaae9deef3bb6de9a6e766622ca7a6"},
 ]
-requests = []
+requests = [
+    {file = "requests-2.28.1-py3-none-any.whl", hash = "sha256:8fefa2a1a1365bf5520aac41836fbee479da67864514bdb821f31ce07ce65349"},
+    {file = "requests-2.28.1.tar.gz", hash = "sha256:7c5599b102feddaa661c826c56ab4fee28bfd17f5abca1ebbe3e7f19d7c97983"},
+]
 semantic-version = [
     {file = "semantic_version-2.10.0-py2.py3-none-any.whl", hash = "sha256:de78a3b8e0feda74cabc54aab2da702113e33ac9d9eb9d2389bcf1f58b7d9177"},
     {file = "semantic_version-2.10.0.tar.gz", hash = "sha256:bdabb6d336998cbb378d4b9db3a4b56a1e3235701dc05ea2690d9a997ed5041c"},
@@ -632,7 +632,10 @@ solnlib = [
     {file = "solnlib-4.7.0-py3-none-any.whl", hash = "sha256:80d62f13b69a3756d6039b7c266e6f7410ccc03411a555b91d996982730adc68"},
     {file = "solnlib-4.7.0.tar.gz", hash = "sha256:85c341927c364b9ed0bb42fffdcc0d1477545e9dbd12db59f217cc8fa964a64e"},
 ]
-sortedcontainers = []
+sortedcontainers = [
+    {file = "sortedcontainers-2.4.0-py2.py3-none-any.whl", hash = "sha256:a163dcaede0f1c021485e957a39245190e74249897e2ae4b2aa38595db237ee0"},
+    {file = "sortedcontainers-2.4.0.tar.gz", hash = "sha256:25caa5a06cc30b6b83d11423433f65d1f9d76c4c6a0c90e3379eaa43b9bfdb88"},
+]
 splunk-add-on-ucc-framework = [
     {file = "splunk_add_on_ucc_framework-5.13.0-py3-none-any.whl", hash = "sha256:ab212274654527378f198ffdf50165b3a083b291dece593e5ecda4fb38c63903"},
     {file = "splunk_add_on_ucc_framework-5.13.0.tar.gz", hash = "sha256:edb40a25b2652c5470ca9eb309c725b5ff4ec516cc1b76c7883f513342268016"},
@@ -643,7 +646,10 @@ splunk-packaging-toolkit = [
 splunk-sdk = [
     {file = "splunk-sdk-1.7.1.tar.gz", hash = "sha256:4d0de12a87395f28f2a0c90b179882072a39a1f09a3ec9e79ce0de7a16220fe1"},
 ]
-splunktalib = []
+splunktalib = [
+    {file = "splunktalib-3.0.1-py3-none-any.whl", hash = "sha256:26d4c68e898a1a96cf5b65d9fe295bf315ec5327484f2ee1c3e1cf4e40ffc802"},
+    {file = "splunktalib-3.0.1.tar.gz", hash = "sha256:a7e83e5f9f92ae2a9dedd8ee2e51b4df1a79dd42c6b9dddded20017da40d9d73"},
+]
 tomli = [
     {file = "tomli-1.2.2-py3-none-any.whl", hash = "sha256:f04066f68f5554911363063a30b108d2b5a5b1a010aa8b6132af78489fe3aade"},
     {file = "tomli-1.2.2.tar.gz", hash = "sha256:c6ce0015eb38820eaf32b5db832dbc26deb3dd427bd5f6556cf0acac2c214fee"},
