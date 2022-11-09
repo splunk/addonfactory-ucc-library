@@ -364,7 +364,7 @@ semantic_version = ">=2.5.0"
 
 [[package]]
 name = "splunk-sdk"
-version = "1.7.1"
+version = "1.7.2"
 description = "The Splunk Software Development Kit for Python."
 category = "main"
 optional = false
@@ -697,7 +697,7 @@ splunk-packaging-toolkit = [
     {file = "splunk-packaging-toolkit-1.0.1.tar.gz", hash = "sha256:7302af724718256108a6b78ed66c4c0066672223e58881e67897c87eddaf7388"},
 ]
 splunk-sdk = [
-    {file = "splunk-sdk-1.7.1.tar.gz", hash = "sha256:4d0de12a87395f28f2a0c90b179882072a39a1f09a3ec9e79ce0de7a16220fe1"},
+    {file = "splunk-sdk-1.7.2.tar.gz", hash = "sha256:36d27f83e7cc8309be6e3b92e46c547caea566b0c006238025073843e586e5a8"},
 ]
 splunktalib = [
     {file = "splunktalib-3.0.1-py3-none-any.whl", hash = "sha256:26d4c68e898a1a96cf5b65d9fe295bf315ec5327484f2ee1c3e1cf4e40ffc802"},
