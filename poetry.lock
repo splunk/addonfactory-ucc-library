@@ -286,7 +286,7 @@ doc = ["Sphinx", "sphinx-rtd-theme"]
 
 [[package]]
 name = "solnlib"
-version = "4.8.2"
+version = "4.9.0"
 description = "The Splunk Software Development Kit for Splunk Solutions"
 category = "main"
 optional = false
@@ -597,8 +597,8 @@ semantic-version = [
     {file = "semantic_version-2.10.0.tar.gz", hash = "sha256:bdabb6d336998cbb378d4b9db3a4b56a1e3235701dc05ea2690d9a997ed5041c"},
 ]
 solnlib = [
-    {file = "solnlib-4.8.2-py3-none-any.whl", hash = "sha256:f3aca5a497e28040aa03ee9697841fb086480a2f4fc9d7cb8ad4270f4fdbe0e4"},
-    {file = "solnlib-4.8.2.tar.gz", hash = "sha256:b37aabe12b74f7b4cc0db95c5ef2540c8f5273f3a88d08662791bf659d6bf94a"},
+    {file = "solnlib-4.9.0-py3-none-any.whl", hash = "sha256:c2378b5fe67ed2046ce5c0d735de91ba9a7d02fc29118038b21c6d948e292e9c"},
+    {file = "solnlib-4.9.0.tar.gz", hash = "sha256:5f5052148fc53138a22a51d7e102f785b8dbc2386a336854635a68071da48c65"},
 ]
 sortedcontainers = [
     {file = "sortedcontainers-2.4.0-py2.py3-none-any.whl", hash = "sha256:a163dcaede0f1c021485e957a39245190e74249897e2ae4b2aa38595db237ee0"},
