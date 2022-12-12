@@ -31,7 +31,7 @@ solnlib = "^4.7.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.2"
-splunk-add-on-ucc-framework = "^5.16.0"
+splunk-add-on-ucc-framework = "^5.18.0"
 requests = "^2.28.1"
 splunk-packaging-toolkit = "^1.0.1"
 
