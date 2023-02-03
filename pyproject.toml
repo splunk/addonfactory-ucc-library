@@ -39,5 +39,3 @@ splunk-packaging-toolkit = "^1.0.1"
 requires = ["poetry>=1.0.0"]
 build-backend = "poetry.masonry.api"
 
-[tool.isort]
-profile = "black"
