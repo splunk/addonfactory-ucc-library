@@ -375,6 +375,25 @@ files = [
 ]
 
 [[package]]
+name = "openapi3"
+version = "1.7.0"
+description = "Client and Validator of OpenAPI 3 Specifications"
+category = "dev"
+optional = false
+python-versions = "*"
+files = [
+    {file = "openapi3-1.7.0-py2.py3-none-any.whl", hash = "sha256:d2a967ccbe5259fc1345fe957903ce0c5cf1bfbc0d9a9093ff33944823705e59"},
+    {file = "openapi3-1.7.0.tar.gz", hash = "sha256:c3016f242d5e6c12a361eb7021086ad308417aa53858afae9c59abe05d88ca60"},
+]
+
+[package.dependencies]
+PyYaml = "*"
+requests = "*"
+
+[package.extras]
+test = ["fastapi (==0.76.0)", "hypercorn (==0.14.3)", "pydantic (==1.10.2)", "pytest", "pytest-asyncio (==0.16)", "uvloop (==0.17.0)"]
+
+[[package]]
 name = "packaging"
 version = "21.2"
 description = "Core utilities for Python packages"
@@ -654,14 +673,14 @@ files = [
 
 [[package]]
 name = "splunk-add-on-ucc-framework"
-version = "5.20.0"
+version = "5.21.0"
 description = "Splunk Add-on SDK formerly UCC is a build and code generation framework"
 category = "dev"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "splunk_add_on_ucc_framework-5.20.0-py3-none-any.whl", hash = "sha256:baf27d3bc1aeb6a089571a3d0004329008d0d20ba0d0850a98c5f2fcc2bcb310"},
-    {file = "splunk_add_on_ucc_framework-5.20.0.tar.gz", hash = "sha256:98c619efc67f2367329596a48aa3237b524d79bddb6f96d42ae31be5c6b0be87"},
+    {file = "splunk_add_on_ucc_framework-5.21.0-py3-none-any.whl", hash = "sha256:7d54574aeefd24caba9416df0fa6a9671228c73cfaf7fb642c88fa8ddab7a766"},
+    {file = "splunk_add_on_ucc_framework-5.21.0.tar.gz", hash = "sha256:20d5df6b44a2cc23d29b76d419c48b975bc824f75a7e4bab68622baf285930d3"},
 ]
 
 [package.dependencies]
@@ -670,6 +689,7 @@ cookiecutter = ">=2.1.1,<3.0.0"
 dunamai = ">=1.9.0,<2.0.0"
 jinja2 = ">=2,<4"
 jsonschema = ">=4.4.0,<5.0.0"
+openapi3 = ">=1.7.0,<2.0.0"
 PyYAML = ">=6.0,<7.0"
 
 [[package]]
@@ -788,4 +808,4 @@ testing = ["func-timeout", "jaraco.itertools", "pytest (>=4.6)", "pytest-black (
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.7"
-content-hash = "e6be0f917888898f49e15b71c15ac35f8a2193cbf1531500c3947eebad2f8431"
+content-hash = "24dae0c3d88e3f9dcbffe4c5c1a6cc768ce238b9e22ddcac23891217d41b317a"
