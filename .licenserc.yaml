@@ -29,5 +29,6 @@ header:
     - "*.lock"
     - "tests/**"
     - ".*"
+    - "renovate.json"
 
   comment: on-failure
