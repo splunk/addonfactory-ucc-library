@@ -20,6 +20,7 @@ import logging
 import os
 import sys
 import tempfile
+import urllib
 
 from solnlib import utils as sutils
 from solnlib.log import Logs
@@ -513,6 +514,9 @@ class BaseModInput(smi.Script):
             if proxy.get("proxy_port"):
                 uri = "{}:{}".format(uri, proxy.get("proxy_port"))
             if proxy.get("proxy_username") and proxy.get("proxy_password"):
+                proxy['proxy_username'] = urllib.parse.quote_plus(proxy['proxy_username'])
+                proxy['proxy_password'] = urllib.parse.quote_plus(proxy['proxy_password'])
+
                 uri = "{}://{}:{}@{}/".format(
                     proxy["proxy_type"],
                     proxy["proxy_username"],
