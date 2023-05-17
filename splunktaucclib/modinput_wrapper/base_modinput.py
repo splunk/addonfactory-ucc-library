@@ -514,8 +514,12 @@ class BaseModInput(smi.Script):
             if proxy.get("proxy_port"):
                 uri = "{}:{}".format(uri, proxy.get("proxy_port"))
             if proxy.get("proxy_username") and proxy.get("proxy_password"):
-                proxy['proxy_username'] = urllib.parse.quote_plus(proxy['proxy_username'])
-                proxy['proxy_password'] = urllib.parse.quote_plus(proxy['proxy_password'])
+                proxy["proxy_username"] = urllib.parse.quote_plus(
+                    proxy["proxy_username"]
+                )
+                proxy["proxy_password"] = urllib.parse.quote_plus(
+                    proxy["proxy_password"]
+                )
 
                 uri = "{}://{}:{}@{}/".format(
                     proxy["proxy_type"],
