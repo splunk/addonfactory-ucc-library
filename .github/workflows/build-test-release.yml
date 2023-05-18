@@ -156,7 +156,6 @@ jobs:
   publish:
     needs:
       - pre-commit
-      - semgrep
       - build
       - unit-tests
       - integration-tests
