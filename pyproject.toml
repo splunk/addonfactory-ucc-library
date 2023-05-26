@@ -23,7 +23,7 @@ license = "APACHE-2.0"
 
 [tool.poetry.dependencies]
 python = "^3.7"
-splunktalib = "^3.0.0"
+splunktalib = "^3.0.4"
 requests = "^2.31.0"
 urllib3 = "<2"
 PySocks = "^1.7.1"

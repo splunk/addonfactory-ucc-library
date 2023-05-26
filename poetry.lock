@@ -811,20 +811,21 @@ files = [
 
 [[package]]
 name = "splunktalib"
-version = "3.0.3"
+version = "3.0.4"
 description = "Supporting library for Splunk Add-ons"
 category = "main"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "splunktalib-3.0.3-py3-none-any.whl", hash = "sha256:828e5a7d3874239e1f36bf1c8c10a985b73b9307857bf01112438bd1cbd608e9"},
-    {file = "splunktalib-3.0.3.tar.gz", hash = "sha256:5392f520050d3edcf594badb946e53e3b8fda84a1dc0bec68585f9fae0b20037"},
+    {file = "splunktalib-3.0.4-py3-none-any.whl", hash = "sha256:5d4226f0e402dd65d8457500b35d6c459642b6a5da81ec1830e8d57f03e90ecc"},
+    {file = "splunktalib-3.0.4.tar.gz", hash = "sha256:1ffeb9b7301712e2dbe937cdbc6ea66ac0de14bb91835c0b5cbb683a9f4eac05"},
 ]
 
 [package.dependencies]
 defusedxml = ">=0,<1"
-requests = ">=2.26.0,<3.0.0"
+requests = ">=2.31.0,<3.0.0"
 sortedcontainers = ">=2,<3"
+urllib3 = "<2"
 
 [[package]]
 name = "text-unidecode"
@@ -898,4 +899,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.7"
-content-hash = "fd60909f31bddded652f93b1d6058b70a986954e67058f3f4c6573c2bb86b264"
+content-hash = "bf89157070fc4d9ff1da0823bd5d43406827d3c719a40e9233f01ef3857187db"
