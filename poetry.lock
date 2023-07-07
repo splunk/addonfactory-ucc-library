@@ -761,14 +761,14 @@ files = [
 
 [[package]]
 name = "splunk-add-on-ucc-framework"
-version = "5.28.1"
+version = "5.28.2"
 description = "Splunk Add-on SDK formerly UCC is a build and code generation framework"
 category = "dev"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "splunk_add_on_ucc_framework-5.28.1-py3-none-any.whl", hash = "sha256:f3cf3f58a9d6a78119a4bf01c9837c0a7d9da1bd284b85fe1ee6ab67befcfd9c"},
-    {file = "splunk_add_on_ucc_framework-5.28.1.tar.gz", hash = "sha256:9c2c553fe8d6ad27e792e46a4dac6424d455654bbdae87305dfe97a4cfbab0b3"},
+    {file = "splunk_add_on_ucc_framework-5.28.2-py3-none-any.whl", hash = "sha256:62b5b894fb9a139728936c3b4e910998fcda7a7993be1eea51d10e738bc49da9"},
+    {file = "splunk_add_on_ucc_framework-5.28.2.tar.gz", hash = "sha256:b507937f86e0fbbd41b20b12e250324b7fd5f54cb04a23724bd63857f2a64210"},
 ]
 
 [package.dependencies]
