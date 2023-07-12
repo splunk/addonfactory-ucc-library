@@ -167,7 +167,7 @@ jobs:
     needs:
       - pre-commit
       - build
-      - unit-tests
+      - test-unit
       - integration-tests
     runs-on: ubuntu-latest
     steps:
