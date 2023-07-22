@@ -27,13 +27,13 @@ splunktalib = "^3.0.4"
 requests = "^2.31.0"
 urllib3 = "<2"
 PySocks = "^1.7.1"
-splunk-sdk = ">=1.6.18"
+splunk-sdk = ">=1.6"
 solnlib = "^4.11.2"
 
 [tool.poetry.dev-dependencies]
-pytest = "^7.2"
-splunk-add-on-ucc-framework = "^5.27.1"
-splunk-packaging-toolkit = "^1.0.1"
+pytest = ">=7"
+splunk-add-on-ucc-framework = ">=5"
+splunk-packaging-toolkit = ">=1"
 
 [build-system]
 requires = ["poetry>=1.0.0"]
