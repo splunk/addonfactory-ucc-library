@@ -150,7 +150,10 @@ class RestCredentials:
                     data[field_name] = self.PASSWORD
                 else:
                     # if the field value is '******', keep the original value
-                    original_clear_password = self._get(name)
+                    try:
+                        original_clear_password = self._get(name)
+                    except CredentialNotExistException:
+                        original_clear_password = None
                     if original_clear_password and original_clear_password.get(
                         field_name
                     ):
@@ -163,7 +166,10 @@ class RestCredentials:
             else:
                 # field not in data
                 # if the optional encrypted field is not passed, keep original if it exist
-                original_clear_password = self._get(name)
+                try:
+                    original_clear_password = self._get(name)
+                except CredentialNotExistException:
+                    original_clear_password = None
                 if original_clear_password and original_clear_password.get(field_name):
                     encrypting[field_name] = original_clear_password[field_name]
                     data[field_name] = self.PASSWORD
@@ -389,10 +395,7 @@ class RestCredentials:
     def _get(self, name):
         context = RestCredentialsContext(self._endpoint, name)
         mgr = self._get_manager(context)
-        try:
-            string = mgr.get_password(user=context.username())
-        except CredentialNotExistException:
-            return None
+        string = mgr.get_password(user=context.username())
         return context.load(string)
 
     def _filter(self, name, data, encrypted_data):
