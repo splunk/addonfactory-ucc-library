@@ -204,14 +204,14 @@ files = [
 
 [[package]]
 name = "cookiecutter"
-version = "2.3.0"
+version = "2.3.1"
 description = "A command-line utility that creates projects from project templates, e.g. creating a Python package project from a Python package project template."
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "cookiecutter-2.3.0-py3-none-any.whl", hash = "sha256:7e87944757c6e9f8729cf89a4139b6a35ab4d6dcbc6ae3e7d6360d44ad3ad383"},
-    {file = "cookiecutter-2.3.0.tar.gz", hash = "sha256:942a794981747f6d7f439d6e49d39dc91a9a641283614160c93c474c72c29621"},
+    {file = "cookiecutter-2.3.1-py3-none-any.whl", hash = "sha256:a583118324edb95e01da3c8468209c2d5562e4553009866b1d891c50e72b2373"},
+    {file = "cookiecutter-2.3.1.tar.gz", hash = "sha256:42aa1d27368f58be600d13e56d5d2177684f8f69a40d9cbad84851ba44f842de"},
 ]
 
 [package.dependencies]
@@ -238,14 +238,14 @@ files = [
 
 [[package]]
 name = "dunamai"
-version = "1.18.0"
+version = "1.18.1"
 description = "Dynamic version generation"
 category = "dev"
 optional = false
 python-versions = ">=3.5,<4.0"
 files = [
-    {file = "dunamai-1.18.0-py3-none-any.whl", hash = "sha256:f9284a9f4048f0b809d11539896e78bde94c05b091b966a04a44ab4c48df03ce"},
-    {file = "dunamai-1.18.0.tar.gz", hash = "sha256:5200598561ea5ba956a6174c36e402e92206c6a6aa4a93a6c5cb8003ee1e0997"},
+    {file = "dunamai-1.18.1-py3-none-any.whl", hash = "sha256:ee7b042f7a687fa04fc383258eb93bd819c7bd8aec62e0974f3c69747e5958f2"},
+    {file = "dunamai-1.18.1.tar.gz", hash = "sha256:5e9a91e43d16bb56fa8fcddcf92fa31b2e1126e060c3dcc8d094d9b508061f9d"},
 ]
 
 [package.dependencies]
@@ -839,14 +839,14 @@ files = [
 
 [[package]]
 name = "splunk-add-on-ucc-framework"
-version = "5.28.6"
+version = "5.29.0"
 description = "Splunk Add-on SDK formerly UCC is a build and code generation framework"
 category = "dev"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "splunk_add_on_ucc_framework-5.28.6-py3-none-any.whl", hash = "sha256:a98f4a1fd21580d0a040e9ecc7cea6ecde2d7b11dc7200995c724ef8ceef5dac"},
-    {file = "splunk_add_on_ucc_framework-5.28.6.tar.gz", hash = "sha256:870a9d014ebe985a9af8143e0f4f21540d968a07e00ec49b4b406148e180f490"},
+    {file = "splunk_add_on_ucc_framework-5.29.0-py3-none-any.whl", hash = "sha256:94aa26eebb909af3643018aa91931fbaa75891fd05c107a4fa50afb63e7f1ec4"},
+    {file = "splunk_add_on_ucc_framework-5.29.0.tar.gz", hash = "sha256:b9bf2174138d5302ecc556c4555e39f3f6a0d74e09207875a52ae2c3616045b5"},
 ]
 
 [package.dependencies]
