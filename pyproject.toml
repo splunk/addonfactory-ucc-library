@@ -30,7 +30,7 @@ PySocks = "^1.7.1"
 splunk-sdk = ">=1.6"
 solnlib = "^4.11.2"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 pytest = ">=7"
 splunk-add-on-ucc-framework = ">=5"
 splunk-packaging-toolkit = ">=1"
