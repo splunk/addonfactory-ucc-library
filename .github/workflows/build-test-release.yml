@@ -150,13 +150,18 @@ jobs:
           export SPLUNK_BUILD_URL=https://download.splunk.com/products/${SPLUNK_PRODUCT}/releases/${SPLUNK_VERSION}/linux/${SPLUNK_LINUX_FILENAME}
           echo "$SPLUNK_BUILD_URL"
           export SPLUNK_HOME=/opt/splunk
+          export SPLUNK_USER=user
+          export SPLUNK_USER_PWD=Chang3d'!'
+          export SPLUNK_ADMIN=admin
+          export SPLUNK_ADMIN_PWD=Chang3d'!'
           wget -qO /tmp/splunk.tgz "${SPLUNK_BUILD_URL}"
           sudo tar -C /opt -zxf /tmp/splunk.tgz
           sudo chown -R "$USER":"$USER" /opt/splunk
-          echo -e "[user_info]\nUSERNAME=Admin\nPASSWORD=Chang3d"'!' | sudo tee -a /opt/splunk/etc/system/local/user-seed.conf
+          echo -e "[user_info]\nUSERNAME=${SPLUNK_ADMIN}\nPASSWORD=${SPLUNK_ADMIN_PWD}" | sudo tee -a /opt/splunk/etc/system/local/user-seed.conf
           echo 'OPTIMISTIC_ABOUT_FILE_LOCKING=1' | sudo tee -a /opt/splunk/etc/splunk-launch.conf
           sudo /opt/splunk/bin/splunk start --accept-license
-          sudo /opt/splunk/bin/splunk install app demo-0.0.1.tar.gz -auth admin:Chang3d!
+          sudo /opt/splunk/bin/splunk add user ${SPLUNK_USER} -password ${SPLUNK_USER_PWD} -role user -force-change-pass false -auth ${SPLUNK_ADMIN}:${SPLUNK_ADMIN_PWD}
+          sudo /opt/splunk/bin/splunk install app demo-0.0.1.tar.gz -auth ${SPLUNK_ADMIN}:${SPLUNK_ADMIN_PWD}
           sudo /opt/splunk/bin/splunk restart
       - name: run tests
         run: |
