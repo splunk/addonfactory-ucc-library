@@ -55,8 +55,29 @@ def test_inputs_api_call():
         assert False, f"Exception {e}"
 
 
+def test_400_api_call():
+    expected_msg = """<msg type="ERROR">Unexpected error "&lt;class 'splunktaucclib.rest_handler.error.RestError'&gt;" 
+from python handler: "REST Error [400]: Bad Request -- HTTP 400 Bad Request -- 
+b'{"messages":[{"type":"ERROR","text":"Object id=demo://dashboard cannot be deleted in config=inputs."}]}'". 
+See splunkd.log/python.log for more details.</msg>"""
+    try:
+        response = requests.delete(
+            f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo/dashboard",
+            auth=HTTPBasicAuth(admin, admin_password),
+            verify=False,
+        )
+        response_txt = response.text
+        assert expected_msg.replace("\n", "") in response_txt
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as e:
+        assert e.response.status_code == 500
+
+
 def test_403_api_call():
-    expected_msg = """<msg type="ERROR">Unexpected error "&lt;class 'splunktaucclib.rest_handler.error.RestError'&gt;" from python handler: "REST Error [403]: Forbidden -- HTTP 403 Forbidden -- b'{"messages":[{"type":"ERROR","text":"You (user=user) do not have permission to perform this operation (requires capability: admin_all_objects)."}]}'". See splunkd.log/python.log for more details.</msg>"""
+    expected_msg = """<msg type="ERROR">Unexpected error "&lt;class 'splunktaucclib.rest_handler.error.RestError'&gt;" 
+from python handler: "REST Error [403]: Forbidden -- HTTP 403 Forbidden -- 
+b'{"messages":[{"type":"ERROR","text":"You (user=user) do not have permission to perform this operation 
+(requires capability: admin_all_objects)."}]}'". See splunkd.log/python.log for more details.</msg>"""
     try:
         response = requests.post(
             f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo",
@@ -69,7 +90,7 @@ def test_403_api_call():
             verify=False,
         )
         response_txt = response.text
-        assert expected_msg in response_txt
+        assert expected_msg.replace("\n", "") in response_txt
         response.raise_for_status()
     except requests.exceptions.HTTPError as e:
         assert e.response.status_code == 500
