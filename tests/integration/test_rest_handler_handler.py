@@ -60,17 +60,15 @@ def test_400_api_call():
 from python handler: "REST Error [400]: Bad Request -- HTTP 400 Bad Request -- 
 b'{"messages":[{"type":"ERROR","text":"Object id=demo://test_input cannot be deleted in config=inputs."}]}'". 
 See splunkd.log/python.log for more details.</msg>"""
-    try:
-        response = requests.delete(
-            f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo/test_input",
-            auth=HTTPBasicAuth(admin, admin_password),
-            verify=False,
-        )
-        response_txt = response.text
-        assert expected_msg.replace("\n", "") in response_txt
-        response.raise_for_status()
-    except requests.exceptions.HTTPError as e:
-        assert e.response.status_code == 500
+
+    response = requests.delete(
+        f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo/test_input",
+        auth=HTTPBasicAuth(admin, admin_password),
+        verify=False,
+    )
+    response_txt = response.text
+    assert expected_msg.replace("\n", "") in response_txt
+    assert response.status_code == 500
 
 
 def test_403_api_call():
@@ -78,19 +76,17 @@ def test_403_api_call():
 from python handler: "REST Error [403]: Forbidden -- HTTP 403 Forbidden -- 
 b'{"messages":[{"type":"ERROR","text":"You (user=user) do not have permission to perform this operation 
 (requires capability: admin_all_objects)."}]}'". See splunkd.log/python.log for more details.</msg>"""
-    try:
-        response = requests.post(
-            f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo",
-            data={"name": "test12", "interval": "5"},
-            headers={
-                "accept": "application/json",
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
-            auth=HTTPBasicAuth(user, user_password),
-            verify=False,
-        )
-        response_txt = response.text
-        assert expected_msg.replace("\n", "") in response_txt
-        response.raise_for_status()
-    except requests.exceptions.HTTPError as e:
-        assert e.response.status_code == 500
+
+    response = requests.post(
+        f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo",
+        data={"name": "test12", "interval": "5"},
+        headers={
+            "accept": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        auth=HTTPBasicAuth(user, user_password),
+        verify=False,
+    )
+    response_txt = response.text
+    assert expected_msg.replace("\n", "") in response_txt
+    assert response.status_code == 500
