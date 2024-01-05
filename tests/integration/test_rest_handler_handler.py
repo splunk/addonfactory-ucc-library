@@ -66,8 +66,7 @@ See splunkd.log/python.log for more details.</msg>"""
         auth=HTTPBasicAuth(admin, admin_password),
         verify=False,
     )
-    response_txt = response.text
-    assert expected_msg.replace("\n", "") in response_txt
+    assert expected_msg.replace("\n", "") in response.text
     assert response.status_code == 500
 
 
@@ -87,6 +86,5 @@ b'{"messages":[{"type":"ERROR","text":"You (user=user) do not have permission to
         auth=HTTPBasicAuth(user, user_password),
         verify=False,
     )
-    response_txt = response.text
-    assert expected_msg.replace("\n", "") in response_txt
+    assert expected_msg.replace("\n", "") in response.text
     assert response.status_code == 500
