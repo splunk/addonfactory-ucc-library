@@ -165,7 +165,7 @@ jobs:
           sudo /opt/splunk/bin/splunk restart
       - name: run tests
         run: |
-          SPLUNK_ADMIN=${SPLUNK_ADMIN} SPLUNK_ADMIN_PWD=${SPLUNK_ADMIN_PWD} SPLUNK_USER=${SPLUNK_USER} SPLUNK_USER_PWD=${SPLUNK_USER_PWD} poetry run pytest tests/integration
+          SPLUNK_ADMIN=$SPLUNK_ADMIN SPLUNK_ADMIN_PWD=$SPLUNK_ADMIN_PWD SPLUNK_USER=$SPLUNK_USER SPLUNK_USER_PWD=$SPLUNK_USER_PWD poetry run pytest tests/integration
 
   publish:
     needs:
