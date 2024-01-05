@@ -121,6 +121,11 @@ jobs:
     strategy:
       matrix:
         splunk: ${{ fromJson(needs.meta.outputs.matrix_supportedSplunk) }}
+    env:
+      SPLUNK_USER: user
+      SPLUNK_USER_PWD: Chang3d'!'
+      SPLUNK_ADMIN: admin
+      SPLUNK_ADMIN_PWD: Chang3d'!'
     steps:
       - uses: actions/checkout@v4
       - run: pipx install poetry==1.5.1
@@ -140,11 +145,6 @@ jobs:
           pip install dist/*.whl --target output/demo/lib
           poetry run slim package output/demo
       - name: install Splunk
-        env:
-          SPLUNK_USER: user
-          SPLUNK_USER_PWD: Chang3d'!'
-          SPLUNK_ADMIN: admin
-          SPLUNK_ADMIN_PWD: Chang3d'!'
         run: |
           export SPLUNK_PRODUCT=splunk
           export SPLUNK_VERSION=${{ matrix.splunk.version }}
