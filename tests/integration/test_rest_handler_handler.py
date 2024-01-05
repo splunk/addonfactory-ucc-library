@@ -58,11 +58,11 @@ def test_inputs_api_call():
 def test_400_api_call():
     expected_msg = """<msg type="ERROR">Unexpected error "&lt;class 'splunktaucclib.rest_handler.error.RestError'&gt;" 
 from python handler: "REST Error [400]: Bad Request -- HTTP 400 Bad Request -- 
-b'{"messages":[{"type":"ERROR","text":"Object id=demo://dashboard cannot be deleted in config=inputs."}]}'". 
+b'{"messages":[{"type":"ERROR","text":"Object id=demo://test_input cannot be deleted in config=inputs."}]}'". 
 See splunkd.log/python.log for more details.</msg>"""
     try:
         response = requests.delete(
-            f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo/dashboard",
+            f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo/test_input",
             auth=HTTPBasicAuth(admin, admin_password),
             verify=False,
         )
