@@ -139,7 +139,7 @@ jobs:
           pip install wheel
           pip install dist/*.whl --target output/demo/lib
           poetry run slim package output/demo
-      - name: install Splunk
+      - name: install Splunk and run tests
         run: |
           export SPLUNK_PRODUCT=splunk
           export SPLUNK_VERSION=${{ matrix.splunk.version }}
@@ -163,9 +163,7 @@ jobs:
           sudo /opt/splunk/bin/splunk add user ${SPLUNK_USER} -password ${SPLUNK_USER_PWD} -role user -force-change-pass false -auth ${SPLUNK_ADMIN}:${SPLUNK_ADMIN_PWD}
           sudo /opt/splunk/bin/splunk install app demo-0.0.1.tar.gz -auth ${SPLUNK_ADMIN}:${SPLUNK_ADMIN_PWD}
           sudo /opt/splunk/bin/splunk restart
-      - name: run tests
-        run: |
-          SPLUNK_ADMIN=$SPLUNK_ADMIN SPLUNK_ADMIN_PWD=$SPLUNK_ADMIN_PWD SPLUNK_USER=$SPLUNK_USER SPLUNK_USER_PWD=$SPLUNK_USER_PWD poetry run pytest tests/integration
+          poetry run pytest tests/integration
 
   publish:
     needs:
