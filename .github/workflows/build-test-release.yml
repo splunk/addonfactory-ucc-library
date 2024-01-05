@@ -139,7 +139,12 @@ jobs:
           pip install wheel
           pip install dist/*.whl --target output/demo/lib
           poetry run slim package output/demo
-      - name: install Splunk and run tests
+      - name: install Splunk
+        env:
+          SPLUNK_USER: user
+          SPLUNK_USER_PWD: Chang3d'!'
+          SPLUNK_ADMIN: admin
+          SPLUNK_ADMIN_PWD: Chang3d'!'
         run: |
           export SPLUNK_PRODUCT=splunk
           export SPLUNK_VERSION=${{ matrix.splunk.version }}
@@ -150,10 +155,6 @@ jobs:
           export SPLUNK_BUILD_URL=https://download.splunk.com/products/${SPLUNK_PRODUCT}/releases/${SPLUNK_VERSION}/linux/${SPLUNK_LINUX_FILENAME}
           echo "$SPLUNK_BUILD_URL"
           export SPLUNK_HOME=/opt/splunk
-          export SPLUNK_USER=user
-          export SPLUNK_USER_PWD=Chang3d'!'
-          export SPLUNK_ADMIN=admin
-          export SPLUNK_ADMIN_PWD=Chang3d'!'
           wget -qO /tmp/splunk.tgz "${SPLUNK_BUILD_URL}"
           sudo tar -C /opt -zxf /tmp/splunk.tgz
           sudo chown -R "$USER":"$USER" /opt/splunk
@@ -163,6 +164,8 @@ jobs:
           sudo /opt/splunk/bin/splunk add user ${SPLUNK_USER} -password ${SPLUNK_USER_PWD} -role user -force-change-pass false -auth ${SPLUNK_ADMIN}:${SPLUNK_ADMIN_PWD}
           sudo /opt/splunk/bin/splunk install app demo-0.0.1.tar.gz -auth ${SPLUNK_ADMIN}:${SPLUNK_ADMIN_PWD}
           sudo /opt/splunk/bin/splunk restart
+      - name: run tests
+        run: |
           poetry run pytest tests/integration
 
   publish:
