@@ -57,8 +57,7 @@ def test_inputs_api_call():
 
 def test_400_api_call():
     expected_msg = """<msg type="ERROR">Unexpected error "&lt;class 'splunktaucclib.rest_handler.error.RestError'&gt;" 
-from python handler: "REST Error [400]: Bad Request -- HTTP 400 Bad Request -- 
-b'{"messages":[{"type":"ERROR","text":"Object id=demo://test_input cannot be deleted in config=inputs."}]}'". 
+from python handler: "REST Error [400]: Bad Request -- Object id=demo://test_input cannot be deleted in config=inputs.". 
 See splunkd.log/python.log for more details.</msg>"""
 
     response = requests.delete(
@@ -72,9 +71,7 @@ See splunkd.log/python.log for more details.</msg>"""
 
 def test_403_api_call():
     expected_msg = """<msg type="ERROR">Unexpected error "&lt;class 'splunktaucclib.rest_handler.error.RestError'&gt;" 
-from python handler: "REST Error [403]: Forbidden -- HTTP 403 Forbidden -- 
-b'{"messages":[{"type":"ERROR","text":"You (user=user) do not have permission to perform this operation 
-(requires capability: admin_all_objects)."}]}'". See splunkd.log/python.log for more details.</msg>"""
+from python handler: "REST Error [403]: Forbidden -- This operation is forbidden.". See splunkd.log/python.log for more details.</msg>"""
 
     response = requests.post(
         f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo",
