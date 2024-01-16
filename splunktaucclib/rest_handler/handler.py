@@ -42,7 +42,7 @@ def _check_name_for_create(name):
         raise RestError(400, 'Name starting with "_" is not allowed for entity')
 
 
-def parse_error_msg(exc: binding.HTTPError) -> str:
+def _parse_error_msg(exc: binding.HTTPError) -> str:
     permission_msg = "do not have permission to perform this operation"
     try:
         msgs = json.loads(exc.body)["messages"]
@@ -50,10 +50,10 @@ def parse_error_msg(exc: binding.HTTPError) -> str:
     except json.JSONDecodeError:
         try:
             text = ElementTree.fromstring(exc.body).findtext("./messages/msg")
-        except ElementTree.ParseError as err:
-            return str(err)
+        except ElementTree.ParseError:
+            return exc.body.decode()
     except (KeyError, IndexError):
-        return str(exc)
+        return exc.body.decode()
     if exc.status == 403 and permission_msg in text:
         return "This operation is forbidden."
     return text
@@ -144,7 +144,7 @@ def _decode_response(meth):
         except RestError:
             raise
         except binding.HTTPError as exc:
-            raise RestError(exc.status, parse_error_msg(exc))
+            raise RestError(exc.status, _parse_error_msg(exc))
         except Exception:
             raise RestError(500, traceback.format_exc())
 
