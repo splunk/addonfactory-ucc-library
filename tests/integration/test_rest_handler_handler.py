@@ -14,11 +14,14 @@
 # limitations under the License.
 #
 from urllib import parse
-
+from requests.auth import HTTPBasicAuth
 import requests
+import os
 
-username = "admin"
-password = "Chang3d!"
+admin = os.getenv("SPLUNK_ADMIN")
+admin_password = os.getenv("SPLUNK_ADMIN_PWD")
+user = os.getenv("SPLUNK_USER")
+user_password = os.getenv("SPLUNK_USER_PWD")
 host = "localhost"
 ui_port = 8000
 management_port = 8089
@@ -27,7 +30,7 @@ management_port = 8089
 def _get_session_key():
     response = requests.post(
         f"https://{host}:{management_port}/services/auth/login?output_mode=json",
-        data=parse.urlencode({"username": username, "password": password}),
+        data=parse.urlencode({"username": admin, "password": admin_password}),
         verify=False,
     )
     content = response.json()
@@ -50,3 +53,35 @@ def test_inputs_api_call():
         response.raise_for_status()
     except requests.exceptions.HTTPError as e:
         assert False, f"Exception {e}"
+
+
+def test_400_api_call():
+    expected_msg = """<msg type="ERROR">Unexpected error "&lt;class 'splunktaucclib.rest_handler.error.RestError'&gt;" 
+from python handler: "REST Error [400]: Bad Request -- Object id=demo://test_input cannot be deleted in config=inputs.". 
+See splunkd.log/python.log for more details.</msg>"""
+
+    response = requests.delete(
+        f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo/test_input",
+        auth=HTTPBasicAuth(admin, admin_password),
+        verify=False,
+    )
+    assert expected_msg.replace("\n", "") in response.text
+    assert response.status_code == 500
+
+
+def test_403_api_call():
+    expected_msg = """<msg type="ERROR">Unexpected error "&lt;class 'splunktaucclib.rest_handler.error.RestError'&gt;" 
+from python handler: "REST Error [403]: Forbidden -- This operation is forbidden.". See splunkd.log/python.log for more details.</msg>"""
+
+    response = requests.post(
+        f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo",
+        data={"name": "test12", "interval": "5"},
+        headers={
+            "accept": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        auth=HTTPBasicAuth(user, user_password),
+        verify=False,
+    )
+    assert expected_msg.replace("\n", "") in response.text
+    assert response.status_code == 500
