@@ -601,13 +601,13 @@ doc = ["Sphinx", "sphinx-rtd-theme"]
 
 [[package]]
 name = "solnlib"
-version = "4.12.0"
+version = "4.13.0"
 description = "The Splunk Software Development Kit for Splunk Solutions"
 optional = false
-python-versions = ">=3.7,<4.0"
+python-versions = "<4.0,>=3.7"
 files = [
-    {file = "solnlib-4.12.0-py3-none-any.whl", hash = "sha256:b9acfba4eab380e63f8be25bb1a29074f6671fa4df8fe05e70b487d4a8a1d9fa"},
-    {file = "solnlib-4.12.0.tar.gz", hash = "sha256:2933329d713d9786f1bfbeddaa638dc4835a70b1f268fc9d660974e0b5a4ad5a"},
+    {file = "solnlib-4.13.0-py3-none-any.whl", hash = "sha256:047f23b3782193368e37595666c5dbdfee2687aadd404a36c9b0728173217403"},
+    {file = "solnlib-4.13.0.tar.gz", hash = "sha256:814c23cce4ae6e34c0d3f8df9338fc1a70df3bf1dd084c584b9dedca8b85685d"},
 ]
 
 [package.dependencies]
@@ -630,13 +630,13 @@ files = [
 
 [[package]]
 name = "splunk-add-on-ucc-framework"
-version = "5.39.1"
+version = "5.40.0"
 description = "Splunk Add-on SDK formerly UCC is a build and code generation framework"
 optional = false
-python-versions = ">=3.7,<4.0"
+python-versions = "<4.0,>=3.7"
 files = [
-    {file = "splunk_add_on_ucc_framework-5.39.1-py3-none-any.whl", hash = "sha256:5109df16a7b834e43494f31037e508b33a16df8451d6d988793ad4fbfdcadc02"},
-    {file = "splunk_add_on_ucc_framework-5.39.1.tar.gz", hash = "sha256:e9d0d1996d921332c6c057cd7c86538a496b7f1cfc447fc3efea13559e51d77c"},
+    {file = "splunk_add_on_ucc_framework-5.40.0-py3-none-any.whl", hash = "sha256:baf2bb3568b606ffcb1d7c965ed4b17dff0ee4a567713cc4d21deb7c15354d86"},
+    {file = "splunk_add_on_ucc_framework-5.40.0.tar.gz", hash = "sha256:daf78ac79543da140ae93fe7645be7b790980acbe8f6b4551a9bb7379743a703"},
 ]
 
 [package.dependencies]
@@ -667,12 +667,12 @@ semantic_version = ">=2.5.0"
 
 [[package]]
 name = "splunk-sdk"
-version = "1.7.4"
+version = "2.0.0"
 description = "The Splunk Software Development Kit for Python."
 optional = false
 python-versions = "*"
 files = [
-    {file = "splunk-sdk-1.7.4.tar.gz", hash = "sha256:8f3f149e3a0daf7526ed36882c109e4ec8080e417efe25d23f4578e86d38b9f2"},
+    {file = "splunk-sdk-2.0.0.tar.gz", hash = "sha256:d60dfbec3d2901e3c26a160f496325d473abcd71605c7a8154dfcd35929416a6"},
 ]
 
 [[package]]
