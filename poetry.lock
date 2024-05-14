@@ -615,13 +615,13 @@ doc = ["Sphinx", "sphinx-rtd-theme"]
 
 [[package]]
 name = "solnlib"
-version = "4.13.0"
+version = "4.14.0"
 description = "The Splunk Software Development Kit for Splunk Solutions"
 optional = false
 python-versions = "<4.0,>=3.7"
 files = [
-    {file = "solnlib-4.13.0-py3-none-any.whl", hash = "sha256:047f23b3782193368e37595666c5dbdfee2687aadd404a36c9b0728173217403"},
-    {file = "solnlib-4.13.0.tar.gz", hash = "sha256:814c23cce4ae6e34c0d3f8df9338fc1a70df3bf1dd084c584b9dedca8b85685d"},
+    {file = "solnlib-4.14.0-py3-none-any.whl", hash = "sha256:de9f20f5ec8246acb281e381f89664d355f0de072b4eaaf055f8bce03d3eb80e"},
+    {file = "solnlib-4.14.0.tar.gz", hash = "sha256:d5add6a198c4c9c5a2114b33b36f2264a31c8765ca5df9cc8b74a2beb375cc2a"},
 ]
 
 [package.dependencies]
@@ -644,13 +644,13 @@ files = [
 
 [[package]]
 name = "splunk-add-on-ucc-framework"
-version = "5.41.0"
+version = "5.44.0"
 description = "Splunk Add-on SDK formerly UCC is a build and code generation framework"
 optional = false
 python-versions = "<4.0,>=3.7"
 files = [
-    {file = "splunk_add_on_ucc_framework-5.41.0-py3-none-any.whl", hash = "sha256:4ede1e5513f5abfc9f592ea9a1140b2b78c5b48e257d1dd0d577c8c28f69e1bd"},
-    {file = "splunk_add_on_ucc_framework-5.41.0.tar.gz", hash = "sha256:45309fde6c6a942c4697346abcd059ddf2c1016540133e1627650e0c8215e896"},
+    {file = "splunk_add_on_ucc_framework-5.44.0-py3-none-any.whl", hash = "sha256:e79c10d89cbcd3702d296f598da9512ba3337fac07fa968a7bcface48661a1d5"},
+    {file = "splunk_add_on_ucc_framework-5.44.0.tar.gz", hash = "sha256:961abae32b9366251e73ab4d2144595a21faea29613c769cecacef69291e0260"},
 ]
 
 [package.dependencies]
@@ -694,13 +694,13 @@ deprecation = "*"
 
 [[package]]
 name = "splunktalib"
-version = "3.0.4"
+version = "3.0.5"
 description = "Supporting library for Splunk Add-ons"
 optional = false
-python-versions = ">=3.7,<4.0"
+python-versions = "<4.0,>=3.7"
 files = [
-    {file = "splunktalib-3.0.4-py3-none-any.whl", hash = "sha256:5d4226f0e402dd65d8457500b35d6c459642b6a5da81ec1830e8d57f03e90ecc"},
-    {file = "splunktalib-3.0.4.tar.gz", hash = "sha256:1ffeb9b7301712e2dbe937cdbc6ea66ac0de14bb91835c0b5cbb683a9f4eac05"},
+    {file = "splunktalib-3.0.5-py3-none-any.whl", hash = "sha256:4926534ce7db018c13e138d374e2cf747da66f5adc1c909963df6c7fdd23f800"},
+    {file = "splunktalib-3.0.5.tar.gz", hash = "sha256:dfe884ae1a22616780ebfa9758ae1795107eb92c26011956a9030933fe0fb86d"},
 ]
 
 [package.dependencies]
