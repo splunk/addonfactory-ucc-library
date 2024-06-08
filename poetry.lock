@@ -35,13 +35,13 @@ tests-no-zope = ["attrs[tests-mypy]", "cloudpickle", "hypothesis", "pympler", "p
 
 [[package]]
 name = "certifi"
-version = "2024.2.2"
+version = "2024.6.2"
 description = "Python package for providing Mozilla's CA Bundle."
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "certifi-2024.2.2-py3-none-any.whl", hash = "sha256:dc383c07b76109f368f6106eee2b593b04a011ea4d55f652c6ca24a754d1cdd1"},
-    {file = "certifi-2024.2.2.tar.gz", hash = "sha256:0569859f95fc761b18b45ef421b1290a0f65f147e92a1e5eb3e635f9a5e4e66f"},
+    {file = "certifi-2024.6.2-py3-none-any.whl", hash = "sha256:ddc6c8ce995e6987e7faf5e3f1b02b302836a0e5d98ece18392cb1a36c72ad56"},
+    {file = "certifi-2024.6.2.tar.gz", hash = "sha256:3cd43f1c6fa7dedc5899d69d3ad0398fd018ad1a17fba83ddaf78aa46c747516"},
 ]
 
 [[package]]
@@ -615,13 +615,13 @@ doc = ["Sphinx", "sphinx-rtd-theme"]
 
 [[package]]
 name = "solnlib"
-version = "4.14.0"
+version = "4.14.1"
 description = "The Splunk Software Development Kit for Splunk Solutions"
 optional = false
 python-versions = "<4.0,>=3.7"
 files = [
-    {file = "solnlib-4.14.0-py3-none-any.whl", hash = "sha256:de9f20f5ec8246acb281e381f89664d355f0de072b4eaaf055f8bce03d3eb80e"},
-    {file = "solnlib-4.14.0.tar.gz", hash = "sha256:d5add6a198c4c9c5a2114b33b36f2264a31c8765ca5df9cc8b74a2beb375cc2a"},
+    {file = "solnlib-4.14.1-py3-none-any.whl", hash = "sha256:ef86a38f8860b659064851339f5f89077aad54cf468396d4905a892a27e25bed"},
+    {file = "solnlib-4.14.1.tar.gz", hash = "sha256:cfe3a5c7e9214730746e6e21063dfc50dd6e7d85935a77721e78d76284b976ff"},
 ]
 
 [package.dependencies]
