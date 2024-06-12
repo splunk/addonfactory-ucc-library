@@ -614,13 +614,13 @@ doc = ["Sphinx", "sphinx-rtd-theme"]
 
 [[package]]
 name = "solnlib"
-version = "5.0.0"
+version = "4.14.1"
 description = "The Splunk Software Development Kit for Splunk Solutions"
 optional = false
 python-versions = "<4.0,>=3.7"
 files = [
-    {file = "solnlib-5.0.0-py3-none-any.whl", hash = "sha256:84b45ce627c2a6d7fafe08d93bb887699768f96ab56d4f115598e66c3d34beb3"},
-    {file = "solnlib-5.0.0.tar.gz", hash = "sha256:351d5121c5b6804a71d0ec70b7763cca7c50410173df8620db543203d1c8f7b6"},
+    {file = "solnlib-4.14.1-py3-none-any.whl", hash = "sha256:ef86a38f8860b659064851339f5f89077aad54cf468396d4905a892a27e25bed"},
+    {file = "solnlib-4.14.1.tar.gz", hash = "sha256:cfe3a5c7e9214730746e6e21063dfc50dd6e7d85935a77721e78d76284b976ff"},
 ]
 
 [package.dependencies]
@@ -764,4 +764,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.7"
-content-hash = "dbaf816ec3621d2b3e6653b8b26ac4e3f0157db15dd1b8a5e17cc55ce1a438a2"
+content-hash = "18f4192313561cc492bfb27203455272d5cd6d517d64ae393da6de7ed319fa76"

@@ -44,7 +44,7 @@ def _get_log_level(log_level, default_level=logging.INFO):
 
 def set_log_level(log_level):
     """
-    Set log level.
+    Set log level. Test message.
     """
     stclog.Logs().set_level(_get_log_level(log_level))
 
