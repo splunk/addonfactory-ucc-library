@@ -103,11 +103,11 @@ jobs:
           - "3.11"
     steps:
       - uses: actions/checkout@v4
-      - run: pipx install poetry==1.5.1
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: "poetry"
+      - run: pipx install poetry==1.5.1
       - name: run tests
         run: |
           poetry install
