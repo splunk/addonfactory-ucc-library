@@ -4,7 +4,7 @@ Splunk TA UCC Library Python (splunktaucclib) is an open source helper library u
 This library is used by Splunk Add-on builder, and Splunk UCC based add-ons and is intended for use by partner
 developers. This SDK/Library extends the Splunk SDK for python.
 
-## Communication channels
+## Communication channels test
 
 If you are a Splunker use: https://splunk.slack.com/archives/C03T8QCHBTJ
 
