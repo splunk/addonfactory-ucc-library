@@ -242,22 +242,22 @@ class Setup_Util:
         log_level = "INFO"
         log_settings = self._parse_conf(LOG_SETTINGS)
         if log_settings is None:
-            self.log_info("Log level is not set, use default INFO")
+            self.log_debug("Log level is not set, use default INFO")
         else:
             log_level = log_settings.get(LOG_LEVEL_KEY, None)
             if not log_level:
-                self.log_info("Log level is not set, use default INFO")
+                self.log_debug("Log level is not set, use default INFO")
                 log_level = "INFO"
         return log_level
 
     def get_proxy_settings(self):
         proxy_settings = self._parse_conf(PROXY_SETTINGS)
         if proxy_settings is None:
-            self.log_info("Proxy is not set!")
+            self.log_debug("Proxy is not set!")
             return {}
         proxy_enabled = proxy_settings.get(PROXY_ENABLE_KEY)
         if not proxy_enabled:
-            self.log_info("Proxy is not enabled!")
+            self.log_debug("Proxy is not enabled!")
             return {}
         proxy_settings = {
             "proxy_url": proxy_settings.get("proxy_url", ""),
