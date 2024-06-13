@@ -131,7 +131,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: 3.7
-          cache: "poetry"
       - run: poetry install
       - name: build demo add-on
         run: |
