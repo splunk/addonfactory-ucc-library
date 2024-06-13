@@ -75,11 +75,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - run: pipx install poetry==1.5.1
       - uses: actions/setup-python@v5
         with:
           python-version: "3.7"
-          cache: "poetry"
+      - run: curl -sSL https://install.python-poetry.org | python3 - --version 1.5.1
       - name: Install Poetry
         run: |
           poetry build
@@ -106,7 +105,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - run: pipx install poetry==1.5.1
+      - run: curl -sSL https://install.python-poetry.org | python3 - --version 1.5.1
       - name: run tests
         run: |
           poetry install
@@ -127,10 +126,10 @@ jobs:
       SPLUNK_ADMIN_PWD: Chang3d'!'
     steps:
       - uses: actions/checkout@v4
-      - run: pipx install poetry==1.5.1
       - uses: actions/setup-python@v5
         with:
           python-version: 3.7
+      - run: curl -sSL https://install.python-poetry.org | python3 - --version 1.5.1
       - run: poetry install
       - name: build demo add-on
         run: |
@@ -179,11 +178,10 @@ jobs:
           # Very important: semantic-release won't trigger a tagged
           # build if this is not set false
           persist-credentials: false
-      - run: pipx install poetry==1.5.1
       - uses: actions/setup-python@v5
         with:
           python-version: "3.7"
-          cache: "poetry"
+      - run: curl -sSL https://install.python-poetry.org | python3 - --version 1.5.1
       - name: Install and build
         run: |
           poetry install
