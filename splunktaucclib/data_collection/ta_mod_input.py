@@ -123,8 +123,6 @@ def run(collector_cls, settings, checkpoint_cls=None, config_cls=None, log_suffi
     """
     Main loop. Run this TA forever
     """
-    # This is for stdout flush
-    utils.disable_stdout_buffer()
 
     # http://bugs.python.org/issue7980
     time.strptime("2016-01-01", "%Y-%m-%d")
