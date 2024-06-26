@@ -39,7 +39,7 @@ class TADataLoader:
         @configs: a list like object containing a list of dict
         like object. Each element shall implement dict.get/[] like interfaces
         to get the value for a key.
-        @job_scheduler: schedulering the jobs. shall implement get_ready_jobs
+        @job_scheduler: scheduling the jobs. shall implement get_ready_jobs
         @event_writer: write_events
         """
 
@@ -58,7 +58,6 @@ class TADataLoader:
             return
         self._started = True
 
-        self._event_writer.start()
         self._executor.start()
         self._timer_queue.start()
         self._scheduler.start()
@@ -81,7 +80,6 @@ class TADataLoader:
         self._scheduler.tear_down()
         self._timer_queue.tear_down()
         self._executor.tear_down()
-        self._event_writer.tear_down()
         log.logger.info("DataLoader stopped.")
 
     def _wait_for_tear_down(self):
@@ -166,13 +164,13 @@ class GlobalDataLoader:
 
 def create_data_loader(meta_configs):
     """
-    create a data loader with default event_writer, job_scheudler
+    create a data loader with default event_writer, job_scheduler
     """
 
-    import splunktalib.event_writer as ew
+    import solnlib.modular_input.event_writer as ew
     import splunktalib.schedule.scheduler as sched
 
-    writer = ew.EventWriter()
+    writer = ew.ClassicEventWriter()
     scheduler = sched.Scheduler()
     loader = GlobalDataLoader.get_data_loader(meta_configs, scheduler, writer)
     return loader

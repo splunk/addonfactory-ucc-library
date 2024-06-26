@@ -18,6 +18,22 @@
 
 import splunktaucclib.data_collection.ta_data_collector as tdc
 from splunktaucclib.data_collection import ta_checkpoint_manager as cp
+from solnlib.modular_input import event_writer as ew
+
+
+def get_event_writer_factory():
+    instance = None
+
+    def get_instance():
+        nonlocal instance
+        if instance is None:
+            instance = ew.ClassicEventWriter()
+        return instance
+
+    return get_instance
+
+
+get_event_writer = get_event_writer_factory()
 
 
 def build_event(
@@ -32,8 +48,16 @@ def build_event(
 ):
     if is_unbroken is False and is_done is True:
         raise Exception("is_unbroken=False is_done=True is invalid")
-    return tdc.event_tuple._make(
-        [host, source, sourcetype, time, index, raw_data, is_unbroken, is_done]
+    writer = get_event_writer()
+    return writer.create_event(
+        raw_data,
+        time,
+        index,
+        host,
+        source,
+        sourcetype,
+        unbroken=is_unbroken,
+        done=is_done,
     )
 
 
