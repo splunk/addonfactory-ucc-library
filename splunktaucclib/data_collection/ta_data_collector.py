@@ -18,58 +18,10 @@
 
 import threading
 import time
-from collections import namedtuple
 
 import splunktaucclib.common.log as stulog
 
 from . import ta_consts as c
-
-
-def _escape(data):
-    """Escape &, <, and > in a string of data."""
-    # must do ampersand first
-    data = data.replace("&", "&amp;")
-    data = data.replace(">", "&gt;")
-    data = data.replace("<", "&lt;")
-    return data
-
-
-evt_fmt = (
-    "<stream><event><host>{0}</host>"
-    "<source><![CDATA[{1}]]></source>"
-    "<sourcetype><![CDATA[{2}]]></sourcetype>"
-    "<time>{3}</time>"
-    "<index>{4}</index><data>"
-    "{5}</data></event></stream>"
-)
-
-unbroken_evt_fmt = (
-    "<stream>"
-    '<event unbroken="1">'
-    "<host>{0}</host>"
-    "<source><![CDATA[{1}]]></source>"
-    "<sourcetype><![CDATA[{2}]]></sourcetype>"
-    "<time>{3}</time>"
-    "<index>{4}</index>"
-    "<data>{5}</data>"
-    "{6}"
-    "</event>"
-    "</stream>"
-)
-
-event_tuple = namedtuple(
-    "Event",
-    [
-        "host",
-        "source",
-        "sourcetype",
-        "time",
-        "index",
-        "raw_data",
-        "is_unbroken",
-        "is_done",
-    ],
-)
 
 
 class TADataCollector:
@@ -115,36 +67,6 @@ class TADataCollector:
 
     def __call__(self):
         self.index_data()
-
-    def _build_event(self, events):
-        if not events:
-            return None
-        if not isinstance(events, list):
-            events = [events]
-        evts = []
-        for event in events:
-            assert event.raw_data, "the raw data of events is empty"
-            if event.is_unbroken:
-                evt = unbroken_evt_fmt.format(
-                    event.host or "",
-                    event.source or "",
-                    event.sourcetype or "",
-                    event.time or "",
-                    event.index or "",
-                    _escape(event.raw_data),
-                    "<done/>" if event.is_done else "",
-                )
-            else:
-                evt = evt_fmt.format(
-                    event.host or "",
-                    event.source or "",
-                    event.sourcetype or "",
-                    event.time or "",
-                    event.index or "",
-                    _escape(event.raw_data),
-                )
-            evts.append(evt)
-        return evts
 
     def _get_ckpt(self):
         return self._checkpoint_manager.get_ckpt()
@@ -195,14 +117,8 @@ class TADataCollector:
             )
 
     def _write_events(self, ckpt, events):
-        evts = self._build_event(events)
-        if evts:
-            if not self._data_loader.write_events(evts):
-                stulog.logger.info(
-                    "{} the event queue is closed and the "
-                    "received data will be discarded".format(self._p)
-                )
-                return False
+        if events:
+            self._data_loader.write_events(events)
         if ckpt is None:
             return True
         for i in range(3):
