@@ -516,7 +516,7 @@ class ModularAction:
 
         # add snapshot id
         if self.sid_snapshot:
-            self.rid = "{}.{}".format(self.rid, self.sid_snapshot)
+            self.rid = f"{self.rid}.{self.sid_snapshot}"
 
         # add result info to list of named tuples
         self.rids.append(self.rid_ntuple(self.orig_sid, self.rid, self.orig_rid))
@@ -636,7 +636,7 @@ class ModularAction:
                 if mapexp(key):
                     _raw += ', {}="{}"'.format("orig_" + key.lstrip("_"), v)
                 else:
-                    _raw += ', {}="{}"'.format(key, v)
+                    _raw += f', {key}="{v}"'
 
         return _raw
 
