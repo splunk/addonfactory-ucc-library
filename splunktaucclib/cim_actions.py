@@ -39,11 +39,6 @@ from splunk.clilib.cli_common import getConfKeyValue
 from splunk.clilib.bundle_paths import make_splunkhome_path
 from splunk.util import mktimegm, normalizeBoolean
 
-# Python 2+3 basestring
-try:
-    basestring
-except NameError:
-    basestring = str
 
 # set the maximum allowable CSV field size
 #
@@ -56,7 +51,7 @@ csv.field_size_limit(10485760)
 def truthy_strint_from_dict(d, k):
     return (
         True
-        if isinstance(d.get(k, None), (basestring, int)) and (d[k] or d[k] == 0)
+        if isinstance(d.get(k, None), (str, int)) and (d[k] or d[k] == 0)
         else False
     )
 
@@ -331,7 +326,7 @@ class ModularAction:
         self.action_name = self.configuration.get("action_name") or action_name
 
         # use sid to determine action_mode
-        if isinstance(self.sid, basestring) and "scheduler" in self.sid:
+        if isinstance(self.sid, str) and "scheduler" in self.sid:
             self.action_mode = "saved"
         else:
             self.action_mode = "adhoc"
@@ -611,7 +606,7 @@ class ModularAction:
             mv_key = f"__mv_{key}"
             if (
                 mv_key in result
-                and isinstance(result[mv_key], basestring)  # string
+                and isinstance(result[mv_key], str)  # string
                 and result[mv_key].startswith("$")  # prefix
                 and result[mv_key].endswith("$")
             ):  # suffix
@@ -624,12 +619,12 @@ class ModularAction:
 
             # iterate vals
             for v in vals:
-                if isinstance(v, basestring) and v:
+                if isinstance(v, str) and v:
                     # escape slashes
                     v = v.replace("\\", "\\\\")
                     # escape quotes
                     v = v.replace('"', '\\"')
-                elif isinstance(v, basestring) and len(vals) == 1:
+                elif isinstance(v, str) and len(vals) == 1:
                     continue
 
                 # check map
