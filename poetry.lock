@@ -597,13 +597,13 @@ doc = ["Sphinx", "sphinx-rtd-theme"]
 
 [[package]]
 name = "solnlib"
-version = "5.1.1"
+version = "5.1.2"
 description = "The Splunk Software Development Kit for Splunk Solutions"
 optional = false
 python-versions = "<4.0,>=3.7"
 files = [
-    {file = "solnlib-5.1.1-py3-none-any.whl", hash = "sha256:a3d38fccd8fae959c099f644ca369e103f8b592bb6d2ee634b7fde5c2fd27633"},
-    {file = "solnlib-5.1.1.tar.gz", hash = "sha256:6e9cd3f8d333b462c524479295598c88f31c59117e8b55ff2bf74fef1b54937a"},
+    {file = "solnlib-5.1.2-py3-none-any.whl", hash = "sha256:3d837c41d418f82df4b8b5aa18be0fc449b5f059d9e63090bf2c90f79ea25c54"},
+    {file = "solnlib-5.1.2.tar.gz", hash = "sha256:58ff31d5a41f18faa3fdd16721cb282ac3a55308eb5f6793aa39dbefe240d2eb"},
 ]
 
 [package.dependencies]
@@ -626,13 +626,13 @@ files = [
 
 [[package]]
 name = "splunk-add-on-ucc-framework"
-version = "5.48.1"
+version = "5.48.2"
 description = "Splunk Add-on SDK formerly UCC is a build and code generation framework"
 optional = false
 python-versions = "<4.0,>=3.7"
 files = [
-    {file = "splunk_add_on_ucc_framework-5.48.1-py3-none-any.whl", hash = "sha256:6424108bcc30b81a02342b14cd12fc83dee424ba951be148ddce346dffd3f404"},
-    {file = "splunk_add_on_ucc_framework-5.48.1.tar.gz", hash = "sha256:fc92e930c7910a47ae33089882937b86324ce63763d727c7bfe5d4e368397d87"},
+    {file = "splunk_add_on_ucc_framework-5.48.2-py3-none-any.whl", hash = "sha256:9e9166808f07c8cee0455b73351de4b063c2afaf06893542d833680c3da9f07e"},
+    {file = "splunk_add_on_ucc_framework-5.48.2.tar.gz", hash = "sha256:fb8235bb1dc847561bfe67310a5dbf787d31fc008db710c8fcbd8cb5f0022a1f"},
 ]
 
 [package.dependencies]
