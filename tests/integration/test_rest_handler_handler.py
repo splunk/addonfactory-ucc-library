@@ -77,12 +77,12 @@ from python handler: "REST Error [403]: Forbidden -- This operation is forbidden
 
     response = requests.post(
         f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo",
-        data={"name": "test22331", "interval": "a4"},
+        data={"name": "test12", "interval": "5"},
         headers={
             "accept": "application/json",
             "Content-Type": "application/x-www-form-urlencoded",
         },
-        auth=HTTPBasicAuth(admin, admin_password),
+        auth=HTTPBasicAuth(user, user_password),
         verify=False,
     )
     assert expected_msg.replace("\n", "") in response.text
