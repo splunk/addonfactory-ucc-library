@@ -88,19 +88,29 @@ from python handler: "REST Error [403]: Forbidden -- This operation is forbidden
     assert expected_msg.replace("\n", "") in response.text
     assert response.status_code == 500
 
+
 @pytest.mark.parametrize(
     "value",
-    ["test[name", "test*name", "test\\name", "test]name", "test(name", "test)name", "test?name", "test:name",
-     "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnamet"
-     "oolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnameto"
-     "olongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoo"
-     "longnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametool"
-     "ongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolo"
-     "ngnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolon"
-     "gnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolong"
-     "nametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongn"
-     "ametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongna"
-     "metoolongnametoolongnamet"]
+    [
+        "test[name",
+        "test*name",
+        "test\\name",
+        "test]name",
+        "test(name",
+        "test)name",
+        "test?name",
+        "test:name",
+        "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnamet"
+        "oolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnameto"
+        "olongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoo"
+        "longnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametool"
+        "ongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolo"
+        "ngnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolon"
+        "gnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolong"
+        "nametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongn"
+        "ametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongna"
+        "metoolongnametoolongnamet",
+    ],
 )
 def test_basic_name_validation(value):
     expected_msg = """<msg type="ERROR">Unexpected error "&lt;class 'splunktaucclib.rest_handler.error.RestError'&gt;" 
@@ -120,7 +130,12 @@ for field Name\',)". See splunkd.log/python.log for more details.</msg>"""
     )
 
     if value.startswith("toolongname"):
-        assert "<msg type=\"ERROR\">Parameter \"name\" must be less than 1024".replace("\n", "") in response.text
+        assert (
+            '<msg type="ERROR">Parameter "name" must be less than 1024'.replace(
+                "\n", ""
+            )
+            in response.text
+        )
     else:
         assert expected_msg.replace("\n", "") in response.text
         assert response.status_code == 500

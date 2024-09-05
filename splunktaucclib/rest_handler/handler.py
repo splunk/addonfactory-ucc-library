@@ -104,11 +104,20 @@ def _pre_request(existing):
 
         def basic_name_validation(name):
             tmp_name = str(name)
-            prohibited_chars = ['*', '\\', '[', ']', '(', ')', '?', ':']
-            val_err_msg = ('"default", ".", "..", string started with "_" and string including any one of '
-                           '["*", "\\", "[", "]", "(", ")", "?", ":"] are reserved value which cannot '
-                           'be used for field Name'),
-            if tmp_name.startswith("_") or tmp_name == "." or tmp_name == ".." or tmp_name == "default":
+            prohibited_chars = ["*", "\\", "[", "]", "(", ")", "?", ":"]
+            val_err_msg = (
+                (
+                    '"default", ".", "..", string started with "_" and string including any one of '
+                    '["*", "\\", "[", "]", "(", ")", "?", ":"] are reserved value which cannot '
+                    "be used for field Name"
+                ),
+            )
+            if (
+                tmp_name.startswith("_")
+                or tmp_name == "."
+                or tmp_name == ".."
+                or tmp_name == "default"
+            ):
                 raise RestError(400, val_err_msg)
 
             if any(pc in prohibited_chars for pc in tmp_name):
