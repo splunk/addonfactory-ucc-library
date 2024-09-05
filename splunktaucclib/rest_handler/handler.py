@@ -102,6 +102,21 @@ def _pre_request(existing):
             else:
                 return None
 
+        def basic_name_validation(name):
+            tmp_name = str(name)
+            prohibited_chars = ['*', '\\', '[', ']', '(', ')', '?', ':']
+            val_err_msg = ('"default", ".", "..", string started with "_" and string including any one of '
+                           '["*", "\\", "[", "]", "(", ")", "?", ":"] are reserved value which cannot '
+                           'be used for field Name'),
+            if tmp_name.startswith("_") or tmp_name == "." or tmp_name == ".." or tmp_name == "default":
+                raise RestError(400, val_err_msg)
+
+            if any(pc in prohibited_chars for pc in tmp_name):
+                raise RestError(400, val_err_msg)
+
+            if len(tmp_name) >= 1024:
+                raise RestError(400, "Field Name must be less than 1024 characters")
+
         @wraps(meth)
         def wrapper(self, name, data):
             self._endpoint.validate(
@@ -109,6 +124,7 @@ def _pre_request(existing):
                 data,
                 check_existing(self, name),
             )
+            basic_name_validation(name)
             self._endpoint.encode(name, data)
 
             return meth(self, name, data)

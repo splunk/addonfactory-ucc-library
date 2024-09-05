@@ -18,6 +18,8 @@ from requests.auth import HTTPBasicAuth
 import requests
 import os
 
+import pytest
+
 admin = os.getenv("SPLUNK_ADMIN")
 admin_password = os.getenv("SPLUNK_ADMIN_PWD")
 user = os.getenv("SPLUNK_USER")
@@ -75,13 +77,50 @@ from python handler: "REST Error [403]: Forbidden -- This operation is forbidden
 
     response = requests.post(
         f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo",
-        data={"name": "test12", "interval": "5"},
+        data={"name": "test22331", "interval": "a4"},
         headers={
             "accept": "application/json",
             "Content-Type": "application/x-www-form-urlencoded",
         },
-        auth=HTTPBasicAuth(user, user_password),
+        auth=HTTPBasicAuth(admin, admin_password),
         verify=False,
     )
     assert expected_msg.replace("\n", "") in response.text
     assert response.status_code == 500
+
+@pytest.mark.parametrize(
+    "value",
+    ["test[name", "test*name", "test\\name", "test]name", "test(name", "test)name", "test?name", "test:name",
+     "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnamet"
+     "oolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnameto"
+     "olongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoo"
+     "longnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametool"
+     "ongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolo"
+     "ngnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolon"
+     "gnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolong"
+     "nametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongn"
+     "ametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongna"
+     "metoolongnametoolongnamet"]
+)
+def test_basic_name_validation(value):
+    expected_msg = """<msg type="ERROR">Unexpected error "&lt;class 'splunktaucclib.rest_handler.error.RestError'&gt;" 
+from python handler: "REST Error [400]: Bad Request -- (\'"default", ".", "..", string started with "_" 
+and string including any one of ["*", "\\\\", "[", "]", "(", ")", "?", ":"] are reserved value which cannot be used 
+for field Name\',)". See splunkd.log/python.log for more details.</msg>"""
+
+    response = requests.post(
+        f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo",
+        data={"name": value, "interval": "44"},
+        headers={
+            "accept": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        auth=HTTPBasicAuth(admin, admin_password),
+        verify=False,
+    )
+
+    if value.startswith("toolongname"):
+        assert "<msg type=\"ERROR\">Parameter \"name\" must be less than 1024".replace("\n", "") in response.text
+    else:
+        assert expected_msg.replace("\n", "") in response.text
+        assert response.status_code == 500
