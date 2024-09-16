@@ -134,10 +134,7 @@ def _pre_request(existing):
                 check_existing(self, name),
             )
             basic_name_validation(name)
-            self._endpoint.validate_special(
-                name,
-                data
-            )
+            self._endpoint.validate_special(name, data)
             self._endpoint.encode(name, data)
 
             return meth(self, name, data)

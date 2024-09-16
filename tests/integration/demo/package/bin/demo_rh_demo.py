@@ -1,4 +1,3 @@
-
 import import_declare_test
 
 from splunktaucclib.rest_handler.endpoint import (
@@ -16,51 +15,44 @@ util.remove_http_proxy_env_vars()
 
 special_fields = [
     field.RestField(
-        'name',
+        "name",
         required=True,
         encrypted=False,
         default=None,
         validator=validator.AllOf(
             validator.Pattern(
-                regex=r"""^[a-dA-D]\w*$""", 
-            ), 
+                regex=r"""^[a-dA-D]\w*$""",
+            ),
             validator.String(
-                max_len=100, 
-                min_len=1, 
-            )
-        )
+                max_len=100,
+                min_len=1,
+            ),
+        ),
     )
 ]
 
 fields = [
     field.RestField(
-        'interval',
+        "interval",
         required=True,
         encrypted=False,
-        default='300',
+        default="300",
         validator=validator.Pattern(
-            regex=r"""^(?:-1|\d+(?:\.\d+)?)$""", 
-        )
-    ), 
-
-    field.RestField(
-        'disabled',
-        required=False,
-        validator=None
-    )
-
+            regex=r"""^(?:-1|\d+(?:\.\d+)?)$""",
+        ),
+    ),
+    field.RestField("disabled", required=False, validator=None),
 ]
 model = RestModel(fields, name=None, special_fields=special_fields)
 
 
-
 endpoint = DataInputModel(
-    'demo',
+    "demo",
     model,
 )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     logging.getLogger().addHandler(logging.NullHandler())
     admin_external.handle(
         endpoint,

@@ -146,7 +146,7 @@ for field Name\',)". See splunkd.log/python.log for more details.</msg>"""
     [
         "ftestname",
         "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnamet"
-        "oolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnameto"
+        "oolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnameto",
     ],
 )
 def test_custom_name_validation(value):
@@ -164,7 +164,7 @@ def test_custom_name_validation(value):
     )
 
     if value.startswith("toolongname"):
-        assert ('String length should be between 1 and 100' in response.text)
+        assert "String length should be between 1 and 100" in response.text
     else:
         assert expected_msg.replace("\n", "") in response.text
         assert response.status_code == 500
