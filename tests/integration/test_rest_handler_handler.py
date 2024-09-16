@@ -77,7 +77,7 @@ from python handler: "REST Error [403]: Forbidden -- This operation is forbidden
 
     response = requests.post(
         f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo",
-        data={"name": "test12", "interval": "5"},
+        data={"name": "atest12", "interval": "5"},
         headers={
             "accept": "application/json",
             "Content-Type": "application/x-www-form-urlencoded",
