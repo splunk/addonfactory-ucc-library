@@ -28,7 +28,7 @@ __all__ = [
 
 
 class RestModel:
-    def __init__(self, fields, name=None):
+    def __init__(self, fields, name=None, special_fields=None):
         """
         REST Model.
         :param name:
@@ -36,6 +36,7 @@ class RestModel:
         """
         self.name = name
         self.fields = fields
+        self.special_fields = special_fields if special_fields else []
 
 
 class RestEndpoint:
@@ -83,6 +84,13 @@ class RestEndpoint:
 
     def validate(self, name, data, existing=None):
         self._loop_fields("validate", name, data, existing=existing)
+
+    def _loop_field_special(self, meth, name, data, *args, **kwargs):
+        model = self.model(name)
+        return [getattr(f, meth)(data, *args, **kwargs) for f in model.special_fields]
+
+    def validate_special(self, name, data):
+        self._loop_field_special("validate", name, data, validate_name=name)
 
     def encode(self, name, data):
         self._loop_fields("encode", name, data)

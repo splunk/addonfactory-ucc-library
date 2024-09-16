@@ -139,3 +139,32 @@ for field Name\',)". See splunkd.log/python.log for more details.</msg>"""
     else:
         assert expected_msg.replace("\n", "") in response.text
         assert response.status_code == 500
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "ftestname",
+        "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnamet"
+        "oolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnameto"
+    ],
+)
+def test_custom_name_validation(value):
+    expected_msg = """All of the following errors need to be fixed: ["Not matching the pattern: ^[a-dA-D]\\\\w*$"]"""
+
+    response = requests.post(
+        f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo",
+        data={"name": value, "interval": "44"},
+        headers={
+            "accept": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        auth=HTTPBasicAuth(admin, admin_password),
+        verify=False,
+    )
+
+    if value.startswith("toolongname"):
+        assert ('String length should be between 1 and 100' in response.text)
+    else:
+        assert expected_msg.replace("\n", "") in response.text
+        assert response.status_code == 500
