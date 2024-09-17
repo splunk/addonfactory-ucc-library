@@ -107,11 +107,13 @@ def _pre_request(existing):
             prohibited_chars = ["*", "\\", "[", "]", "(", ")", "?", ":"]
             prohibited_names = ["default", ".", ".."]
             max_chars = 1024
-            val_err_msg = (f'{prohibited_names}, string started with "_" and string including any one '
-                           f'of {prohibited_chars} are reserved value which cannot be used for field Name"')
+            val_err_msg = (
+                f'{prohibited_names}, string started with "_" and string including any one '
+                f'of {prohibited_chars} are reserved value which cannot be used for field Name"'
+            )
 
-            if (
-                tmp_name.startswith("_") or any(tmp_name == el for el in prohibited_names)
+            if tmp_name.startswith("_") or any(
+                tmp_name == el for el in prohibited_names
             ):
                 raise RestError(400, val_err_msg)
 
@@ -119,7 +121,9 @@ def _pre_request(existing):
                 raise RestError(400, val_err_msg)
 
             if len(tmp_name) >= max_chars:
-                raise RestError(400, f"Field Name must be less than {max_chars} characters")
+                raise RestError(
+                    400, f"Field Name must be less than {max_chars} characters"
+                )
 
         @wraps(meth)
         def wrapper(self, name, data):
@@ -215,7 +219,7 @@ class RestHandler:
         response = self._client.get(
             self.path_segment(self._endpoint.internal_endpoint),
             output_mode="json",
-            **query
+            **query,
         )
         return self._format_all_response(response, decrypt)
 
@@ -403,7 +407,7 @@ class RestHandler:
                     self._endpoint.internal_endpoint,
                     name=name,
                 ),
-                **masked
+                **masked,
             )
 
     def _encrypt_raw_credentials(self, data):
