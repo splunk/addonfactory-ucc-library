@@ -113,10 +113,10 @@ from python handler: "REST Error [403]: Forbidden -- This operation is forbidden
     ],
 )
 def test_basic_name_validation(value):
-    expected_msg = """<msg type="ERROR">Unexpected error "&lt;class 'splunktaucclib.rest_handler.error.RestError'&gt;" 
-from python handler: "REST Error [400]: Bad Request -- (\'"default", ".", "..", string started with "_" 
-and string including any one of ["*", "\\\\", "[", "]", "(", ")", "?", ":"] are reserved value which cannot be used 
-for field Name\',)". See splunkd.log/python.log for more details.</msg>"""
+    prohibited_chars = ["*", "\\", "[", "]", "(", ")", "?", ":"]
+    prohibited_names = ["default", ".", ".."]
+    expected_msg = (f'{prohibited_names}, string started with "_" and string including any one '
+                   f'of {prohibited_chars} are reserved value which cannot be used for field Name"')
 
     response = requests.post(
         f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo",

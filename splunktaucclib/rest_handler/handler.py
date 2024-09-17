@@ -102,29 +102,24 @@ def _pre_request(existing):
             else:
                 return None
 
-        def basic_name_validation(name):
+        def basic_name_validation(name: str):
             tmp_name = str(name)
             prohibited_chars = ["*", "\\", "[", "]", "(", ")", "?", ":"]
-            val_err_msg = (
-                (
-                    '"default", ".", "..", string started with "_" and string including any one of '
-                    '["*", "\\", "[", "]", "(", ")", "?", ":"] are reserved value which cannot '
-                    "be used for field Name"
-                ),
-            )
+            prohibited_names = ["default", ".", ".."]
+            max_chars = 1024
+            val_err_msg = (f'{prohibited_names}, string started with "_" and string including any one '
+                           f'of {prohibited_chars} are reserved value which cannot be used for field Name"')
+
             if (
-                tmp_name.startswith("_")
-                or tmp_name == "."
-                or tmp_name == ".."
-                or tmp_name == "default"
+                tmp_name.startswith("_") or any(tmp_name == el for el in prohibited_names)
             ):
                 raise RestError(400, val_err_msg)
 
             if any(pc in prohibited_chars for pc in tmp_name):
                 raise RestError(400, val_err_msg)
 
-            if len(tmp_name) >= 1024:
-                raise RestError(400, "Field Name must be less than 1024 characters")
+            if len(tmp_name) >= max_chars:
+                raise RestError(400, f"Field Name must be less than {max_chars} characters")
 
         @wraps(meth)
         def wrapper(self, name, data):
