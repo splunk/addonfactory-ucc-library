@@ -34,6 +34,12 @@ from .error import RestError
 
 __all__ = ["RestHandler"]
 
+BASIC_NAME_VALIDATORS = {
+    "PROHIBITED_NAME_CHARACTERS": ["*", "\\", "[", "]", "(", ")", "?", ":"],
+    "PROHIBITED_NAMES": ["default", ".", ".."],
+    "MAX_LENGTH": 1024
+}
+
 
 def _check_name_for_create(name):
     if name == "default":
@@ -104,9 +110,9 @@ def _pre_request(existing):
 
         def basic_name_validation(name: str):
             tmp_name = str(name)
-            prohibited_chars = ["*", "\\", "[", "]", "(", ")", "?", ":"]
-            prohibited_names = ["default", ".", ".."]
-            max_chars = 1024
+            prohibited_chars = BASIC_NAME_VALIDATORS["PROHIBITED_NAME_CHARACTERS"]
+            prohibited_names = BASIC_NAME_VALIDATORS["PROHIBITED_NAMES"]
+            max_chars = BASIC_NAME_VALIDATORS["MAX_LENGTH"]
             val_err_msg = (
                 f'{prohibited_names}, string started with "_" and string including any one '
                 f'of {prohibited_chars} are reserved value which cannot be used for field Name"'
