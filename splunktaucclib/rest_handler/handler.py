@@ -37,7 +37,7 @@ __all__ = ["RestHandler"]
 BASIC_NAME_VALIDATORS = {
     "PROHIBITED_NAME_CHARACTERS": ["*", "\\", "[", "]", "(", ")", "?", ":"],
     "PROHIBITED_NAMES": ["default", ".", ".."],
-    "MAX_LENGTH": 1024
+    "MAX_LENGTH": 1024,
 }
 
 

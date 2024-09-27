@@ -100,7 +100,7 @@ from python handler: "REST Error [403]: Forbidden -- This operation is forbidden
         "test(name",
         "test)name",
         "test?name",
-        "test:name"
+        "test:name",
     ],
 )
 def test_basic_name_validation_prohibited_char_and_names(value):
@@ -127,17 +127,21 @@ def test_basic_name_validation_prohibited_char_and_names(value):
 
 
 def test_basic_name_validation_too_long_name():
-    value = ("toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
-             "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
-             "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
-             "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
-             "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
-             "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
-             "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
-             "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
-             "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
-             "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
-             "toolongnametoolongnametoolongnamet"),
+    value = (
+        (
+            "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
+            "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
+            "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
+            "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
+            "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
+            "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
+            "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
+            "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
+            "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
+            "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
+            "toolongnametoolongnametoolongnamet"
+        ),
+    )
 
     response = requests.post(
         f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo",
@@ -150,10 +154,8 @@ def test_basic_name_validation_too_long_name():
         verify=False,
     )
     assert (
-            '<msg type="ERROR">Parameter "name" must be less than 1024'.replace(
-                "\n", ""
-            )
-            in response.text
+        '<msg type="ERROR">Parameter "name" must be less than 1024'.replace("\n", "")
+        in response.text
     )
 
 
@@ -176,9 +178,11 @@ def test_custom_name_validation_invalid_name():
 
 
 def test_custom_name_validation_too_long_name():
-    value = ("toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
-             "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
-             "toolongnametoolongnameto")
+    value = (
+        "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
+        "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
+        "toolongnametoolongnameto"
+    )
 
     response = requests.post(
         f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo",
