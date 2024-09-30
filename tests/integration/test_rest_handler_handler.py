@@ -160,7 +160,7 @@ def test_basic_name_validation_too_long_name():
 
 
 def test_custom_name_validation_invalid_name():
-    value = "atestname"
+    value = "testname"
     expected_msg = """All of the following errors need to be fixed: ["Not matching the pattern: ^[a-dA-D]\\\\w*$"]"""
 
     response = requests.post(
