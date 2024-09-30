@@ -113,6 +113,7 @@ jobs:
       - meta
       - test-unit
     strategy:
+      fail-fast: false
       matrix:
         splunk: ${{ fromJson(needs.meta.outputs.matrix_supportedSplunk) }}
     env:
