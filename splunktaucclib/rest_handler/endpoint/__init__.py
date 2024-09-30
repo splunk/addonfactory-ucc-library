@@ -33,6 +33,7 @@ class RestModel:
         REST Model.
         :param name:
         :param fields:
+        :param special_fields:
         """
         self.name = name
         self.fields = fields

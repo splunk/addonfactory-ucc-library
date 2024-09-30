@@ -19,10 +19,8 @@ from splunktaucclib.rest_handler.handler import BASIC_NAME_VALIDATORS
 import requests
 import os
 
-import pytest
-
-admin = "admin"
-admin_password = "Chang3d!"
+admin = os.getenv("SPLUNK_ADMIN")
+admin_password = os.getenv("SPLUNK_ADMIN_PWD")
 user = os.getenv("SPLUNK_USER")
 user_password = os.getenv("SPLUNK_USER_PWD")
 host = "localhost"
