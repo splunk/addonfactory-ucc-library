@@ -148,7 +148,7 @@ jobs:
           export SPLUNK_BUILD_URL=https://download.splunk.com/products/${SPLUNK_PRODUCT}/releases/${SPLUNK_VERSION}/linux/${SPLUNK_LINUX_FILENAME}
           echo "$SPLUNK_BUILD_URL"
           export SPLUNK_HOME=/opt/splunk
-          wget -qO /tmp/splunk.tgz "${SPLUNK_BUILD_URL}"
+          wget -O /tmp/splunk.tgz "${SPLUNK_BUILD_URL}"
           sudo tar -C /opt -zxf /tmp/splunk.tgz
           sudo chown -R "$USER":"$USER" /opt/splunk
           echo -e "[user_info]\nUSERNAME=${SPLUNK_ADMIN}\nPASSWORD=${SPLUNK_ADMIN_PWD}" | sudo tee -a /opt/splunk/etc/system/local/user-seed.conf
