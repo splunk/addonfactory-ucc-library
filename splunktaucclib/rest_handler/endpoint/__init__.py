@@ -14,7 +14,9 @@
 # limitations under the License.
 #
 
+from typing import List
 
+from .field import RestField
 from ..error import RestError
 from ..util import get_base_app_name
 
@@ -28,7 +30,7 @@ __all__ = [
 
 
 class RestModel:
-    def __init__(self, fields, name=None, special_fields=None):
+    def __init__(self, fields, name=None, special_fields: List[RestField] = None):
         """
         REST Model.
         :param name:
