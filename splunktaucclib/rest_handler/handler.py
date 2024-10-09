@@ -34,6 +34,12 @@ from .error import RestError
 
 __all__ = ["RestHandler"]
 
+BASIC_NAME_VALIDATORS = {
+    "PROHIBITED_NAME_CHARACTERS": ["*", "\\", "[", "]", "(", ")", "?", ":"],
+    "PROHIBITED_NAMES": ["default", ".", ".."],
+    "MAX_LENGTH": 1024,
+}
+
 
 def _check_name_for_create(name):
     if name == "default":
@@ -102,6 +108,29 @@ def _pre_request(existing):
             else:
                 return None
 
+        def basic_name_validation(name: str):
+            tmp_name = str(name)
+            prohibited_chars = BASIC_NAME_VALIDATORS["PROHIBITED_NAME_CHARACTERS"]
+            prohibited_names = BASIC_NAME_VALIDATORS["PROHIBITED_NAMES"]
+            max_chars = BASIC_NAME_VALIDATORS["MAX_LENGTH"]
+            val_err_msg = (
+                f'{prohibited_names}, string started with "_" and string including any one '
+                f'of {prohibited_chars} are reserved value which cannot be used for field Name"'
+            )
+
+            if tmp_name.startswith("_") or any(
+                tmp_name == el for el in prohibited_names
+            ):
+                raise RestError(400, val_err_msg)
+
+            if any(pc in prohibited_chars for pc in tmp_name):
+                raise RestError(400, val_err_msg)
+
+            if len(tmp_name) >= max_chars:
+                raise RestError(
+                    400, f"Field Name must be less than {max_chars} characters"
+                )
+
         @wraps(meth)
         def wrapper(self, name, data):
             self._endpoint.validate(
@@ -109,6 +138,8 @@ def _pre_request(existing):
                 data,
                 check_existing(self, name),
             )
+            basic_name_validation(name)
+            self._endpoint.validate_special(name, data)
             self._endpoint.encode(name, data)
 
             return meth(self, name, data)
@@ -194,7 +225,7 @@ class RestHandler:
         response = self._client.get(
             self.path_segment(self._endpoint.internal_endpoint),
             output_mode="json",
-            **query
+            **query,
         )
         return self._format_all_response(response, decrypt)
 
@@ -382,7 +413,7 @@ class RestHandler:
                     self._endpoint.internal_endpoint,
                     name=name,
                 ),
-                **masked
+                **masked,
             )
 
     def _encrypt_raw_credentials(self, data):
