@@ -15,8 +15,11 @@
 #
 from urllib import parse
 from requests.auth import HTTPBasicAuth
+from splunktaucclib.rest_handler.handler import BASIC_NAME_VALIDATORS
 import requests
 import os
+
+import pytest
 
 admin = os.getenv("SPLUNK_ADMIN")
 admin_password = os.getenv("SPLUNK_ADMIN_PWD")
@@ -75,7 +78,7 @@ from python handler: "REST Error [403]: Forbidden -- This operation is forbidden
 
     response = requests.post(
         f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo",
-        data={"name": "test12", "interval": "5"},
+        data={"name": "atest12", "interval": "5"},
         headers={
             "accept": "application/json",
             "Content-Type": "application/x-www-form-urlencoded",
@@ -85,3 +88,110 @@ from python handler: "REST Error [403]: Forbidden -- This operation is forbidden
     )
     assert expected_msg.replace("\n", "") in response.text
     assert response.status_code == 500
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "test[name",
+        "test*name",
+        "test\\name",
+        "test]name",
+        "test(name",
+        "test)name",
+        "test?name",
+        "test:name",
+    ],
+)
+def test_basic_name_validation_prohibited_char_and_names(value):
+    prohibited_chars = BASIC_NAME_VALIDATORS["PROHIBITED_NAME_CHARACTERS"]
+    prohibited_names = BASIC_NAME_VALIDATORS["PROHIBITED_NAMES"]
+    expected_msg = (
+        f'{prohibited_names}, string started with "_" and string including any one '
+        f'of {prohibited_chars} are reserved value which cannot be used for field Name"'
+    )
+
+    response = requests.post(
+        f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo",
+        data={"name": value, "interval": "44"},
+        headers={
+            "accept": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        auth=HTTPBasicAuth(admin, admin_password),
+        verify=False,
+    )
+
+    assert expected_msg.replace("\n", "") in response.text
+    assert response.status_code == 500
+
+
+def test_basic_name_validation_too_long_name():
+    value = (
+        (
+            "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
+            "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
+            "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
+            "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
+            "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
+            "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
+            "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
+            "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
+            "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
+            "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
+            "toolongnametoolongnametoolongnamet"
+        ),
+    )
+
+    response = requests.post(
+        f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo",
+        data={"name": value, "interval": "44"},
+        headers={
+            "accept": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        auth=HTTPBasicAuth(admin, admin_password),
+        verify=False,
+    )
+    assert (
+        '<msg type="ERROR">Parameter "name" must be less than 1024'.replace("\n", "")
+        in response.text
+    )
+
+
+def test_custom_name_validation_invalid_name():
+    value = "testname"
+    expected_msg = """All of the following errors need to be fixed: ["Not matching the pattern: ^[a-dA-D]\\\\w*$"]"""
+
+    response = requests.post(
+        f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo",
+        data={"name": value, "interval": "44"},
+        headers={
+            "accept": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        auth=HTTPBasicAuth(admin, admin_password),
+        verify=False,
+    )
+    assert expected_msg.replace("\n", "") in response.text
+    assert response.status_code == 500
+
+
+def test_custom_name_validation_too_long_name():
+    value = (
+        "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
+        "toolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongnametoolongname"
+        "toolongnametoolongnameto"
+    )
+
+    response = requests.post(
+        f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo",
+        data={"name": value, "interval": "44"},
+        headers={
+            "accept": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        auth=HTTPBasicAuth(admin, admin_password),
+        verify=False,
+    )
+    assert "String length should be between 1 and 100" in response.text
