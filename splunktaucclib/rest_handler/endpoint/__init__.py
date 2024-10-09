@@ -28,7 +28,7 @@ __all__ = [
     "DataInputModel",
 ]
 
-
+# some test change
 class RestModel:
     def __init__(
         self, fields, name=None, special_fields: Optional[List[RestField]] = None
