@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-from typing import List
+from typing import List, Optional
 
 from .field import RestField
 from ..error import RestError
@@ -30,7 +30,9 @@ __all__ = [
 
 
 class RestModel:
-    def __init__(self, fields, name=None, special_fields: List[RestField] = None):
+    def __init__(
+        self, fields, name=None, special_fields: Optional[List[RestField]] = None
+    ):
         """
         REST Model.
         :param name:

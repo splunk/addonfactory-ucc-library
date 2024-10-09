@@ -110,7 +110,6 @@
         "restRoot": "demo",
         "version": "0.0.1",
         "displayName": "Demo",
-        "schemaVersion": "0.0.8",
-        "_uccVersion": "5.45.0"
+        "schemaVersion": "0.0.8"
     }
 }
