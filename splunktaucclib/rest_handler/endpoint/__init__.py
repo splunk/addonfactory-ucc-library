@@ -62,7 +62,6 @@ class RestEndpoint:
         self.args = args
         self.kwargs = kwargs
 
-        #
         self.need_reload = need_reload
 
     @property
