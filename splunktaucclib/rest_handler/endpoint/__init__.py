@@ -51,9 +51,9 @@ class RestEndpoint:
 
     def __init__(self, user="nobody", app=None, need_reload=False, *args, **kwargs):
         """
-
         :param user:
         :param app: if None, it will be base app name
+        :param need_reload: if reload is needed while GET request
         :param args:
         :param kwargs:
         """
@@ -62,7 +62,7 @@ class RestEndpoint:
         self.args = args
         self.kwargs = kwargs
 
-        # If reload is needed while GET request
+        #
         self.need_reload = need_reload
 
     @property
@@ -121,10 +121,10 @@ class SingleModel(RestEndpoint):
         **kwargs,
     ):
         """
-
         :param conf_name: conf file name
         :param model: REST model
         :type model: RestModel
+        :param need_reload: if reload is needed while GET request
         :param args:
         :param kwargs:
         """
@@ -159,11 +159,11 @@ class MultipleModel(RestEndpoint):
         **kwargs,
     ):
         """
-
         :param conf_name:
         :type conf_name: str
         :param models: list of RestModel
         :type models: list
+        :param need_reload: if reload is needed while GET request
         :param args:
         :param kwargs:
         """
@@ -198,6 +198,15 @@ class DataInputModel(RestEndpoint):
         *args,
         **kwargs,
     ):
+        """
+        :param input_type:
+        :param model:
+        :param user:
+        :param app: if None, it will be base app name
+        :param need_reload: if reload is needed while GET request
+        :param args:
+        :param kwargs:
+        """
         super().__init__(user=user, app=app, need_reload=need_reload, *args, **kwargs)
 
         self.input_type = input_type
