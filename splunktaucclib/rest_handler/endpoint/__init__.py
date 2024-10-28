@@ -49,7 +49,7 @@ class RestEndpoint:
     REST Endpoint.
     """
 
-    def __init__(self, user="nobody", app=None, *args, **kwargs):
+    def __init__(self, user="nobody", app=None, need_reload=False, *args, **kwargs):
         """
 
         :param user:
@@ -63,7 +63,7 @@ class RestEndpoint:
         self.kwargs = kwargs
 
         # If reload is needed while GET request
-        self.need_reload = False
+        self.need_reload = need_reload
 
     @property
     def internal_endpoint(self):
@@ -110,7 +110,16 @@ class SingleModel(RestEndpoint):
     with same format  into one conf file.
     """
 
-    def __init__(self, conf_name, model, user="nobody", app=None, *args, **kwargs):
+    def __init__(
+        self,
+        conf_name,
+        model,
+        user="nobody",
+        app=None,
+        need_reload=True,
+        *args,
+        **kwargs,
+    ):
         """
 
         :param conf_name: conf file name
@@ -119,8 +128,7 @@ class SingleModel(RestEndpoint):
         :param args:
         :param kwargs:
         """
-        super().__init__(user=user, app=app, *args, **kwargs)
-        self.need_reload = True
+        super().__init__(user=user, app=app, need_reload=need_reload, *args, **kwargs)
 
         self._model = model
         self.conf_name = conf_name
@@ -140,7 +148,16 @@ class MultipleModel(RestEndpoint):
      stanzas with different formats into one conf file.
     """
 
-    def __init__(self, conf_name, models, user="nobody", app=None, *args, **kwargs):
+    def __init__(
+        self,
+        conf_name,
+        models,
+        user="nobody",
+        app=None,
+        need_reload=True,
+        *args,
+        **kwargs,
+    ):
         """
 
         :param conf_name:
@@ -150,8 +167,7 @@ class MultipleModel(RestEndpoint):
         :param args:
         :param kwargs:
         """
-        super().__init__(user=user, app=app, *args, **kwargs)
-        self.need_reload = True
+        super().__init__(user=user, app=app, need_reload=need_reload, *args, **kwargs)
 
         self.conf_name = conf_name
         self.models = {model.name: model for model in models}
@@ -172,8 +188,17 @@ class DataInputModel(RestEndpoint):
     REST Model for Data Input.
     """
 
-    def __init__(self, input_type, model, user="nobody", app=None, *args, **kwargs):
-        super().__init__(user=user, app=app, *args, **kwargs)
+    def __init__(
+        self,
+        input_type,
+        model,
+        user="nobody",
+        app=None,
+        need_reload=False,
+        *args,
+        **kwargs,
+    ):
+        super().__init__(user=user, app=app, need_reload=need_reload, *args, **kwargs)
 
         self.input_type = input_type
         self._model = model
