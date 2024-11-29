@@ -25,17 +25,18 @@ from inspect import ismethod
 from os import path as op
 
 from splunk import ResourceNotFound, RESTException, admin, entity, rest
-from splunktalib.common import util as sc_util
 from splunktalib.rest import splunkd_request
 
-import splunktaucclib.common.log as stulog
+from solnlib import log
 from splunktaucclib.rest_handler.cred_mgmt import CredMgmt
 from splunktaucclib.rest_handler.error_ctl import RestHandlerError as RH_Err
-from splunktaucclib.rest_handler.util import makeConfItem
+from splunktaucclib.rest_handler.util import makeConfItem, get_appname_from_path
 
 __all__ = ["user_caps", "BaseRestHandler", "BaseModel", "ResourceHandler"]
 
-APP_NAME = sc_util.get_appname_from_path(op.abspath(__file__))
+APP_NAME = get_appname_from_path(op.abspath(__file__))
+
+logger = log.Logs().get_logger("ucc-library")
 
 
 def get_entities(endpoint, session_key, user, app, get_args):
@@ -263,7 +264,7 @@ class BaseRestHandler(admin.MConfigHandler):
                 and isPermsPost
             ):
                 msg = "ACL cannot be set for user-level sharing"
-                stulog.logger.error(msg)
+                logger.error(msg)
                 raise Exception(msg)
 
             perms = meta.get("perms", {})
@@ -624,9 +625,9 @@ class BaseRestHandler(admin.MConfigHandler):
             )
         )
         if self.requestedAction == admin.ACTION_LIST:
-            stulog.logger.debug(msg)
+            logger.debug(msg)
         else:
-            stulog.logger.info(msg)
+            logger.info(msg)
 
 
 class BaseModel:

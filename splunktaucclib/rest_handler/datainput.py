@@ -23,7 +23,6 @@ Note: It manages inputs.conf
 import collections
 import json
 import logging
-import sys
 from urllib.parse import quote
 
 from splunk import admin, rest

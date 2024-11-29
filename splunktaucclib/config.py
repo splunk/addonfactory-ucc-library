@@ -26,13 +26,13 @@ import time
 import traceback
 from urllib.parse import quote
 
-from splunktalib.common import util as sc_util
+from solnlib import log
+from solnlib import utils
 from splunktalib.rest import code_to_msg, splunkd_request
 
-import splunktaucclib.common.log as stulog
-from splunktaucclib.common import UCCException
-
 LOGGING_STOPPED = False
+
+logger = log.Logs().get_logger("ucc-library")
 
 
 def stop_logging():
@@ -63,10 +63,10 @@ def log(msg, msgx="", level=logging.INFO, need_tb=False):
     if need_tb:
         stack = "".join(traceback.format_stack())
         content = f"{content}\r\n{stack}"
-    stulog.logger.log(level, content, exc_info=1)
+    logger.log(level, content, exc_info=1)
 
 
-class ConfigException(UCCException):
+class ConfigException(Exception):
     """Exception for UCC Config Exception"""
 
     pass
@@ -328,7 +328,7 @@ class Config:
         try:
             field_type = field_type.lower()
             if field_type == "bool":
-                return True if sc_util.is_true(fval) else False
+                return True if utils.is_true(fval) else False
             elif field_type == "int":
                 return int(fval)
             elif field_type == "json":

@@ -25,7 +25,9 @@ import traceback
 
 from splunk import RESTException
 
-import splunktaucclib.common.log as stulog
+from solnlib import log
+
+logger = log.Logs().get_logger("ucc-library")
 
 __all__ = ["RestHandlerError", "ERROR_MAPPING"]
 
@@ -104,7 +106,7 @@ class RestHandlerError:
     @staticmethod
     def map(code):
         """Map error code to message. Raise an exception
-            if the code dose not exist.
+            if the code does not exist.
         :param code: error code
         :returns: error message for the input code
         """
@@ -150,7 +152,7 @@ class RestHandlerError:
             else ""
         )
 
-        stulog.logger.log(logLevel, f"{err}{tb}", exc_info=1)
+        logger.log(logLevel, f"{err}{tb}", exc_info=1)
         if shouldPrint:
             sys.stdout.write(str(err))
         if shouldRaise:
