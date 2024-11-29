@@ -27,7 +27,7 @@ splunktalib = "^3.0.4"
 requests = "^2.31.0"
 urllib3 = "<2"
 PySocks = "^1.7.1"
-splunk-sdk = ">=1.6"
+splunk-sdk = ">=2.0.2"
 solnlib = "^5.0.0"
 
 [tool.poetry.group.dev.dependencies]
