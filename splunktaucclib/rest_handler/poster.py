@@ -22,7 +22,7 @@ import urllib.request
 
 import requests
 from splunk import admin, rest
-from splunktalib.common.util import is_true
+from solnlib import utils
 from splunktalib.rest import code_to_msg, splunkd_request
 
 from . import base, util
@@ -181,7 +181,7 @@ class PosterMapping:
             proxy_info = {}
 
         return {
-            "proxy_enabled": is_true(proxy_info.get("proxy_enabled", "false")),
+            "proxy_enabled": utils.is_true(proxy_info.get("proxy_enabled", "false")),
             "proxy_url": proxy_info.get("proxy_url", ""),
             "proxy_port": proxy_info.get("proxy_port", ""),
             "proxy_username": proxy_info.get("proxy_username", ""),

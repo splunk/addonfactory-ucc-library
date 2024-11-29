@@ -26,7 +26,6 @@ from inspect import isfunction
 
 __all__ = [
     "Validator",
-    "ValidationError",
     "AnyOf",
     "AllOf",
     "RequiresIf",
@@ -66,7 +65,7 @@ class Validator:
     @property
     def msg(self):
         """
-        It will return the one with highest priority.
+        It will return the one with the highest priority.
 
         :return:
         """
