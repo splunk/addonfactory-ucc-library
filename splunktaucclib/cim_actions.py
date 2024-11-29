@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 
+import codecs
 import collections
 import csv
 
