@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from datetime import datetime
 from urllib import parse
 from requests.auth import HTTPBasicAuth
 from splunktaucclib.rest_handler.handler import BASIC_NAME_VALIDATORS
