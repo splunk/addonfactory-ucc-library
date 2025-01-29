@@ -61,7 +61,7 @@ def test_handle_single_model_reload(
     if need_reload:
         # if is_cloud:
         #     assert client_mock.get.call_count == 4
-        #     assert [i.args[0] for i in client_mock.get.call_args_list] == [
+        #     assert [i[0][0] for i in client_mock.get.call_args_list] == [
         #         "services/server/info",
         #         "configs/conf-demo_reload",
         #         "configs/conf-demo_reload",
@@ -82,7 +82,7 @@ def test_handle_single_model_reload(
         ]
     else:
         assert client_mock.get.call_count == 3
-        assert [i.args[0] for i in client_mock.get.call_args_list] == [
+        assert [i[0][0] for i in client_mock.get.call_args_list] == [
             "configs/conf-demo_reload",
             "configs/conf-demo_reload",
             "configs/conf-demo_reload",
