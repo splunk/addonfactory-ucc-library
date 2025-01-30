@@ -3,7 +3,6 @@ from collections import namedtuple
 from io import StringIO
 
 import pytest
-from solnlib.server_info import ServerInfo
 
 from splunktaucclib.rest_handler import admin_external
 from splunktaucclib.rest_handler.admin_external import AdminExternalHandler
