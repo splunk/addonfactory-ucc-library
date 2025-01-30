@@ -21,16 +21,8 @@ def eai_response(value):
 
 
 @pytest.mark.parametrize("need_reload", [True, False])
-@pytest.mark.parametrize("is_cloud", [True, False])
 @pytest.mark.parametrize("cls", [SingleModel, MultipleModel])
-def test_handle_single_model_reload(
-    admin, client_mock, need_reload, cls, is_cloud, monkeypatch
-):
-    def is_cloud_instance(self):
-        return is_cloud
-
-    monkeypatch.setattr(ServerInfo, "is_cloud_instance", is_cloud_instance)
-
+def test_handle_single_model_reload(admin, client_mock, need_reload, cls):
     model = RestModel([], name=None, special_fields=[])
 
     if cls is MultipleModel:
@@ -59,20 +51,8 @@ def test_handle_single_model_reload(
         handler.get()
 
     if need_reload:
-        # if is_cloud:
-        #     assert client_mock.get.call_count == 4
-        #     assert [i[0][0] for i in client_mock.get.call_args_list] == [
-        #         "services/server/info",
-        #         "configs/conf-demo_reload",
-        #         "configs/conf-demo_reload",
-        #         "configs/conf-demo_reload",
-        #     ]
-        # else:
-        #     ...
-
         assert client_mock.get.call_count == 6
         assert [i[0][0] for i in client_mock.get.call_args_list] == [
-            # "services/server/info",
             "configs/conf-demo_reload/_reload",
             "configs/conf-demo_reload",
             "configs/conf-demo_reload/_reload",
