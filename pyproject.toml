@@ -32,7 +32,7 @@ solnlib = ">=5"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=7"
-splunk-add-on-ucc-framework = ">=5.57.0"
+splunk-add-on-ucc-framework = ">=5.53.0"
 splunk-packaging-toolkit = ">=1"
 
 [build-system]
