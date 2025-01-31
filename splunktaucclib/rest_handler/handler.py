@@ -43,7 +43,7 @@ BASIC_NAME_VALIDATORS = {
     "MAX_LENGTH": 1024,
 }
 
-_TA_CONFIG_FILENAME = "!TA_config"
+_TA_CONFIG_FILENAME = "_TA_config"
 _TA_CONFIG_ENDPOINT = f"configs/conf-{_TA_CONFIG_FILENAME}"
 _NEED_RELOAD_PARAMETER = "need_reload"
 
@@ -334,7 +334,7 @@ class RestHandler:
         except binding.HTTPError:
             return None
 
-        response = json.loads(response["body"].read())
+        response = json.loads(response.body.read())
 
         if "entry" in response:
             for entry in response["entry"]:

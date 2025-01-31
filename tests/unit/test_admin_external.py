@@ -29,7 +29,7 @@ def test_handle_single_model_reload(admin, client_mock, need_reload, cls, monkey
 
         status = 200
 
-        if path.startswith("configs/conf-!TA_config"):
+        if path.startswith("configs/conf-_TA_config"):
             status = 404
 
         return eai_response({"key": "value"}, status)
@@ -66,36 +66,36 @@ def test_handle_single_model_reload(admin, client_mock, need_reload, cls, monkey
     if need_reload:
         assert client_mock.get.call_count == 12
         assert client_mock.get.paths == [
-            "configs/conf-!TA_config/config:demo_reload",
-            "configs/conf-!TA_config/default",
+            "configs/conf-_TA_config/config:demo_reload",
+            "configs/conf-_TA_config/config",
             "configs/conf-demo_reload/_reload",
             "configs/conf-demo_reload",
-            "configs/conf-!TA_config/config:demo_reload",
-            "configs/conf-!TA_config/default",
+            "configs/conf-_TA_config/config:demo_reload",
+            "configs/conf-_TA_config/config",
             "configs/conf-demo_reload/_reload",
             "configs/conf-demo_reload",
-            "configs/conf-!TA_config/config:demo_reload",
-            "configs/conf-!TA_config/default",
+            "configs/conf-_TA_config/config:demo_reload",
+            "configs/conf-_TA_config/config",
             "configs/conf-demo_reload/_reload",
             "configs/conf-demo_reload",
         ]
     else:
         assert client_mock.get.call_count == 9
         assert client_mock.get.paths == [
-            "configs/conf-!TA_config/config:demo_reload",
-            "configs/conf-!TA_config/default",
+            "configs/conf-_TA_config/config:demo_reload",
+            "configs/conf-_TA_config/config",
             "configs/conf-demo_reload",
-            "configs/conf-!TA_config/config:demo_reload",
-            "configs/conf-!TA_config/default",
+            "configs/conf-_TA_config/config:demo_reload",
+            "configs/conf-_TA_config/config",
             "configs/conf-demo_reload",
-            "configs/conf-!TA_config/config:demo_reload",
-            "configs/conf-!TA_config/default",
+            "configs/conf-_TA_config/config:demo_reload",
+            "configs/conf-_TA_config/config",
             "configs/conf-demo_reload",
         ]
 
 
 @pytest.mark.parametrize("override", [True, False])
-@pytest.mark.parametrize("override_location", ["default", "config:demo_reload"])
+@pytest.mark.parametrize("override_location", ["config", "config:demo_reload"])
 def test_handle_single_model_reload_override(
     admin, client_mock, monkeypatch, override, override_location
 ):
@@ -107,10 +107,10 @@ def test_handle_single_model_reload_override(
         value = {"key": "value"}
         name = "test"
 
-        if path == f"configs/conf-!TA_config/{override_location}":
+        if path == f"configs/conf-_TA_config/{override_location}":
             value = {"need_reload": override}
             name = override_location
-        elif path.startswith("configs/conf-!TA_config"):
+        elif path.startswith("configs/conf-_TA_config"):
             status = 404
 
         return eai_response(value, status, name)
@@ -141,46 +141,46 @@ def test_handle_single_model_reload_override(
     for _ in range(2):
         handler.get()
 
-    if override and override_location == "default":
+    if override and override_location == "config":
         assert client_mock.get.call_count == 8
         assert client_mock.get.paths == [
-            "configs/conf-!TA_config/config:demo_reload",
-            "configs/conf-!TA_config/default",
+            "configs/conf-_TA_config/config:demo_reload",
+            "configs/conf-_TA_config/config",
             "configs/conf-demo_reload/_reload",
             "configs/conf-demo_reload",
-            "configs/conf-!TA_config/config:demo_reload",
-            "configs/conf-!TA_config/default",
+            "configs/conf-_TA_config/config:demo_reload",
+            "configs/conf-_TA_config/config",
             "configs/conf-demo_reload/_reload",
             "configs/conf-demo_reload",
         ]
 
-    if not override and override_location == "default":
+    if not override and override_location == "config":
+        # assert client_mock.get.call_count == 6
+        assert client_mock.get.paths == [
+            "configs/conf-_TA_config/config:demo_reload",
+            "configs/conf-_TA_config/config",
+            "configs/conf-demo_reload",
+            "configs/conf-_TA_config/config:demo_reload",
+            "configs/conf-_TA_config/config",
+            "configs/conf-demo_reload",
+        ]
+
+    if override and override_location != "config":
         assert client_mock.get.call_count == 6
         assert client_mock.get.paths == [
-            "configs/conf-!TA_config/config:demo_reload",
-            "configs/conf-!TA_config/default",
-            "configs/conf-demo_reload",
-            "configs/conf-!TA_config/config:demo_reload",
-            "configs/conf-!TA_config/default",
-            "configs/conf-demo_reload",
-        ]
-
-    if override and override_location != "default":
-        assert client_mock.get.call_count == 6
-        assert client_mock.get.paths == [
-            "configs/conf-!TA_config/config:demo_reload",
+            "configs/conf-_TA_config/config:demo_reload",
             "configs/conf-demo_reload/_reload",
             "configs/conf-demo_reload",
-            "configs/conf-!TA_config/config:demo_reload",
+            "configs/conf-_TA_config/config:demo_reload",
             "configs/conf-demo_reload/_reload",
             "configs/conf-demo_reload",
         ]
 
-    if not override and override_location != "default":
+    if not override and override_location != "config":
         assert client_mock.get.call_count == 4
         assert client_mock.get.paths == [
-            "configs/conf-!TA_config/config:demo_reload",
+            "configs/conf-_TA_config/config:demo_reload",
             "configs/conf-demo_reload",
-            "configs/conf-!TA_config/config:demo_reload",
+            "configs/conf-_TA_config/config:demo_reload",
             "configs/conf-demo_reload",
         ]
