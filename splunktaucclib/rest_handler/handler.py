@@ -315,7 +315,7 @@ class RestHandler:
         need_reload = self._is_reload_needed(f"config:{name}")
 
         if need_reload is None:
-            need_reload = self._is_reload_needed("default")
+            need_reload = self._is_reload_needed("config")
 
         if need_reload is None:
             need_reload = self._endpoint.need_reload
@@ -323,18 +323,18 @@ class RestHandler:
         return need_reload
 
     def _is_reload_needed(self, name: str) -> Optional[bool]:
-        response = self._client.get(
-            self.path_segment(
-                _TA_CONFIG_ENDPOINT,
-                name=name,
-            ),
-            output_mode="json",
-        )
-
-        if not _is_status_ok(response.status):
+        try:
+            response = self._client.get(
+                self.path_segment(
+                    _TA_CONFIG_ENDPOINT,
+                    name=name,
+                ),
+                output_mode="json",
+            )
+        except binding.HTTPError:
             return None
 
-        response = json.loads(response.body.read())
+        response = json.loads(response["body"].read())
 
         if "entry" in response:
             for entry in response["entry"]:
@@ -528,10 +528,6 @@ class RestHandler:
                     and model["content"][field_name] != ""
                 ):
                     model["content"][field_name] = self.PASSWORD
-
-
-def _is_status_ok(status: int):
-    return 200 <= status < 300
 
 
 def _convert_to_boolean(value: Optional[Any]) -> Optional[bool]:
