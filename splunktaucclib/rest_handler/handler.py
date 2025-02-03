@@ -308,10 +308,10 @@ class RestHandler:
         return self._flay_response(response)
 
     def reload_if_needed(self):
-        if self._conf_name and self.is_reload_needed(self._conf_name):
+        if self._conf_name and self.is_reload_needed():
             self.reload()
 
-    def is_reload_needed(self, name: str) -> bool:
+    def is_reload_needed(self) -> bool:
         need_reload = self._is_reload_needed()
 
         if need_reload is None:

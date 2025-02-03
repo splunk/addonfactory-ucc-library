@@ -281,12 +281,10 @@ def test_reload_override():
             "/servicesNS/nobody/demo/configs/conf-demo_test_reload_override",
             "/servicesNS/nobody/demo/configs/conf-demo_test_reload_override/_reload",
             "/servicesNS/nobody/demo/configs/conf-_TA_config/config",
-            "/servicesNS/nobody/demo/configs/conf-_TA_config/config%3Ademo_test_reload_override",
             "/servicesNS/-/demo/demo_test_reload_override",
             "/servicesNS/nobody/demo/configs/conf-demo_test_reload_override",
             "/servicesNS/nobody/demo/configs/conf-demo_test_reload_override/_reload",
             "/servicesNS/nobody/demo/configs/conf-_TA_config/config",
-            "/servicesNS/nobody/demo/configs/conf-_TA_config/config%3Ademo_test_reload_override",
             "/servicesNS/-/demo/demo_test_reload_override",
         ],
     )
@@ -308,11 +306,9 @@ def test_reload_override():
         [
             "/servicesNS/nobody/demo/configs/conf-demo_test_reload_override",
             "/servicesNS/nobody/demo/configs/conf-_TA_config/config",
-            "/servicesNS/nobody/demo/configs/conf-_TA_config/config%3Ademo_test_reload_override",
             "/servicesNS/-/demo/demo_test_reload_override",
             "/servicesNS/nobody/demo/configs/conf-demo_test_reload_override",
             "/servicesNS/nobody/demo/configs/conf-_TA_config/config",
-            "/servicesNS/nobody/demo/configs/conf-_TA_config/config%3Ademo_test_reload_override",
             "/servicesNS/-/demo/demo_test_reload_override",
         ],
     )
