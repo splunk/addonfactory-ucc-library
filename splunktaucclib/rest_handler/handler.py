@@ -312,17 +312,15 @@ class RestHandler:
             self.reload()
 
     def is_reload_needed(self, name: str) -> bool:
-        need_reload = self._is_reload_needed(f"config:{name}")
-
-        if need_reload is None:
-            need_reload = self._is_reload_needed("config")
+        need_reload = self._is_reload_needed()
 
         if need_reload is None:
             need_reload = self._endpoint.need_reload
 
         return need_reload
 
-    def _is_reload_needed(self, name: str) -> Optional[bool]:
+    def _is_reload_needed(self) -> Optional[bool]:
+        name = "config"
         try:
             response = self._client.get(
                 self.path_segment(

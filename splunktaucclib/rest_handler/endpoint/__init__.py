@@ -115,7 +115,7 @@ class SingleModel(RestEndpoint):
         model,
         user="nobody",
         app=None,
-        need_reload=True,
+        need_reload=False,
         *args,
         **kwargs,
     ):
@@ -153,7 +153,7 @@ class MultipleModel(RestEndpoint):
         models,
         user="nobody",
         app=None,
-        need_reload=True,
+        need_reload=False,
         *args,
         **kwargs,
     ):
