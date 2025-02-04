@@ -28,10 +28,10 @@ from defusedxml import ElementTree
 from functools import wraps
 
 from solnlib.splunk_rest_client import SplunkRestClient
+from solnlib.utils import is_true
 from splunklib import binding
 
 from .credentials import RestCredentials
-from .endpoint.converter import Boolean
 from .entity import RestEntity
 from .error import RestError
 
@@ -336,10 +336,8 @@ class RestHandler:
 
         if "entry" in response:
             for entry in response["entry"]:
-                if entry["name"] == name:
-                    need_reload = _convert_to_boolean(
-                        entry["content"].get(_NEED_RELOAD_PARAMETER)
-                    )
+                if entry["name"] == name and _NEED_RELOAD_PARAMETER in entry["content"]:
+                    need_reload = is_true(entry["content"][_NEED_RELOAD_PARAMETER])
 
                     if need_reload is not None:
                         return need_reload
@@ -526,27 +524,3 @@ class RestHandler:
                     and model["content"][field_name] != ""
                 ):
                     model["content"][field_name] = self.PASSWORD
-
-
-def _convert_to_boolean(value: Optional[Any]) -> Optional[bool]:
-    if value is None:
-        return None
-
-    if isinstance(value, bool):
-        return value
-
-    if isinstance(value, int):
-        return bool(value)
-
-    try:
-        value = str(value).lower()
-    except Exception:
-        return None
-
-    if value in Boolean.VALUES_TRUE:
-        return True
-
-    if value in Boolean.VALUES_FALSE:
-        return False
-
-    return None
