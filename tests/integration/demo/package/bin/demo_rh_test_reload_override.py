@@ -18,6 +18,7 @@ model = RestModel(fields_logging, name=None, special_fields=special_fields)
 endpoint = SingleModel(
     "demo_test_reload_override",
     model=model,
+    need_reload=True,
 )
 
 
