@@ -22,10 +22,13 @@ REST Handler.
 import json
 import traceback
 import urllib.parse
+from typing import Optional, Any
+
 from defusedxml import ElementTree
 from functools import wraps
 
 from solnlib.splunk_rest_client import SplunkRestClient
+from solnlib.utils import is_true
 from splunklib import binding
 
 from .credentials import RestCredentials
@@ -39,6 +42,10 @@ BASIC_NAME_VALIDATORS = {
     "PROHIBITED_NAMES": ["default", ".", ".."],
     "MAX_LENGTH": 1024,
 }
+
+_TA_CONFIG_FILENAME = "_TA_config"
+_TA_CONFIG_ENDPOINT = f"configs/conf-{_TA_CONFIG_FILENAME}"
+_NEED_RELOAD_PARAMETER = "need_reload"
 
 
 def _check_name_for_create(name):
@@ -189,6 +196,7 @@ class RestHandler:
         self._endpoint = endpoint
         self._args = args
         self._kwargs = kwargs
+        self._conf_name = getattr(endpoint, "conf_name", None)
 
         splunkd_info = urllib.parse.urlparse(self._splunkd_uri)
         self._client = SplunkRestClient(
@@ -207,8 +215,7 @@ class RestHandler:
 
     @_decode_response
     def get(self, name, decrypt=False):
-        if self._endpoint.need_reload:
-            self.reload()
+        self.reload_if_needed()
         response = self._client.get(
             self.path_segment(
                 self._endpoint.internal_endpoint,
@@ -220,8 +227,7 @@ class RestHandler:
 
     @_decode_response
     def all(self, decrypt=False, **query):
-        if self._endpoint.need_reload:
-            self.reload()
+        self.reload_if_needed()
         response = self._client.get(
             self.path_segment(self._endpoint.internal_endpoint),
             output_mode="json",
@@ -300,6 +306,43 @@ class RestHandler:
             output_mode="json",
         )
         return self._flay_response(response)
+
+    def reload_if_needed(self):
+        if self._conf_name and self.is_reload_needed():
+            self.reload()
+
+    def is_reload_needed(self) -> bool:
+        need_reload = self._is_reload_needed()
+
+        if need_reload is None:
+            need_reload = self._endpoint.need_reload
+
+        return need_reload
+
+    def _is_reload_needed(self) -> Optional[bool]:
+        name = "config"
+        try:
+            response = self._client.get(
+                self.path_segment(
+                    _TA_CONFIG_ENDPOINT,
+                    name=name,
+                ),
+                output_mode="json",
+            )
+        except binding.HTTPError:
+            return None
+
+        response = json.loads(response.body.read())
+
+        if "entry" in response:
+            for entry in response["entry"]:
+                if entry["name"] == name and _NEED_RELOAD_PARAMETER in entry["content"]:
+                    need_reload = is_true(entry["content"][_NEED_RELOAD_PARAMETER])
+
+                    if need_reload is not None:
+                        return need_reload
+
+        return None
 
     def reload(self):
         self._client.get(

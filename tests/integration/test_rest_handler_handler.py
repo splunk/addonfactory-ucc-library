@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from datetime import datetime
+from time import sleep
+from typing import List, Any
 from urllib import parse
 from requests.auth import HTTPBasicAuth
 from splunktaucclib.rest_handler.handler import BASIC_NAME_VALIDATORS
@@ -195,3 +198,138 @@ def test_custom_name_validation_too_long_name():
         verify=False,
     )
     assert "String length should be between 1 and 100" in response.text
+
+
+def test_reload_override():
+    def switch_reloads(enabled=None):
+        try:
+            requests.delete(
+                f"https://{host}:{management_port}/servicesNS/nobody/demo/configs/conf-_TA_config/config?output_mode=json",
+                headers={
+                    "accept": "application/json",
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                auth=HTTPBasicAuth(admin, admin_password),
+                verify=False,
+            )
+        except:
+            pass
+
+        if enabled is None:
+            return
+
+        response = requests.post(
+            f"https://{host}:{management_port}/servicesNS/nobody/demo/configs/conf-_TA_config?output_mode=json",
+            data={
+                "name": "config",
+                "need_reload": "1" if enabled else "0",
+            },
+            headers={
+                "accept": "application/json",
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            auth=HTTPBasicAuth(admin, admin_password),
+            verify=False,
+        )
+
+        assert response.ok, response.json()
+
+    def call():
+        response = requests.get(
+            f"https://{host}:{management_port}/servicesNS/-/demo/demo_test_reload_override?output_mode=json",
+            headers={
+                "accept": "application/json",
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            auth=HTTPBasicAuth(admin, admin_password),
+            verify=False,
+        )
+
+        assert response.status_code == 200
+
+    def search_uris(earliest, latest):
+        result = search(
+            "search index=_internal AND uri_path=*/demo/* AND NOT uri_path=*services/search* "
+            "AND (uri_path=*demo_test_reload_override* OR uri_path=*TA_config*)",
+            earliest,
+            latest,
+        )
+        return [res["uri_path"] for res in result if "GET" in res["_raw"]]
+
+    def assert_search(earliest, latest, expected):
+        for i in range(50):
+            if search_uris(earliest, latest) == expected:
+                return True
+            sleep(0.1)
+        else:
+            assert search_uris(earliest, latest) == expected
+
+    # make sure nothing is set
+    switch_reloads()
+
+    earliest = int(datetime.now().timestamp())
+
+    for _ in range(2):
+        call()
+
+    latest = int(datetime.now().timestamp()) + 1
+
+    assert assert_search(
+        earliest,
+        latest,
+        [
+            "/servicesNS/nobody/demo/configs/conf-demo_test_reload_override",
+            "/servicesNS/nobody/demo/configs/conf-demo_test_reload_override/_reload",
+            "/servicesNS/nobody/demo/configs/conf-_TA_config/config",
+            "/servicesNS/-/demo/demo_test_reload_override",
+            "/servicesNS/nobody/demo/configs/conf-demo_test_reload_override",
+            "/servicesNS/nobody/demo/configs/conf-demo_test_reload_override/_reload",
+            "/servicesNS/nobody/demo/configs/conf-_TA_config/config",
+            "/servicesNS/-/demo/demo_test_reload_override",
+        ],
+    )
+
+    # disable reloads
+    switch_reloads(False)
+
+    earliest = int(datetime.now().timestamp())
+
+    for _ in range(2):
+        call()
+
+    latest = int(datetime.now().timestamp()) + 1
+
+    # same as above, but without the reloads
+    assert assert_search(
+        earliest,
+        latest,
+        [
+            "/servicesNS/nobody/demo/configs/conf-demo_test_reload_override",
+            "/servicesNS/nobody/demo/configs/conf-_TA_config/config",
+            "/servicesNS/-/demo/demo_test_reload_override",
+            "/servicesNS/nobody/demo/configs/conf-demo_test_reload_override",
+            "/servicesNS/nobody/demo/configs/conf-_TA_config/config",
+            "/servicesNS/-/demo/demo_test_reload_override",
+        ],
+    )
+
+
+def search(query: str, earliest_time: int, latest_time: int) -> List[Any]:
+    response = requests.post(
+        f"https://{host}:{management_port}/servicesNS/admin/demo/search/jobs?output_mode=json",
+        data={
+            "search": query,
+            "earliest_time": earliest_time,
+            "latest_time": latest_time,
+            "exec_mode": "oneshot",
+            "enable_lookups": "0",
+        },
+        headers={
+            "accept": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        auth=HTTPBasicAuth(admin, admin_password),
+        verify=False,
+    )
+
+    return response.json()["results"]
