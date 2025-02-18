@@ -25,8 +25,8 @@ from inspect import ismethod
 from os import path as op
 
 from splunk import ResourceNotFound, RESTException, admin, entity, rest
-from splunktalib.common import util as sc_util
-from splunktalib.rest import splunkd_request
+from splunktaucclib.legacy import util as sc_util
+from splunktaucclib.legacy.rest import splunkd_request
 
 import splunktaucclib.common.log as stulog
 from splunktaucclib.rest_handler.cred_mgmt import CredMgmt

@@ -26,8 +26,8 @@ import time
 import traceback
 from urllib.parse import quote
 
-from splunktalib.common import util as sc_util
-from splunktalib.rest import code_to_msg, splunkd_request
+from solnlib.utils import is_true
+from splunktaucclib.legacy.rest import code_to_msg, splunkd_request
 
 import splunktaucclib.common.log as stulog
 from splunktaucclib.common import UCCException
@@ -328,7 +328,7 @@ class Config:
         try:
             field_type = field_type.lower()
             if field_type == "bool":
-                return True if sc_util.is_true(fval) else False
+                return True if is_true(fval) else False
             elif field_type == "int":
                 return int(fval)
             elif field_type == "json":
