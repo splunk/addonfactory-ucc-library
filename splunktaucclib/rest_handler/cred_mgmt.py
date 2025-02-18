@@ -118,7 +118,7 @@ class CredMgmt:
         If a field is not magic token in data, it will be ignored.
 
         :param stanzaName: the stanza name for external information
-            of the data in some *.conf
+            of the data in some *.conf.
         :param data: container to store the result, a dict.
         :return:
         """
