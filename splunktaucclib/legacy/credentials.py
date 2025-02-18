@@ -23,13 +23,8 @@ import warnings
 
 import defusedxml.minidom as xdm
 
-# import splunktalib.common.util as util
 import splunktaucclib.legacy.util as util
-
-# import splunktalib.common.xml_dom_parser as xdp
 import splunktaucclib.common.xml_dom_parser as xdp
-
-# import splunktalib.rest as rest
 import splunktaucclib.legacy.rest as rest
 
 # Splunk can only encrypt string when length <=255
