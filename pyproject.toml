@@ -23,7 +23,8 @@ license = "APACHE-2.0"
 
 [tool.poetry.dependencies]
 python = ">=3.7,<3.14"
-defusedxml = ">=0.7"
+splunktalib = "^3.0.4"
+requests = "^2.31.0"
 urllib3 = "<2"
 PySocks = "^1.7.1"
 splunk-sdk = ">=2.0.2"
@@ -32,9 +33,9 @@ solnlib = ">=5"
 [tool.poetry.group.dev.dependencies]
 pytest = ">=7"
 splunk-add-on-ucc-framework = ">=5.53.0"
-requests = "^2.31.0"
 splunk-packaging-toolkit = ">=1"
 
 [build-system]
 requires = ["poetry>=1.0.0"]
 build-backend = "poetry.masonry.api"
+

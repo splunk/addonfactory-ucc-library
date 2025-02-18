@@ -26,31 +26,18 @@ try:
 except Exception:
     print("Some functions will not be available outside of a splunk hosted process")
 
+try:
+    from splunktalib.common import util
+except Exception:
+    print('Python Lib for Splunk add-on "splunktalib" is required')
+    raise BaseException()
+
 __all__ = [
     "get_base_app_name",
     "remove_http_proxy_env_vars",
     "makeConfItem",
     "getBaseAppName",
 ]
-
-
-def get_appname_from_path(absolute_path):
-    absolute_path = os.path.normpath(absolute_path)
-    parts = absolute_path.split(os.path.sep)
-    parts.reverse()
-    for key in ("apps", "slave-apps", "master-apps"):
-        try:
-            idx = parts.index(key)
-        except ValueError:
-            continue
-        else:
-            try:
-                if parts[idx + 1] == "etc":
-                    return parts[idx - 1]
-            except IndexError:
-                pass
-            continue
-    return "-"
 
 
 def getBaseAppName():

@@ -16,7 +16,7 @@
 
 import logging
 
-from solnlib import log
+import splunktalib.common.log as stclog
 
 _level_by_name = {
     "DEBUG": logging.DEBUG,
@@ -46,8 +46,19 @@ def set_log_level(log_level):
     """
     Set log level.
     """
-    log.Logs().set_level(_get_log_level(log_level))
+    stclog.Logs().set_level(_get_log_level(log_level))
 
 
 # Global logger
-logger = log.Logs().get_logger("ucc_lib")
+logger = stclog.Logs().get_logger("ucc_lib")
+
+
+def reset_logger(name):
+    """
+    Reset logger.
+    """
+
+    stclog.reset_logger(name)
+
+    global logger
+    logger = stclog.Logs().get_logger(name)

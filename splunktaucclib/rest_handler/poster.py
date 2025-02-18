@@ -22,8 +22,8 @@ import urllib.request
 
 import requests
 from splunk import admin, rest
-from solnlib.utils import is_true
-from splunktaucclib.legacy.rest import code_to_msg, splunkd_request
+from splunktalib.common.util import is_true
+from splunktalib.rest import code_to_msg, splunkd_request
 
 from . import base, util
 from .error_ctl import RestHandlerError as RH_Err
