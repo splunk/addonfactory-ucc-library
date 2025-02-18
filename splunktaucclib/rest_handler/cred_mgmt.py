@@ -22,7 +22,7 @@ import json
 
 import splunk
 from splunk import rest
-from splunktalib.credentials import CredentialManager as CredMgr
+from splunktaucclib.legacy.credentials import CredentialManager as CredMgr
 
 from .error_ctl import RestHandlerError
 from .util import getBaseAppName
