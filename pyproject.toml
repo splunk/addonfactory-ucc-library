@@ -24,7 +24,6 @@ license = "APACHE-2.0"
 [tool.poetry.dependencies]
 python = ">=3.7,<3.14"
 defusedxml = "^0"
-splunktalib = "^3.0.4"
 urllib3 = "<2"
 PySocks = "^1.7.1"
 splunk-sdk = ">=2.0.2"
