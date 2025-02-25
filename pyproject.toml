@@ -31,7 +31,6 @@ solnlib = ">=5"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=7"
-wheel = "*"
 splunk-add-on-ucc-framework = ">=5.53.0"
 requests = "^2.31.0"
 
