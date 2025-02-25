@@ -1,4 +1,4 @@
-#
+#!/bin/bash
 # Copyright 2025 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,29 +12,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-
-[tool.poetry]
-name = "splunktaucclib"
-version = "7.0.0"
-description = ""
-authors = ["Splunk <addonfactory@splunk.com>"]
-license = "APACHE-2.0"
-
-[tool.poetry.dependencies]
-python = ">=3.7,<3.14"
-defusedxml = ">=0.7"
-urllib3 = "<2"
-PySocks = "^1.7.1"
-splunk-sdk = ">=2.0.2"
-solnlib = ">=5"
-
-[tool.poetry.group.dev.dependencies]
-pytest = ">=7"
-wheel = "*"
-splunk-add-on-ucc-framework = ">=5.53.0"
-requests = "^2.31.0"
-
-[build-system]
-requires = ["poetry>=1.0.0"]
-build-backend = "poetry.masonry.api"
+poetry install
+poetry build
+poetry run ucc-gen build \
+  --source=tests/integration/demo/package \
+  --config=tests/integration/demo/globalConfig.json \
+  --ta-version=0.0.1
+poetry run pip install dist/*.whl --target output/demo/lib
+poetry run ucc-gen package --path output/demo
