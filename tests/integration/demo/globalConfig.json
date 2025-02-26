@@ -58,7 +58,6 @@
             "table": {
                 "actions": [
                     "edit",
-                    "enable",
                     "delete",
                     "clone"
                 ],
@@ -110,6 +109,6 @@
         "restRoot": "demo",
         "version": "0.0.1",
         "displayName": "Demo",
-        "schemaVersion": "0.0.8"
+        "schemaVersion": "0.0.9"
     }
 }
