@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - id: matrix
-        uses: splunk/addonfactory-test-matrix-action@v2.1
+        uses: splunk/addonfactory-test-matrix-action@v3.0
 
   fossa-scan:
     continue-on-error: true
@@ -46,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: apache/skywalking-eyes@v0.6.0
+      - uses: apache/skywalking-eyes@v0.7.0
 
   pre-commit:
     runs-on: ubuntu-latest
@@ -63,7 +63,7 @@ jobs:
       SEMGREP_KEY: ${{ secrets.SEMGREP_PUBLISH_TOKEN }}
 
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - fossa-scan
       - compliance-copyrights
@@ -86,7 +86,7 @@ jobs:
 
   test-unit:
     name: test-unit ${{ matrix.python-version }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     continue-on-error: true
     strategy:
       matrix:
@@ -110,7 +110,7 @@ jobs:
           poetry run pytest tests/unit
 
   integration-tests:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - meta
       - test-unit
@@ -172,7 +172,7 @@ jobs:
       - build
       - test-unit
       - integration-tests
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
