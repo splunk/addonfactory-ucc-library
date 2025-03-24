@@ -16,6 +16,7 @@
 from datetime import datetime
 from time import sleep
 from typing import List, Any
+from unittest import expectedFailure
 from urllib import parse
 from requests.auth import HTTPBasicAuth
 from splunktaucclib.rest_handler.handler import BASIC_NAME_VALIDATORS
@@ -25,8 +26,8 @@ from defusedxml import ElementTree
 
 import pytest
 
-admin = os.getenv("SPLUNK_ADMIN")
-admin_password = os.getenv("SPLUNK_ADMIN_PWD")
+admin = "admin"
+admin_password = "Chang3d!"
 user = os.getenv("SPLUNK_USER")
 user_password = os.getenv("SPLUNK_USER_PWD")
 host = "localhost"
@@ -88,6 +89,16 @@ def test_basic_crud_operations():
     entry = [el for el in list(tree) if "entry" in el.tag]
     assert response.status_code == 200
     assert len(entry) == 2
+
+    #  UPDATE
+    response = requests.post(
+        f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo/{input_name}",
+        data={"interval": "55"},
+        auth=HTTPBasicAuth(admin, admin_password),
+        verify=False,
+    )
+    expected_str = '<s:key name="interval">55</s:key>'
+    assert expected_str in response.text
 
     #  DELETE
     response = requests.delete(
