@@ -21,6 +21,7 @@ from requests.auth import HTTPBasicAuth
 from splunktaucclib.rest_handler.handler import BASIC_NAME_VALIDATORS
 import requests
 import os
+from defusedxml import ElementTree
 
 import pytest
 
@@ -46,6 +47,74 @@ def _get_session_key():
 def _cookie_header():
     session_key = _get_session_key()
     return f"splunkd_8000={session_key}"
+
+
+def test_basic_crud_operations():
+    input_name = "atest_in_ok"
+
+    #  CREATE
+    response = requests.post(
+        f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo",
+        data={"name": input_name, "interval": "5"},
+        headers={
+            "accept": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        auth=HTTPBasicAuth(admin, admin_password),
+        verify=False,
+    )
+    assert response.status_code == 201
+
+    #  GET
+    response = requests.get(
+        f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo/{input_name}",
+        auth=HTTPBasicAuth(admin, admin_password),
+        headers={
+            "accept": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        verify=False,
+    )
+    assert response.status_code == 200
+
+    #  ALL
+    response = requests.get(
+        f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo/",
+        auth=HTTPBasicAuth(admin, admin_password),
+        verify=False,
+    )
+    text = response.text
+    tree = ElementTree.fromstring(text)
+    entry = [el for el in list(tree) if "entry" in el.tag]
+    assert response.status_code == 200
+    assert len(entry) == 2
+
+    #  DELETE
+    response = requests.delete(
+        f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo/{input_name}",
+        auth=HTTPBasicAuth(admin, admin_password),
+        verify=False,
+    )
+    text = response.text
+    tree = ElementTree.fromstring(text)
+    entry = [el for el in list(tree) if "entry" in el.tag]
+    assert response.status_code == 200
+    assert len(entry) == 1
+
+    expected_msg = (
+        f"REST Error [404]: Not Found -- Could not find object id={input_name}"
+    )
+    response = requests.get(
+        f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo/{input_name}",
+        auth=HTTPBasicAuth(admin, admin_password),
+        headers={
+            "accept": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        verify=False,
+    )
+    assert response.status_code == 500
+    assert expected_msg in response.text
 
 
 def test_inputs_api_call():
