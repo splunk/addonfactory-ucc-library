@@ -13,21 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 from datetime import datetime
 from time import sleep
 from typing import List, Any
-from unittest import expectedFailure
 from urllib import parse
 from requests.auth import HTTPBasicAuth
 from splunktaucclib.rest_handler.handler import BASIC_NAME_VALIDATORS
 import requests
 import os
-from defusedxml import ElementTree
 
 import pytest
 
-admin = "admin"
-admin_password = "Chang3d!"
+admin = os.getenv("SPLUNK_ADMIN")
+admin_password = os.getenv("SPLUNK_ADMIN_PWD")
 user = os.getenv("SPLUNK_USER")
 user_password = os.getenv("SPLUNK_USER_PWD")
 host = "localhost"
@@ -51,12 +50,15 @@ def _cookie_header():
 
 
 def test_basic_crud_operations():
+    """
+    Test basic CRUD operations for splunktaucclib.rest_handler.handler.RestHandler
+    """
     input_name = "atest_in_ok"
 
     #  CREATE
     response = requests.post(
-        f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo",
-        data={"name": input_name, "interval": "5"},
+        f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo?output_mode=json",
+        data={"name": input_name, "interval": "123"},
         headers={
             "accept": "application/json",
             "Content-Type": "application/x-www-form-urlencoded",
@@ -68,7 +70,7 @@ def test_basic_crud_operations():
 
     #  GET
     response = requests.get(
-        f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo/{input_name}",
+        f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo/{input_name}?output_mode=json",
         auth=HTTPBasicAuth(admin, admin_password),
         headers={
             "accept": "application/json",
@@ -76,39 +78,47 @@ def test_basic_crud_operations():
         },
         verify=False,
     )
+    entry = response.json().get("entry")
+    assert len(entry) == 1
+    assert entry[0].get("name") == input_name
+    assert entry[0].get("content").get("interval") == "123"
     assert response.status_code == 200
 
     #  ALL
     response = requests.get(
-        f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo/",
+        f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo/?output_mode=json",
         auth=HTTPBasicAuth(admin, admin_password),
         verify=False,
     )
-    text = response.text
-    tree = ElementTree.fromstring(text)
-    entry = [el for el in list(tree) if "entry" in el.tag]
+    entries = response.json().get("entry")
+    names = [entry.get("name") for entry in entries]
+
+    assert len(entries) == 2
+    assert set(names) == {"test_input", input_name}
     assert response.status_code == 200
-    assert len(entry) == 2
 
     #  UPDATE
+    new_interval = "111"
     response = requests.post(
-        f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo/{input_name}",
-        data={"interval": "55"},
+        f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo/{input_name}?output_mode=json",
+        data={"interval": new_interval},
         auth=HTTPBasicAuth(admin, admin_password),
         verify=False,
     )
-    expected_str = '<s:key name="interval">55</s:key>'
-    assert expected_str in response.text
+
+    entry = response.json().get("entry")
+    interval = entry[0].get("content").get("interval")
+    assert response.status_code == 200
+    assert interval == new_interval
 
     #  DELETE
     response = requests.delete(
-        f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo/{input_name}",
+        f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo/{input_name}?output_mode=json",
         auth=HTTPBasicAuth(admin, admin_password),
         verify=False,
     )
-    text = response.text
-    tree = ElementTree.fromstring(text)
-    entry = [el for el in list(tree) if "entry" in el.tag]
+    entry = response.json().get("entry")
+
     assert response.status_code == 200
     assert len(entry) == 1
 
@@ -116,7 +126,7 @@ def test_basic_crud_operations():
         f"REST Error [404]: Not Found -- Could not find object id={input_name}"
     )
     response = requests.get(
-        f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo/{input_name}",
+        f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo/{input_name}?output_mode=json",
         auth=HTTPBasicAuth(admin, admin_password),
         headers={
             "accept": "application/json",
