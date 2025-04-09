@@ -576,13 +576,13 @@ use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
 name = "solnlib"
-version = "6.1.0"
+version = "6.3.0"
 description = "The Splunk Software Development Kit for Splunk Solutions"
 optional = false
 python-versions = "<3.14,>=3.7"
 files = [
-    {file = "solnlib-6.1.0-py3-none-any.whl", hash = "sha256:49f55e663ccd2dc0927989123f9ea06f432e52d165738ceabdf91337bfc3f785"},
-    {file = "solnlib-6.1.0.tar.gz", hash = "sha256:4d69741f029b18ffa5f099b88e1220d3b4b735e452090119cdc766476d770a81"},
+    {file = "solnlib-6.3.0-py3-none-any.whl", hash = "sha256:8db23a86116ec8e36e369c65269c38d70750dc8ba9ec99caaf9130cf32cc76c9"},
+    {file = "solnlib-6.3.0.tar.gz", hash = "sha256:2c4e3e128141eeccb421968d75e5a6d371c28d3046b003bcd22ed09b88124b97"},
 ]
 
 [package.dependencies]
@@ -603,13 +603,13 @@ files = [
 
 [[package]]
 name = "splunk-add-on-ucc-framework"
-version = "5.57.0"
+version = "5.61.0"
 description = "Splunk Add-on SDK formerly UCC is a build and code generation framework"
 optional = false
 python-versions = "<3.14,>=3.7"
 files = [
-    {file = "splunk_add_on_ucc_framework-5.57.0-py3-none-any.whl", hash = "sha256:c93e85ec486db9dd45bb7d044c0beac639ac6051890bd9579800ea3f608a79d3"},
-    {file = "splunk_add_on_ucc_framework-5.57.0.tar.gz", hash = "sha256:83c08b7a28a030060fb966c3a535a01db12d5c6c42017d6e5e3f99b5b65e63cb"},
+    {file = "splunk_add_on_ucc_framework-5.61.0-py3-none-any.whl", hash = "sha256:daaf5cfd4ba768c7f10e45d6074fe675ae70a7403e4fe58f0c79df7588eba907"},
+    {file = "splunk_add_on_ucc_framework-5.61.0.tar.gz", hash = "sha256:a3324d805141eea04ea21a085ba7ef2df9ba44b56c8e76bd8514a4e1d5dca7fc"},
 ]
 
 [package.dependencies]
