@@ -23,7 +23,7 @@ license = "APACHE-2.0"
 
 [tool.poetry.dependencies]
 python = ">=3.7,<3.14"
-splunktalib = "^3.0.4"
+splunktalib = {git = "ssh://git@github.com/splunk/addonfactory-ta-library-python.git", rev = "chore/support-for-cron-interval"}
 requests = "^2.31.0"
 urllib3 = "<2"
 PySocks = "^1.7.1"
