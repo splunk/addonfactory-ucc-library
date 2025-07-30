@@ -16,7 +16,7 @@
 
 [tool.poetry]
 name = "splunktaucclib"
-version = "6.6.0"
+version = "8.0.0"
 description = ""
 authors = ["Splunk <addonfactory@splunk.com>"]
 license = "APACHE-2.0"
@@ -33,7 +33,6 @@ solnlib = ">=5"
 pytest = ">=7"
 splunk-add-on-ucc-framework = ">=5.53.0"
 requests = "^2.31.0"
-splunk-packaging-toolkit = ">=1"
 
 [build-system]
 requires = ["poetry>=1.0.0"]

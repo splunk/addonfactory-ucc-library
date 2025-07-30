@@ -1,4 +1,4 @@
-#
+#!/bin/bash
 # Copyright 2025 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,6 +12,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-
-__version__ = "8.0.0"
+poetry install
+poetry build
+poetry run ucc-gen build \
+  --source=tests/integration/demo/package \
+  --config=tests/integration/demo/globalConfig.json \
+  --ta-version=0.0.1
+poetry run pip install dist/*.whl --target output/demo/lib
+poetry run ucc-gen package --path output/demo

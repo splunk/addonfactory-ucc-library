@@ -129,17 +129,7 @@ jobs:
         with:
           python-version: 3.7
       - run: curl -sSL https://install.python-poetry.org | python3 - --version 1.5.1
-      - run: poetry install
-      - name: build demo add-on
-        run: |
-          poetry run ucc-gen \
-            --source=tests/integration/demo/package \
-            --config=tests/integration/demo/globalConfig.json \
-            --ta-version=0.0.1
-          poetry build
-          pip install wheel
-          pip install dist/*.whl --target output/demo/lib
-          poetry run slim package output/demo
+      - run: ./scripts/build-demo-addon.sh
       - name: install Splunk
         run: |
           export SPLUNK_PRODUCT=splunk
