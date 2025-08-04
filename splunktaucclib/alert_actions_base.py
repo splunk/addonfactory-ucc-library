@@ -19,9 +19,11 @@ import gzip
 import logging
 import sys
 
+from traceback import format_exc
+
 from solnlib import log
 
-from splunktaucclib.cim_actions import ModularAction
+from splunktaucclib.cim_actions import ModularAction, InvalidResultID
 from splunktaucclib.rest_handler import util
 from splunktaucclib.splunk_aoblib.rest_helper import TARestHelper
 from splunktaucclib.splunk_aoblib.setup_util import Setup_Util
@@ -171,12 +173,33 @@ class ModularAlertBase(ModularAction):
             sys.exit(2)
 
     def prepare_meta_for_cam(self):
-        with gzip.open(self.results_file, "rt") as rf:
-            for num, result in enumerate(csv.DictReader(rf)):
-                result.setdefault("rid", str(num))
-                self.update(result)
-                self.invoke()
-                break
+        try:
+            with gzip.open(self.results_file, "rt") as rf:
+                for num, result in enumerate(csv.DictReader(rf)):
+                    result["rid"] = result["rid"] if result.get("rid") else str(num)
+                    self.update(result)
+                    self.invoke()
+                    break
+
+        except FileNotFoundError:
+            self.log_error(f"File '{self.results_file}' not found.")
+            sys.exit(2)
+
+        except OSError:  #  gzip error
+            self.log_error(f"File '{self.results_file}' is not a valid gzip file.")
+            sys.exit(2)
+
+        except csv.Error:
+            self.log_error(f"CSV parsing error: {format(format_exc())}")
+            sys.exit(2)
+
+        except InvalidResultID:
+            self.log_error(f"Invalid result ID: {format(format_exc())}")
+            sys.exit(2)
+
+        except Exception:
+            self.log_error(f"An unexpected error occurred: {format(format_exc())}")
+            sys.exit(2)
 
     def run(self, argv):
         status = 0
