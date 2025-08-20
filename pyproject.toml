@@ -22,9 +22,9 @@ authors = ["Splunk <addonfactory@splunk.com>"]
 license = "APACHE-2.0"
 
 [tool.poetry.dependencies]
-python = ">=3.7,<3.14"
+python = ">=3.9,<3.14"
 defusedxml = ">=0.7"
-urllib3 = "<2"
+urllib3 = "2.5.0"
 PySocks = "^1.7.1"
 splunk-sdk = ">=2.0.2"
 solnlib = ">=5"
@@ -32,7 +32,7 @@ solnlib = ">=5"
 [tool.poetry.group.dev.dependencies]
 pytest = ">=7"
 splunk-add-on-ucc-framework = ">=5.53.0"
-requests = "^2.31.0"
+requests = "2.32.5"
 
 [build-system]
 requires = ["poetry>=1.0.0"]
