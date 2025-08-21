@@ -208,6 +208,12 @@ class RestCredentials:
                         # get clear password for the field
                         data[field_name] = clear_password[field_name]
                         encrypting[field_name] = clear_password[field_name]
+                else:
+                    # field not in data or is empty - set '*******' for existing passwords
+                    if clear_password and clear_password.get(field_name):
+                        data[field_name] = self.PASSWORD
+                    else:
+                        data[field_name] = ""
 
             if encrypting and clear_password != encrypting:
                 # update passwords.conf if password changed
@@ -224,6 +230,10 @@ class RestCredentials:
                     else:
                         # treat '*******' as password
                         encrypting[field_name] = self.PASSWORD
+                else:
+                    # field not in data or is empty - for new accounts, keep empty
+                    if field_name in data:
+                        data[field_name] = ""
 
             if encrypting:
                 # set passwords.conf if encrypting data is not empty
