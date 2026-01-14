@@ -93,7 +93,19 @@ class RestCredentials:
 
     # Changed password constant to six '*' to make it consistent with solnlib password constant
     PASSWORD = "******"
+    # Legacy placeholder used by older TAs (8 asterisks) - kept for backwards compatibility
+    LEGACY_PASSWORD = "********"
     EMPTY_VALUE = ""
+
+    @classmethod
+    def is_placeholder(cls, value: str) -> bool:
+        """
+        Check if value is a password placeholder (current or legacy format).
+
+        This handles backwards compatibility with older TAs that used an 8-character
+        placeholder ('********') instead of the current 6-character one ('******').
+        """
+        return value in (cls.PASSWORD, cls.LEGACY_PASSWORD)
 
     def __init__(self, splunkd_uri, session_key, endpoint):
         self._splunkd_uri = splunkd_uri
@@ -144,7 +156,7 @@ class RestCredentials:
             return
         for field_name in encrypted_field_names:
             if field_name in data and data[field_name]:
-                if data[field_name] != self.PASSWORD:
+                if not self.is_placeholder(data[field_name]):
                     # if the field in data and not empty and it's not '*******', encrypted it
                     encrypting[field_name] = data[field_name]
                     data[field_name] = self.PASSWORD
@@ -198,7 +210,7 @@ class RestCredentials:
             # password exist for the entity
             for field_name in encrypted_field_names:
                 if field_name in data and data[field_name]:
-                    if data[field_name] != self.PASSWORD:
+                    if not self.is_placeholder(data[field_name]):
                         # if the field exist in data and not equals to '*******'
                         # add to dict to be encrypted, else treat it as unchanged
                         encrypting[field_name] = data[field_name]
@@ -216,7 +228,7 @@ class RestCredentials:
             # password does not exist for the entity
             for field_name in encrypted_field_names:
                 if field_name in data and data[field_name]:
-                    if data[field_name] != self.PASSWORD:
+                    if not self.is_placeholder(data[field_name]):
                         # if the field exist in data and not equals to '*******'
                         # add to dict to be encrypted
                         encrypting[field_name] = data[field_name]
@@ -332,7 +344,7 @@ class RestCredentials:
             for k, v in clear_password.items():
                 # make sure key exist in model content
                 if k in existed_model["content"]:
-                    if existed_model["content"][k] == self.PASSWORD:
+                    if self.is_placeholder(existed_model["content"][k]):
                         # set existing as raw value
                         existed_model["content"][k] = v
                     elif existed_model["content"][k] == "":
@@ -410,7 +422,7 @@ class RestCredentials:
             if field.name not in data:
                 # ignore un-posted fields
                 continue
-            if data[field.name] == self.PASSWORD:
+            if self.is_placeholder(data[field.name]):
                 # ignore already-encrypted fields
                 continue
             if data[field.name] != self.EMPTY_VALUE:
