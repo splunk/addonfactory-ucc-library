@@ -34,8 +34,17 @@ class MConfigHandler:
         return "abcd"
 
     @classmethod
-    def get(cls, name: Optional[str] = None):
-        return cls(ACTION_LIST, CallerArgs(name, {})).handleList(MagicMock())
+    def get(
+        cls,
+        name: Optional[str] = None,
+        caller_args: Optional[dict[str, Any]] = None,
+        conf_info: Optional[Any] = None,
+    ):
+        if caller_args is None:
+            caller_args = {}
+        if conf_info is None:
+            conf_info = MagicMock()
+        return cls(ACTION_LIST, CallerArgs(name, caller_args)).handleList(conf_info)
 
 
 def mock_splunk_module() -> MagicMock:
