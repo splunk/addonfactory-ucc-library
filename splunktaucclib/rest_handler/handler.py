@@ -474,7 +474,7 @@ class RestHandler:
                 if (
                     field in model["content"]
                     and model["content"][field] != ""
-                    and model["content"][field] != self.PASSWORD
+                    and not RestCredentials.is_placeholder(model["content"][field])
                 ):
                     masked[field] = self.PASSWORD
 
@@ -498,7 +498,7 @@ class RestHandler:
             if not data.get(field.name):
                 # ignore un-stored/empty fields
                 continue
-            if data[field.name] == RestCredentials.PASSWORD:
+            if RestCredentials.is_placeholder(data[field.name]):
                 # ignore already-encrypted fields
                 continue
             return True
