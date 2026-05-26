@@ -407,12 +407,21 @@ def test_input_page_legitimate_not_found_is_not_masked(
     assert "does not exist" in excinfo.value.message
 
 
-def test_input_page_guard_triggers_on_bare_500(
-    admin, client_mock, monkeypatch
+@pytest.mark.parametrize(
+    "err",
+    [
+        RestError(500, ""),
+        RestError(500, "In handler 'foo': Unable to load REST handler for context"),
+        RestError(503, "service temporarily unavailable"),
+        RestError(404, ""),
+    ],
+)
+def test_input_page_guard_triggers_on_any_scheme_missing_shape(
+    admin, client_mock, monkeypatch, err
 ):
-    """Some Splunk versions return a 500 with an empty or opaque body when an
-    input scheme is missing. The guard must still cover that shape."""
-    _raise_on_client_get(client_mock, monkeypatch, RestError(500, ""))
+    """Any 5xx (or non-legitimate 404) on a SH input page must surface the
+    friendly message — splunkd error bodies vary across versions."""
+    _raise_on_client_get(client_mock, monkeypatch, err)
     monkeypatch.setattr(
         admin_external, "_is_search_head_instance", lambda *_: True
     )
@@ -427,34 +436,47 @@ def test_input_page_guard_triggers_on_bare_500(
     assert f"[code={INPUTS_UNAVAILABLE_CODE}]" in excinfo.value.message
 
 
-def test_server_role_detection_is_cached(monkeypatch):
-    call_counter = {"n": 0}
-
+def _make_fake_server_info(roles, *, sh=True, shc=False, counter=None):
     class FakeServerInfo:
         @classmethod
         def from_server_uri(cls, uri, key):
-            call_counter["n"] += 1
+            if counter is not None:
+                counter["n"] += 1
             return cls()
 
         def is_search_head(self):
-            return True
+            return sh
 
         def is_shc_member(self):
-            return False
+            return shc
 
-    fake_module = MagicMock()
-    fake_module.ServerInfo = FakeServerInfo
+        def to_dict(self):
+            return {"server_roles": list(roles)}
 
+    return FakeServerInfo
+
+
+def _install_fake_solnlib(monkeypatch, server_info_cls):
     import sys
 
+    fake_module = MagicMock()
+    fake_module.ServerInfo = server_info_cls
     monkeypatch.setitem(sys.modules, "solnlib.server_info", fake_module)
+
+
+def test_server_role_detection_is_cached(monkeypatch):
+    counter = {"n": 0}
+    _install_fake_solnlib(
+        monkeypatch,
+        _make_fake_server_info(["search_head"], counter=counter),
+    )
 
     for _ in range(5):
         assert admin_external._is_search_head_instance(
             "https://localhost:8089", "key"
         )
 
-    assert call_counter["n"] == 1
+    assert counter["n"] == 1
 
 
 def test_server_role_detection_falls_back_on_error(monkeypatch):
@@ -463,15 +485,35 @@ def test_server_role_detection_falls_back_on_error(monkeypatch):
         def from_server_uri(cls, uri, key):
             raise RuntimeError("network down")
 
-    fake_module = MagicMock()
-    fake_module.ServerInfo = BrokenServerInfo
+    _install_fake_solnlib(monkeypatch, BrokenServerInfo)
 
-    import sys
-
-    monkeypatch.setitem(sys.modules, "solnlib.server_info", fake_module)
-
-    # Errors are swallowed so the guard does not misclassify the instance.
     assert (
         admin_external._is_search_head_instance("https://localhost:8089", "key")
         is False
+    )
+
+
+def test_mixed_role_box_is_not_treated_as_search_head(monkeypatch):
+    """An all-in-one dev box (search_head + indexer) hosts inputs locally
+    and must NOT trigger the guard."""
+    _install_fake_solnlib(
+        monkeypatch,
+        _make_fake_server_info(["search_head", "indexer"]),
+    )
+
+    assert (
+        admin_external._is_search_head_instance("https://localhost:8089", "key")
+        is False
+    )
+
+
+def test_pure_search_head_is_detected(monkeypatch):
+    _install_fake_solnlib(
+        monkeypatch,
+        _make_fake_server_info(["search_head"]),
+    )
+
+    assert (
+        admin_external._is_search_head_instance("https://localhost:8089", "key")
+        is True
     )
