@@ -15,6 +15,7 @@
 #
 
 
+import logging
 import os
 from functools import wraps
 
@@ -24,6 +25,7 @@ from splunk import admin
 
 from .eai import EAI_FIELDS
 from .endpoint import DataInputModel, MultipleModel, SingleModel
+from .error import RestError
 from .handler import RestHandler
 
 try:
@@ -36,7 +38,76 @@ __all__ = [
     "make_conf_item",
     "build_conf_info",
     "AdminExternalHandler",
+    "INPUTS_UNAVAILABLE_CODE",
+    "INPUTS_UNAVAILABLE_MESSAGE_TEMPLATE",
 ]
+
+
+logger = logging.getLogger(__name__)
+
+
+# Stable machine-readable identifier the UCC React UI keys off of to render the
+# dedicated "Inputs cannot be configured on this instance" panel instead of the
+# generic "Something Went Wrong" error boundary. The code is appended to the
+# customer-facing message as ``[code=INPUTS_NOT_ALLOWED_ON_THIS_INSTANCE]`` so
+# that any UI which already surfaces ``messages[0].text`` shows the friendly
+# copy verbatim, while a UCC-generator update can match the code to render a
+# polished panel. Do NOT rename without a coordinated change in
+# addonfactory-ucc-generator.
+INPUTS_UNAVAILABLE_CODE = "INPUTS_NOT_ALLOWED_ON_THIS_INSTANCE"
+
+# Customer-facing copy. Kept as a template so each TA's display name can be
+# substituted by the framework.
+INPUTS_UNAVAILABLE_MESSAGE_TEMPLATE = (
+    "Inputs cannot be configured on this instance. "
+    "You don't have input-page access on this Search Head. "
+    "Inputs for {addon} must be configured on the IDM. "
+    "Please contact your admin or Splunk Support."
+)
+
+# Env-var escape hatch for ops. When set to a truthy value the guard is skipped
+# and the original 500 (if any) bubbles up — the previous behavior.
+_DISABLE_GUARD_ENV = "SPLUNKTAUCC_DISABLE_SH_INPUT_GUARD"
+
+# Per-process cache for the search-head role determination so the guard does
+# not add a REST round-trip to the hot path on healthy instances.
+_SEARCH_HEAD_ROLE_CACHE: "dict[str, bool]" = {}
+
+# Status codes / message substrings that indicate "the input scheme is not
+# registered on this instance" rather than a legitimate per-entity error. We
+# intentionally keep this list narrow so we never mask real 404/409s like
+# ``"name does not exist"`` raised by _pre_request().
+_INPUT_SCHEME_MISSING_STATUSES = (500, 404, 503)
+_INPUT_SCHEME_MISSING_MARKERS = (
+    "unknown handler",
+    "no handler",
+    "could not find",
+    "handler not found",
+    "no such handler",
+    "internal server error",
+    "fail to load response",
+    "traceback",
+)
+
+
+def _looks_like_scheme_missing(err):
+    """Return True if a RestError plausibly comes from a missing input scheme.
+
+    On a Search Head where ``inputs.conf.spec`` is not deployed, splunkd has
+    no admin handler registered for ``data/inputs/<type>`` and responds with
+    HTTP 5xx (and sometimes 404) bearing an "Unknown handler"-style message.
+    By contrast, ``_pre_request`` raises ``RestError(404, "... does not exist")``
+    for a legitimate missing entity — that path must NOT trigger the guard.
+    """
+    if err.status not in _INPUT_SCHEME_MISSING_STATUSES:
+        return False
+    text = (err.message or "").lower()
+    if not text:
+        # Bare 5xx with no body is also consistent with the broken-scheme case.
+        return err.status >= 500
+    if "does not exist" in text or "is already in use" in text:
+        return False
+    return any(marker in text for marker in _INPUT_SCHEME_MISSING_MARKERS)
 
 
 def make_conf_item(conf_item, content, eai):
@@ -77,6 +148,61 @@ def get_splunkd_endpoint():
         splunkd_uri = get_splunkd_uri()
         os.environ["SPLUNKD_URI"] = splunkd_uri
         return splunkd_uri
+
+
+def _is_search_head_instance(splunkd_uri, session_key):
+    """Return True if the current Splunk instance is a Search Head / SHC member.
+
+    Detection is intentionally narrow: a value of True means the input-owner
+    roles required to host modular inputs are absent and the input page should
+    not attempt to operate. The decision is cached per-process for the lifetime
+    of the splunkd worker to avoid extra REST calls on the hot path.
+
+    Any error (network, permission, missing module) is treated as
+    "unknown — preserve existing behavior" and returns False so the original
+    error surfaces instead of a misleading guard message.
+    """
+    cache_key = splunkd_uri or "-"
+    cached = _SEARCH_HEAD_ROLE_CACHE.get(cache_key)
+    if cached is not None:
+        return cached
+
+    try:
+        from solnlib.server_info import ServerInfo
+
+        info = ServerInfo.from_server_uri(splunkd_uri, session_key)
+        is_sh = bool(info.is_search_head() or info.is_shc_member())
+    except Exception:
+        logger.debug(
+            "Failed to determine server role for input-page guard; "
+            "preserving existing error behavior.",
+            exc_info=True,
+        )
+        is_sh = False
+
+    _SEARCH_HEAD_ROLE_CACHE[cache_key] = is_sh
+    return is_sh
+
+
+def _build_inputs_unavailable_error(endpoint):
+    """Build the friendly RestError shown when inputs cannot be configured.
+
+    Uses HTTP 403 (Forbidden) because the operation is structurally not
+    permitted on this instance — not a transient failure. The body is laid
+    out so that any client that displays ``messages[0].text`` verbatim shows
+    the customer-readable copy first, followed by a stable, parseable code
+    suffix used by the UCC React UI to swap in the dedicated panel.
+    """
+    addon = (
+        f'the Splunk Add-on "{endpoint.app}"'
+        if getattr(endpoint, "app", None)
+        else "this add-on"
+    )
+    message = (
+        INPUTS_UNAVAILABLE_MESSAGE_TEMPLATE.format(addon=addon)
+        + f" [code={INPUTS_UNAVAILABLE_CODE}]"
+    )
+    return RestError(403, message)
 
 
 class AdminExternalHandler(HookMixin, admin.MConfigHandler):
@@ -126,17 +252,62 @@ class AdminExternalHandler(HookMixin, admin.MConfigHandler):
             [False],
         )
         decrypt = is_true(decrypt[0])
-        if self.callerArgs.id:
-            result = self.handler.get(
-                self.callerArgs.id,
-                decrypt=decrypt,
-            )
-        else:
-            result = self.handler.all(
-                decrypt=decrypt,
-                count=0,
-            )
+        try:
+            if self.callerArgs.id:
+                result = self.handler.get(
+                    self.callerArgs.id,
+                    decrypt=decrypt,
+                )
+            else:
+                result = self.handler.all(
+                    decrypt=decrypt,
+                    count=0,
+                )
+            # Force evaluation so we observe any underlying HTTPError now and
+            # can translate it before the @build_conf_info decorator iterates.
+            result = list(result)
+        except RestError as err:
+            self._maybe_raise_inputs_unavailable(err)
+            raise
         return result
+
+    def _maybe_raise_inputs_unavailable(self, err):
+        """Translate a failed inputs lookup into the friendly Search-Head error.
+
+        Triggered only when ALL of the following hold:
+
+        1. The endpoint is a ``DataInputModel`` (i.e. the input page, not a
+           configs/settings tab).
+        2. The failure shape matches "scheme not registered on this instance"
+           (5xx / 404 with no body or a known "Unknown handler" marker), so
+           legitimate per-entity errors like "name does not exist" continue
+           to surface as-is.
+        3. The guard has not been disabled via
+           ``SPLUNKTAUCC_DISABLE_SH_INPUT_GUARD``.
+        4. The running instance is detected as a Search Head / SHC member.
+
+        On Heavy Forwarders / IDMs (or whenever any of the above is false)
+        the original error is re-raised unchanged, so existing behavior on
+        input-owning instances is preserved.
+        """
+        if not isinstance(self.endpoint, DataInputModel):
+            return
+        if not _looks_like_scheme_missing(err):
+            return
+        if is_true(os.environ.get(_DISABLE_GUARD_ENV, "")):
+            return
+        try:
+            splunkd_uri = get_splunkd_endpoint()
+            session_key = self.getSessionKey()
+        except Exception:
+            logger.debug(
+                "Could not resolve splunkd context for input-page guard.",
+                exc_info=True,
+            )
+            return
+        if not _is_search_head_instance(splunkd_uri, session_key):
+            return
+        raise _build_inputs_unavailable_error(self.endpoint)
 
     @build_conf_info
     def handleCreate(self, confInfo):

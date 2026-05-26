@@ -6,10 +6,19 @@ from unittest.mock import MagicMock
 import pytest
 
 from splunktaucclib.rest_handler import admin_external
-from splunktaucclib.rest_handler.admin_external import AdminExternalHandler
+from splunktaucclib.rest_handler.admin_external import (
+    AdminExternalHandler,
+    INPUTS_UNAVAILABLE_CODE,
+)
 from splunktaucclib.rest_handler.credentials import RestCredentials
-from splunktaucclib.rest_handler.endpoint import RestModel, SingleModel, MultipleModel
+from splunktaucclib.rest_handler.endpoint import (
+    DataInputModel,
+    MultipleModel,
+    RestModel,
+    SingleModel,
+)
 from splunktaucclib.rest_handler.endpoint.field import RestField
+from splunktaucclib.rest_handler.error import RestError
 
 Response = namedtuple("Response", ["body", "status"])
 
@@ -250,3 +259,219 @@ def test_handle_encryption_placeholder(admin, client_mock, monkeypatch):
         "password2": "decrypted_password2",
         "password3": "***",
     }
+
+
+@pytest.fixture(autouse=True)
+def _reset_search_head_cache():
+    """Each guard test starts with a clean per-process role cache."""
+    admin_external._SEARCH_HEAD_ROLE_CACHE.clear()
+    yield
+    admin_external._SEARCH_HEAD_ROLE_CACHE.clear()
+
+
+def _data_input_endpoint():
+    model = RestModel([], name=None, special_fields=[])
+    return DataInputModel("demo_input", model, app="fake_app")
+
+
+def _register(endpoint):
+    admin_external.handle(endpoint, handler=AdminExternalHandler)
+
+
+def _raise_on_client_get(client_mock, monkeypatch, err):
+    """Make the underlying SplunkRestClient.get raise the given RestError."""
+
+    def _raise(*args, **kwargs):
+        raise err
+
+    monkeypatch.setattr(client_mock, "get", _raise)
+
+
+def _scheme_missing_error():
+    """The 500/Unknown-handler shape splunkd returns on a SH when
+    ``inputs.conf.spec`` is not deployed for the requested input type."""
+    return RestError(500, "Unknown handler: demo_input")
+
+
+def test_input_page_on_search_head_returns_friendly_error(
+    admin, client_mock, monkeypatch
+):
+    _raise_on_client_get(client_mock, monkeypatch, _scheme_missing_error())
+    monkeypatch.setattr(
+        admin_external, "_is_search_head_instance", lambda *_: True
+    )
+
+    _register(_data_input_endpoint())
+    handler: AdminExternalHandler = admin.init.call_args[0][0]
+
+    with pytest.raises(RestError) as excinfo:
+        handler.get()
+
+    assert excinfo.value.status == 403
+    message = excinfo.value.message
+    # Customer-readable copy is the primary text, machine code is a stable
+    # suffix the React UI can match without parsing JSON.
+    assert message.startswith("Inputs cannot be configured on this instance.")
+    assert "fake_app" in message
+    assert f"[code={INPUTS_UNAVAILABLE_CODE}]" in message
+    # str() representation (what splunkd serializes into messages[0].text)
+    # remains human readable.
+    assert "Inputs cannot be configured on this instance." in str(excinfo.value)
+
+
+def test_input_page_on_idm_preserves_original_error(
+    admin, client_mock, monkeypatch
+):
+    _raise_on_client_get(client_mock, monkeypatch, _scheme_missing_error())
+    monkeypatch.setattr(
+        admin_external, "_is_search_head_instance", lambda *_: False
+    )
+
+    _register(_data_input_endpoint())
+    handler: AdminExternalHandler = admin.init.call_args[0][0]
+
+    with pytest.raises(RestError) as excinfo:
+        handler.get()
+
+    # IDM behavior is unchanged: the original 500 surfaces as-is.
+    assert excinfo.value.status == 500
+    assert INPUTS_UNAVAILABLE_CODE not in excinfo.value.message
+    assert "Unknown handler" in excinfo.value.message
+
+
+def test_input_page_guard_disabled_via_env(
+    admin, client_mock, monkeypatch
+):
+    _raise_on_client_get(client_mock, monkeypatch, _scheme_missing_error())
+    monkeypatch.setattr(
+        admin_external, "_is_search_head_instance", lambda *_: True
+    )
+    monkeypatch.setenv("SPLUNKTAUCC_DISABLE_SH_INPUT_GUARD", "1")
+
+    _register(_data_input_endpoint())
+    handler: AdminExternalHandler = admin.init.call_args[0][0]
+
+    with pytest.raises(RestError) as excinfo:
+        handler.get()
+
+    # Escape hatch in effect: original error bubbles up.
+    assert excinfo.value.status == 500
+
+
+def test_non_input_endpoint_unaffected_on_search_head(
+    admin, client_mock, monkeypatch
+):
+    _raise_on_client_get(client_mock, monkeypatch, _scheme_missing_error())
+    monkeypatch.setattr(
+        admin_external, "_is_search_head_instance", lambda *_: True
+    )
+
+    model = RestModel([], name=None, special_fields=[])
+    endpoint = SingleModel("demo_conf", model, app="fake_app")
+    _register(endpoint)
+    handler: AdminExternalHandler = admin.init.call_args[0][0]
+
+    with pytest.raises(RestError) as excinfo:
+        handler.get()
+
+    # SingleModel / MultipleModel paths are never input pages, so the guard
+    # must not intercept their errors regardless of server role.
+    assert excinfo.value.status == 500
+    assert INPUTS_UNAVAILABLE_CODE not in excinfo.value.message
+
+
+def test_input_page_legitimate_not_found_is_not_masked(
+    admin, client_mock, monkeypatch
+):
+    """A real 'name does not exist' 404 (e.g. user requested a specific input
+    that was deleted) must NOT be replaced with the Search-Head guard message
+    even when the instance happens to be a Search Head — otherwise we'd hide
+    legitimate API errors."""
+    _raise_on_client_get(
+        client_mock,
+        monkeypatch,
+        RestError(404, '"missing_input" does not exist'),
+    )
+    monkeypatch.setattr(
+        admin_external, "_is_search_head_instance", lambda *_: True
+    )
+
+    _register(_data_input_endpoint())
+    handler: AdminExternalHandler = admin.init.call_args[0][0]
+
+    with pytest.raises(RestError) as excinfo:
+        handler.get("missing_input")
+
+    assert excinfo.value.status == 404
+    assert INPUTS_UNAVAILABLE_CODE not in excinfo.value.message
+    assert "does not exist" in excinfo.value.message
+
+
+def test_input_page_guard_triggers_on_bare_500(
+    admin, client_mock, monkeypatch
+):
+    """Some Splunk versions return a 500 with an empty or opaque body when an
+    input scheme is missing. The guard must still cover that shape."""
+    _raise_on_client_get(client_mock, monkeypatch, RestError(500, ""))
+    monkeypatch.setattr(
+        admin_external, "_is_search_head_instance", lambda *_: True
+    )
+
+    _register(_data_input_endpoint())
+    handler: AdminExternalHandler = admin.init.call_args[0][0]
+
+    with pytest.raises(RestError) as excinfo:
+        handler.get()
+
+    assert excinfo.value.status == 403
+    assert f"[code={INPUTS_UNAVAILABLE_CODE}]" in excinfo.value.message
+
+
+def test_server_role_detection_is_cached(monkeypatch):
+    call_counter = {"n": 0}
+
+    class FakeServerInfo:
+        @classmethod
+        def from_server_uri(cls, uri, key):
+            call_counter["n"] += 1
+            return cls()
+
+        def is_search_head(self):
+            return True
+
+        def is_shc_member(self):
+            return False
+
+    fake_module = MagicMock()
+    fake_module.ServerInfo = FakeServerInfo
+
+    import sys
+
+    monkeypatch.setitem(sys.modules, "solnlib.server_info", fake_module)
+
+    for _ in range(5):
+        assert admin_external._is_search_head_instance(
+            "https://localhost:8089", "key"
+        )
+
+    assert call_counter["n"] == 1
+
+
+def test_server_role_detection_falls_back_on_error(monkeypatch):
+    class BrokenServerInfo:
+        @classmethod
+        def from_server_uri(cls, uri, key):
+            raise RuntimeError("network down")
+
+    fake_module = MagicMock()
+    fake_module.ServerInfo = BrokenServerInfo
+
+    import sys
+
+    monkeypatch.setitem(sys.modules, "solnlib.server_info", fake_module)
+
+    # Errors are swallowed so the guard does not misclassify the instance.
+    assert (
+        admin_external._is_search_head_instance("https://localhost:8089", "key")
+        is False
+    )
