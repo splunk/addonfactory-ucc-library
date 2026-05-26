@@ -262,11 +262,17 @@ def test_handle_encryption_placeholder(admin, client_mock, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def _reset_search_head_cache():
-    """Each guard test starts with a clean per-process role cache."""
+def _reset_guard_caches(monkeypatch):
+    """Clean per-process caches and stub the scheme-registered probe so it
+    never reaches splunkd unless a specific test overrides it."""
     admin_external._SEARCH_HEAD_ROLE_CACHE.clear()
+    admin_external._SCHEME_REGISTERED_CACHE.clear()
+    monkeypatch.setattr(
+        admin_external, "_scheme_registered", lambda *args, **kwargs: None
+    )
     yield
     admin_external._SEARCH_HEAD_ROLE_CACHE.clear()
+    admin_external._SCHEME_REGISTERED_CACHE.clear()
 
 
 def _data_input_endpoint():
@@ -517,3 +523,131 @@ def test_pure_search_head_is_detected(monkeypatch):
         admin_external._is_search_head_instance("https://localhost:8089", "key")
         is True
     )
+
+
+@pytest.mark.parametrize(
+    "roles",
+    [
+        ["search_head", "cluster_master"],
+        ["search_head", "shc_deployer"],
+        ["search_head", "license_master"],
+        ["shc_member"],
+    ],
+)
+def test_non_input_owning_search_head_variants_trigger_guard(monkeypatch, roles):
+    """Cluster master, SHC deployer, and license master do not own inputs,
+    so the guard must fire on them (same UX as a plain search head)."""
+    sh = "search_head" in roles
+    shc = "shc_member" in roles
+    _install_fake_solnlib(
+        monkeypatch,
+        _make_fake_server_info(roles, sh=sh, shc=shc),
+    )
+
+    assert (
+        admin_external._is_search_head_instance("https://localhost:8089", "key")
+        is True
+    )
+
+
+def test_role_detection_does_not_cache_lookup_failure(monkeypatch):
+    """A one-time solnlib/REST failure must NOT permanently disable the guard;
+    the next call should retry."""
+    state = {"raise": True}
+
+    class FlakyServerInfo:
+        @classmethod
+        def from_server_uri(cls, uri, key):
+            if state["raise"]:
+                raise RuntimeError("transient")
+            return cls()
+
+        def is_search_head(self):
+            return True
+
+        def is_shc_member(self):
+            return False
+
+        def to_dict(self):
+            return {"server_roles": ["search_head"]}
+
+    _install_fake_solnlib(monkeypatch, FlakyServerInfo)
+
+    assert (
+        admin_external._is_search_head_instance("https://localhost:8089", "key")
+        is False
+    )
+    assert "https://localhost:8089" not in admin_external._SEARCH_HEAD_ROLE_CACHE
+
+    state["raise"] = False
+    assert (
+        admin_external._is_search_head_instance("https://localhost:8089", "key")
+        is True
+    )
+
+
+def test_input_page_does_not_fire_when_scheme_is_registered(
+    admin, client_mock, monkeypatch
+):
+    """A transient 500 on a SH that DOES have the scheme registered must
+    bubble the original error — we should not mislead the user."""
+    _raise_on_client_get(client_mock, monkeypatch, _scheme_missing_error())
+    monkeypatch.setattr(
+        admin_external, "_is_search_head_instance", lambda *_: True
+    )
+    monkeypatch.setattr(
+        admin_external, "_scheme_registered", lambda *_, **__: True
+    )
+
+    _register(_data_input_endpoint())
+    handler: AdminExternalHandler = admin.init.call_args[0][0]
+
+    with pytest.raises(RestError) as excinfo:
+        handler.get()
+
+    assert excinfo.value.status == 500
+    assert INPUTS_UNAVAILABLE_CODE not in excinfo.value.message
+
+
+def test_input_page_fires_when_scheme_check_is_unknown(
+    admin, client_mock, monkeypatch
+):
+    """When the scheme-registration check itself fails (None), the guard
+    still fires — preserves the original bug fix on classic SH."""
+    _raise_on_client_get(client_mock, monkeypatch, _scheme_missing_error())
+    monkeypatch.setattr(
+        admin_external, "_is_search_head_instance", lambda *_: True
+    )
+    monkeypatch.setattr(
+        admin_external, "_scheme_registered", lambda *_, **__: None
+    )
+
+    _register(_data_input_endpoint())
+    handler: AdminExternalHandler = admin.init.call_args[0][0]
+
+    with pytest.raises(RestError) as excinfo:
+        handler.get()
+
+    assert excinfo.value.status == 403
+    assert f"[code={INPUTS_UNAVAILABLE_CODE}]" in excinfo.value.message
+
+
+def test_input_page_fires_when_scheme_is_verifiably_missing(
+    admin, client_mock, monkeypatch
+):
+    _raise_on_client_get(client_mock, monkeypatch, _scheme_missing_error())
+    monkeypatch.setattr(
+        admin_external, "_is_search_head_instance", lambda *_: True
+    )
+    monkeypatch.setattr(
+        admin_external, "_scheme_registered", lambda *_, **__: False
+    )
+
+    _register(_data_input_endpoint())
+    handler: AdminExternalHandler = admin.init.call_args[0][0]
+
+    with pytest.raises(RestError) as excinfo:
+        handler.get()
+
+    assert excinfo.value.status == 403
+    assert f"[code={INPUTS_UNAVAILABLE_CODE}]" in excinfo.value.message

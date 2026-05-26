@@ -59,6 +59,11 @@ _DISABLE_GUARD_ENV = "SPLUNKTAUCC_DISABLE_SH_INPUT_GUARD"
 
 _SEARCH_HEAD_ROLE_CACHE: "dict[str, bool]" = {}
 
+# Per-process cache of "is this modular input scheme registered on this
+# instance?" keyed by (splunkd_uri, app, kind). None means "could not
+# determine" and is never cached.
+_SCHEME_REGISTERED_CACHE: "dict[tuple, bool]" = {}
+
 # Roles that own inputs; presence of any of these means the instance can host
 # inputs locally and the guard must NOT fire even if it is also a search head
 # (e.g. dev all-in-one boxes).
@@ -136,7 +141,6 @@ def _is_search_head_instance(splunkd_uri, session_key):
     if cached is not None:
         return cached
 
-    is_sh = False
     try:
         from solnlib.server_info import ServerInfo
 
@@ -144,12 +148,52 @@ def _is_search_head_instance(splunkd_uri, session_key):
         if info.is_search_head() or info.is_shc_member():
             roles = set(info.to_dict().get("server_roles", []))
             is_sh = not (_INPUT_OWNER_ROLES & roles)
+        else:
+            is_sh = False
     except Exception:
         logger.debug("Server role lookup failed", exc_info=True)
-        is_sh = False
+        return False
 
     _SEARCH_HEAD_ROLE_CACHE[cache_key] = is_sh
     return is_sh
+
+
+def _scheme_registered(splunkd_uri, session_key, app, kind):
+    """Return True/False if we can verify modular-input scheme registration,
+    or None when the check itself fails. Cached per (uri, app, kind)."""
+    cache_key = (splunkd_uri or "-", app or "-", kind or "-")
+    if cache_key in _SCHEME_REGISTERED_CACHE:
+        return _SCHEME_REGISTERED_CACHE[cache_key]
+
+    try:
+        import urllib.parse
+
+        from solnlib.splunk_rest_client import SplunkRestClient
+        from splunklib import binding
+
+        parts = urllib.parse.urlparse(splunkd_uri)
+        client = SplunkRestClient(
+            session_key,
+            app,
+            owner="nobody",
+            scheme=parts.scheme,
+            host=parts.hostname,
+            port=parts.port,
+        )
+        try:
+            client.get(f"data/modular-inputs/{kind}")
+            registered = True
+        except binding.HTTPError as exc:
+            if exc.status == 404:
+                registered = False
+            else:
+                return None
+    except Exception:
+        logger.debug("Scheme-registered lookup failed", exc_info=True)
+        return None
+
+    _SCHEME_REGISTERED_CACHE[cache_key] = registered
+    return registered
 
 
 def _build_inputs_unavailable_error(endpoint):
@@ -223,7 +267,8 @@ class AdminExternalHandler(HookMixin, admin.MConfigHandler):
                     decrypt=decrypt,
                     count=0,
                 )
-            result = list(result)
+            if isinstance(self.endpoint, DataInputModel):
+                result = list(result)
         except RestError as err:
             self._maybe_raise_inputs_unavailable(err)
             raise
@@ -242,6 +287,14 @@ class AdminExternalHandler(HookMixin, admin.MConfigHandler):
         except Exception:
             return
         if not _is_search_head_instance(splunkd_uri, session_key):
+            return
+        # If we can verify the modinput scheme IS registered, treat the 5xx
+        # as a real transient error and let it surface. Only when the scheme
+        # is verifiably missing (False) or unverifiable (None) do we show
+        # the friendly message.
+        app = getattr(self.endpoint, "app", None)
+        kind = getattr(self.endpoint, "input_type", None)
+        if _scheme_registered(splunkd_uri, session_key, app, kind) is True:
             return
         raise _build_inputs_unavailable_error(self.endpoint)
 
