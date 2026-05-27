@@ -15,13 +15,12 @@
 #
 
 
-import logging
 import os
 from functools import wraps
 
 from solnlib.splunkenv import get_splunkd_uri
 from solnlib.utils import is_true
-from splunk import admin
+from splunk import RESTException, admin
 
 from .eai import EAI_FIELDS
 from .endpoint import DataInputModel, MultipleModel, SingleModel
@@ -38,58 +37,7 @@ __all__ = [
     "make_conf_item",
     "build_conf_info",
     "AdminExternalHandler",
-    "INPUTS_UNAVAILABLE_CODE",
-    "INPUTS_UNAVAILABLE_MESSAGE_TEMPLATE",
 ]
-
-
-logger = logging.getLogger(__name__)
-
-
-INPUTS_UNAVAILABLE_CODE = "INPUTS_NOT_ALLOWED_ON_THIS_INSTANCE"
-
-INPUTS_UNAVAILABLE_MESSAGE_TEMPLATE = (
-    "Inputs cannot be configured on this instance. "
-    "You don't have input-page access on this Search Head. "
-    "Inputs for {addon} must be configured on the IDM. "
-    "Please contact your admin or Splunk Support."
-)
-
-_DISABLE_GUARD_ENV = "SPLUNKTAUCC_DISABLE_SH_INPUT_GUARD"
-
-_SEARCH_HEAD_ROLE_CACHE: "dict[str, bool]" = {}
-
-# Per-process cache of "is this modular input scheme registered on this
-# instance?" keyed by (splunkd_uri, app, kind). None means "could not
-# determine" and is never cached.
-_SCHEME_REGISTERED_CACHE: "dict[tuple, bool]" = {}
-
-# Roles that own inputs; presence of any of these means the instance can host
-# inputs locally and the guard must NOT fire even if it is also a search head
-# (e.g. dev all-in-one boxes).
-_INPUT_OWNER_ROLES = frozenset(
-    {
-        "indexer",
-        "cluster_slave",
-        "cluster_peer",
-        "heavyweight_forwarder",
-        "lightweight_forwarder",
-        "universal_forwarder",
-    }
-)
-
-
-def _looks_like_scheme_missing(err):
-    """True when a RestError looks like the input scheme is not registered
-    on this instance, rather than a legitimate per-entity API error."""
-    if err.status >= 500:
-        return True
-    if err.status == 404:
-        text = (err.message or "").lower()
-        if "does not exist" in text or "is already in use" in text:
-            return False
-        return True
-    return False
 
 
 def make_conf_item(conf_item, content, eai):
@@ -132,81 +80,134 @@ def get_splunkd_endpoint():
         return splunkd_uri
 
 
-def _is_search_head_instance(splunkd_uri, session_key):
-    """True iff this instance is a search-head-only role (no input-owner
-    role present). Cached per-process. Returns False on any error so the
-    original behavior is preserved when role detection cannot be performed."""
-    cache_key = splunkd_uri or "-"
-    cached = _SEARCH_HEAD_ROLE_CACHE.get(cache_key)
-    if cached is not None:
-        return cached
+# Search-head input-page guard.
+#
+# On classic-cloud Search Heads / SHCs the inputs.conf.spec for cloud TAs
+# (AWS, GCP, MSCS, ...) is stripped at deploy time, so splunkd does not
+# register a modular-input scheme for the input type. The UCC-generated
+# input REST endpoint then returns HTTP 404, splunktaucclib raises
+# RestError(404), and splunk.admin.MConfigHandler -- which does not
+# recognise RestError -- wraps it as HTTP 500
+# "Unexpected error '<class RestError>' from python handler ...".
+# The UCC React UI surfaces that as the global "Something Went Wrong"
+# page. This guard converts that specific failure into a clean
+# splunk.RESTException(403, <friendly message>) which the admin framework
+# passes through unchanged, so the UI shows a readable message instead.
+INPUTS_UNAVAILABLE_MESSAGE = (
+    "Inputs cannot be configured on this instance. "
+    "You don't have input-page access on this Search Head. "
+    "Inputs for this add-on must be configured on the IDM. "
+    "Please contact your admin or Splunk Support."
+)
 
+_DISABLE_GUARD_ENV = "SPLUNKTAUCC_DISABLE_SH_INPUT_GUARD"
+
+# Roles that own input configuration. If any of these is present the
+# instance is *not* a pure search head and the guard must not fire.
+_INPUT_OWNER_ROLES = frozenset(
+    {
+        "indexer",
+        "heavyforwarder",
+        "universal_forwarder",
+        "cluster_search_head",
+        "deployment_server",
+    }
+)
+# Roles that mark an instance as a search head / SHC member.
+_SEARCH_HEAD_ROLES = frozenset(
+    {
+        "search_head",
+        "search_peer",
+        "shc_member",
+        "shc_captain",
+        "shc_deployer",
+        "cluster_master",
+        "license_master",
+    }
+)
+
+_search_head_cache: dict = {}
+_scheme_registered_cache: dict = {}
+
+
+def _looks_like_scheme_missing(err):
+    """Return True if `err` looks like the modular-input scheme is missing.
+
+    A bare 404 from splunkd (or any 5xx) matches; the per-entity
+    "does not exist" 404 raised when a stanza is genuinely missing
+    must bubble unchanged.
+    """
+    status = getattr(err, "status", None)
+    if status == 404:
+        message = (getattr(err, "message", "") or "").lower()
+        return "does not exist" not in message
+    return isinstance(status, int) and 500 <= status < 600
+
+
+def _is_pure_search_head(session_key):
+    """Return True only when running on a pure Search Head / SHC member.
+
+    Mixed-role boxes (e.g. dev instances that also have the indexer role,
+    or IDM where inputs are expected to work) return False.
+    Transient solnlib failures are not cached, so the next request gets
+    a fresh attempt.
+    """
+    if session_key in _search_head_cache:
+        return _search_head_cache[session_key]
     try:
         from solnlib.server_info import ServerInfo
 
-        info = ServerInfo.from_server_uri(splunkd_uri, session_key)
-        if info.is_search_head() or info.is_shc_member():
-            roles = set(info.to_dict().get("server_roles", []))
-            is_sh = not (_INPUT_OWNER_ROLES & roles)
-        else:
-            is_sh = False
+        try:
+            info = ServerInfo(session_key=session_key)
+        except TypeError:
+            # Older solnlib only accepts the positional argument.
+            info = ServerInfo(session_key)
+        roles = set(info.server_roles or [])
     except Exception:
-        logger.debug("Server role lookup failed", exc_info=True)
         return False
-
-    _SEARCH_HEAD_ROLE_CACHE[cache_key] = is_sh
+    is_sh = bool(_SEARCH_HEAD_ROLES & roles) and not (_INPUT_OWNER_ROLES & roles)
+    _search_head_cache[session_key] = is_sh
     return is_sh
 
 
-def _scheme_registered(splunkd_uri, session_key, app, kind):
-    """Return True/False if we can verify modular-input scheme registration,
-    or None when the check itself fails. Cached per (uri, app, kind)."""
-    cache_key = (splunkd_uri or "-", app or "-", kind or "-")
-    if cache_key in _SCHEME_REGISTERED_CACHE:
-        return _SCHEME_REGISTERED_CACHE[cache_key]
+def _scheme_registered(session_key, app, input_type):
+    """Probe splunkd to determine whether the modular-input scheme exists.
 
+    Returns True when registered, False when confirmed missing, and None
+    when the probe is inconclusive. The caller treats only an explicit
+    False as authorisation to swap the error for the friendly message,
+    so transient probe failures never produce a misleading message.
+    """
+    cache_key = (app, input_type)
+    if cache_key in _scheme_registered_cache:
+        return _scheme_registered_cache[cache_key]
     try:
-        import urllib.parse
-
         from solnlib.splunk_rest_client import SplunkRestClient
-        from splunklib import binding
 
-        parts = urllib.parse.urlparse(splunkd_uri)
         client = SplunkRestClient(
             session_key,
-            app,
+            app=app or "-",
             owner="nobody",
-            scheme=parts.scheme,
-            host=parts.hostname,
-            port=parts.port,
         )
-        try:
-            client.get(f"data/modular-inputs/{kind}")
-            registered = True
-        except binding.HTTPError as exc:
-            if exc.status == 404:
-                registered = False
-            else:
-                return None
-    except Exception:
-        logger.debug("Scheme-registered lookup failed", exc_info=True)
-        return None
-
-    _SCHEME_REGISTERED_CACHE[cache_key] = registered
-    return registered
-
-
-def _build_inputs_unavailable_error(endpoint):
-    addon = (
-        f'the Splunk Add-on "{endpoint.app}"'
-        if getattr(endpoint, "app", None)
-        else "this add-on"
-    )
-    message = (
-        INPUTS_UNAVAILABLE_MESSAGE_TEMPLATE.format(addon=addon)
-        + f" [code={INPUTS_UNAVAILABLE_CODE}]"
-    )
-    return RestError(403, message)
+        response = client.get(
+            "data/modular-inputs/{}".format(input_type),
+            output_mode="json",
+        )
+        status = getattr(response, "status", None)
+        if status == 200:
+            _scheme_registered_cache[cache_key] = True
+            return True
+        if status == 404:
+            _scheme_registered_cache[cache_key] = False
+            return False
+    except Exception as probe_err:
+        status = getattr(probe_err, "status", None) or getattr(
+            probe_err, "statusCode", None
+        )
+        if status == 404:
+            _scheme_registered_cache[cache_key] = False
+            return False
+    return None
 
 
 class AdminExternalHandler(HookMixin, admin.MConfigHandler):
@@ -267,36 +268,31 @@ class AdminExternalHandler(HookMixin, admin.MConfigHandler):
                     decrypt=decrypt,
                     count=0,
                 )
-            if isinstance(self.endpoint, DataInputModel):
-                result = list(result)
         except RestError as err:
-            self._maybe_raise_inputs_unavailable(err)
+            if self._is_input_page_unavailable(err):
+                raise RESTException(403, INPUTS_UNAVAILABLE_MESSAGE)
             raise
         return result
 
-    def _maybe_raise_inputs_unavailable(self, err):
+    def _is_input_page_unavailable(self, err):
+        """Return True only for the classic-cloud SH/SHC missing-scheme case."""
         if not isinstance(self.endpoint, DataInputModel):
-            return
-        if not _looks_like_scheme_missing(err):
-            return
+            return False
         if is_true(os.environ.get(_DISABLE_GUARD_ENV, "")):
-            return
-        try:
-            splunkd_uri = get_splunkd_endpoint()
-            session_key = self.getSessionKey()
-        except Exception:
-            return
-        if not _is_search_head_instance(splunkd_uri, session_key):
-            return
-        # If we can verify the modinput scheme IS registered, treat the 5xx
-        # as a real transient error and let it surface. Only when the scheme
-        # is verifiably missing (False) or unverifiable (None) do we show
-        # the friendly message.
-        app = getattr(self.endpoint, "app", None)
-        kind = getattr(self.endpoint, "input_type", None)
-        if _scheme_registered(splunkd_uri, session_key, app, kind) is True:
-            return
-        raise _build_inputs_unavailable_error(self.endpoint)
+            return False
+        if not _looks_like_scheme_missing(err):
+            return False
+        session_key = self.getSessionKey()
+        if not _is_pure_search_head(session_key):
+            return False
+        return (
+            _scheme_registered(
+                session_key,
+                self.endpoint.app,
+                self.endpoint.input_type,
+            )
+            is False
+        )
 
     @build_conf_info
     def handleCreate(self, confInfo):
