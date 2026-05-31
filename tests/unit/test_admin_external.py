@@ -5,8 +5,6 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from splunk import RESTException
-
 from splunktaucclib.rest_handler import admin_external
 from splunktaucclib.rest_handler.admin_external import (
     INPUTS_UNAVAILABLE_MESSAGE,
@@ -269,21 +267,15 @@ def test_handle_encryption_placeholder(admin, client_mock, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def _reset_guard_caches():
-    admin_external._search_head_cache.clear()
+def _reset_guard_cache():
     admin_external._scheme_registered_cache.clear()
     yield
-    admin_external._search_head_cache.clear()
     admin_external._scheme_registered_cache.clear()
 
 
-def _make_input_handler(admin, monkeypatch, raise_error):
-    """Wire a DataInputModel handler whose backend raises `raise_error`."""
-    model = RestModel([], name=None, special_fields=[])
-    endpoint = DataInputModel("demo_input", model, app="fake_app")
-
+def _install_raising_handler(monkeypatch, error):
     def _raising(*args, **kwargs):
-        raise raise_error
+        raise error
 
     monkeypatch.setattr(
         "splunktaucclib.rest_handler.handler.RestHandler.all", _raising
@@ -292,15 +284,20 @@ def _make_input_handler(admin, monkeypatch, raise_error):
         "splunktaucclib.rest_handler.handler.RestHandler.get", _raising
     )
 
+
+def _make_input_handler(admin, monkeypatch, error):
+    """Wire a DataInputModel handler whose backend raises `error`."""
+    model = RestModel([], name=None, special_fields=[])
+    endpoint = DataInputModel("demo_input", model, app="fake_app")
+    _install_raising_handler(monkeypatch, error)
     admin_external.handle(endpoint, handler=AdminExternalHandler)
     return admin.init.call_args[0][0]
 
 
-def test_input_page_on_search_head_with_missing_scheme_shows_friendly_message(
+def test_input_page_with_missing_scheme_returns_empty_with_warning(
     admin, monkeypatch
 ):
-    """SH + scheme missing -> RESTException(403) with the friendly message."""
-    monkeypatch.setattr(admin_external, "_is_pure_search_head", lambda _k: True)
+    """DataInputModel + probe says 'scheme missing' -> [] + WARN message."""
     monkeypatch.setattr(
         admin_external, "_scheme_registered", lambda _k, _a, _t: False
     )
@@ -308,32 +305,31 @@ def test_input_page_on_search_head_with_missing_scheme_shows_friendly_message(
     handler = _make_input_handler(
         admin, monkeypatch, RestError(404, "Not Found")
     )
-
-    with pytest.raises(RESTException) as exc_info:
-        handler.get()
-
-    assert exc_info.value.statusCode == 403
-    assert exc_info.value.msg == INPUTS_UNAVAILABLE_MESSAGE
+    conf_info = MagicMock()
+    assert handler.get(conf_info=conf_info) is None
+    conf_info.addWarnMsg.assert_called_once_with(INPUTS_UNAVAILABLE_MESSAGE)
 
 
-def test_input_page_on_idm_preserves_original_error(admin, monkeypatch):
-    """IDM (input-owner role present) -> RestError bubbles unchanged."""
-    monkeypatch.setattr(admin_external, "_is_pure_search_head", lambda _k: False)
-
-    handler = _make_input_handler(
-        admin, monkeypatch, RestError(404, "Not Found")
+def test_input_page_with_inconclusive_probe_returns_empty_with_warning(
+    admin, monkeypatch
+):
+    """Inconclusive probe (None) is treated as 'missing' so the UI never breaks."""
+    monkeypatch.setattr(
+        admin_external, "_scheme_registered", lambda _k, _a, _t: None
     )
 
-    with pytest.raises(RestError) as exc_info:
-        handler.get()
-    assert exc_info.value.status == 404
+    handler = _make_input_handler(
+        admin, monkeypatch, RestError(500, "boom")
+    )
+    conf_info = MagicMock()
+    assert handler.get(conf_info=conf_info) is None
+    conf_info.addWarnMsg.assert_called_once_with(INPUTS_UNAVAILABLE_MESSAGE)
 
 
 def test_input_page_when_scheme_is_registered_preserves_original_error(
     admin, monkeypatch
 ):
-    """Victoria SH where scheme IS registered -> RestError bubbles unchanged."""
-    monkeypatch.setattr(admin_external, "_is_pure_search_head", lambda _k: True)
+    """When splunkd confirms the scheme exists, original error must bubble."""
     monkeypatch.setattr(
         admin_external, "_scheme_registered", lambda _k, _a, _t: True
     )
@@ -348,8 +344,7 @@ def test_input_page_when_scheme_is_registered_preserves_original_error(
 
 
 def test_per_entity_not_found_is_not_masked(admin, monkeypatch):
-    """`does not exist` 404 is a legitimate per-entity error and must bubble."""
-    monkeypatch.setattr(admin_external, "_is_pure_search_head", lambda _k: True)
+    """`does not exist` 404 is a legitimate per-entity error -- must bubble."""
     monkeypatch.setattr(
         admin_external, "_scheme_registered", lambda _k, _a, _t: False
     )
@@ -362,26 +357,26 @@ def test_per_entity_not_found_is_not_masked(admin, monkeypatch):
         handler.get()
 
 
-def test_non_input_endpoint_unaffected_on_search_head(admin, monkeypatch):
-    """SingleModel (settings/configs) on a SH must keep its original error."""
-    monkeypatch.setattr(admin_external, "_is_pure_search_head", lambda _k: True)
-    monkeypatch.setattr(
-        admin_external, "_scheme_registered", lambda _k, _a, _t: False
-    )
+def test_single_model_inputs_conf_is_gated(admin, monkeypatch):
+    """SingleModel with an inputs-shaped conf_name is gated on the same error."""
+    model = RestModel([], name=None, special_fields=[])
+    endpoint = SingleModel("billing_inputs", model, app="fake_app")
+    _install_raising_handler(monkeypatch, RestError(404, "Not Found"))
+    admin_external.handle(endpoint, handler=AdminExternalHandler)
+    handler = admin.init.call_args[0][0]
 
+    conf_info = MagicMock()
+    assert handler.get(conf_info=conf_info) is None
+    conf_info.addWarnMsg.assert_called_once_with(INPUTS_UNAVAILABLE_MESSAGE)
+
+
+def test_single_model_settings_endpoint_preserves_original_error(
+    admin, monkeypatch
+):
+    """SingleModel without 'input' in conf_name (settings/credentials) is NOT gated."""
     model = RestModel([], name=None, special_fields=[])
     endpoint = SingleModel("demo_settings", model, app="fake_app")
-
-    def _raising(*args, **kwargs):
-        raise RestError(500, "boom")
-
-    monkeypatch.setattr(
-        "splunktaucclib.rest_handler.handler.RestHandler.all", _raising
-    )
-    monkeypatch.setattr(
-        "splunktaucclib.rest_handler.handler.RestHandler.get", _raising
-    )
-
+    _install_raising_handler(monkeypatch, RestError(500, "boom"))
     admin_external.handle(endpoint, handler=AdminExternalHandler)
     handler = admin.init.call_args[0][0]
 
@@ -392,7 +387,6 @@ def test_non_input_endpoint_unaffected_on_search_head(admin, monkeypatch):
 def test_env_kill_switch_disables_guard(admin, monkeypatch):
     """SPLUNKTAUCC_DISABLE_SH_INPUT_GUARD=1 keeps the original error path."""
     monkeypatch.setenv("SPLUNKTAUCC_DISABLE_SH_INPUT_GUARD", "1")
-    monkeypatch.setattr(admin_external, "_is_pure_search_head", lambda _k: True)
     monkeypatch.setattr(
         admin_external, "_scheme_registered", lambda _k, _a, _t: False
     )
@@ -403,3 +397,34 @@ def test_env_kill_switch_disables_guard(admin, monkeypatch):
 
     with pytest.raises(RestError):
         handler.get()
+
+
+def test_generator_raising_resterror_is_caught(admin, monkeypatch):
+    """RestError raised by a generator (not pre-materialized) is still caught.
+
+    Without the `list(...)` materialization in handleList, the raise
+    would happen later during iteration in build_conf_info and bypass
+    the except clause -- the test guards against that regression.
+    """
+    monkeypatch.setattr(
+        admin_external, "_scheme_registered", lambda _k, _a, _t: False
+    )
+
+    def _generator(*args, **kwargs):
+        raise RestError(404, "Not Found")
+        yield  # pragma: no cover - makes this a generator function
+
+    model = RestModel([], name=None, special_fields=[])
+    endpoint = DataInputModel("demo_input", model, app="fake_app")
+    monkeypatch.setattr(
+        "splunktaucclib.rest_handler.handler.RestHandler.all", _generator
+    )
+    monkeypatch.setattr(
+        "splunktaucclib.rest_handler.handler.RestHandler.get", _generator
+    )
+    admin_external.handle(endpoint, handler=AdminExternalHandler)
+    handler = admin.init.call_args[0][0]
+
+    conf_info = MagicMock()
+    assert handler.get(conf_info=conf_info) is None
+    conf_info.addWarnMsg.assert_called_once_with(INPUTS_UNAVAILABLE_MESSAGE)

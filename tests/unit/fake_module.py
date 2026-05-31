@@ -47,17 +47,8 @@ class MConfigHandler:
         return cls(ACTION_LIST, CallerArgs(name, caller_args)).handleList(conf_info)
 
 
-class RESTException(Exception):
-    def __init__(self, statusCode, msg=None, extendedMessages=None):
-        self.statusCode = statusCode
-        self.msg = msg
-        super().__init__(msg)
-
-
 def mock_splunk_module() -> MagicMock:
-    splunk_module = types.ModuleType("splunk")
-    splunk_module.RESTException = RESTException
-    sys.modules["splunk"] = splunk_module
+    sys.modules["splunk"] = types.ModuleType("splunk")
 
     admin = MagicMock()
     sys.modules["splunk.admin"] = admin

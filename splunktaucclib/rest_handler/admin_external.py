@@ -20,7 +20,7 @@ from functools import wraps
 
 from solnlib.splunkenv import get_splunkd_uri
 from solnlib.utils import is_true
-from splunk import RESTException, admin
+from splunk import admin
 
 from .eai import EAI_FIELDS
 from .endpoint import DataInputModel, MultipleModel, SingleModel
@@ -83,16 +83,24 @@ def get_splunkd_endpoint():
 # Search-head input-page guard.
 #
 # On classic-cloud Search Heads / SHCs the inputs.conf.spec for cloud TAs
-# (AWS, GCP, MSCS, ...) is stripped at deploy time, so splunkd does not
-# register a modular-input scheme for the input type. The UCC-generated
-# input REST endpoint then returns HTTP 404, splunktaucclib raises
-# RestError(404), and splunk.admin.MConfigHandler -- which does not
-# recognise RestError -- wraps it as HTTP 500
+# (AWS, GCP, MSCS, ...) is stripped at deploy time, so splunkd has no
+# scheme registered for the input type. The UCC-generated REST endpoint
+# then returns HTTP 404, splunktaucclib raises RestError(404), and
+# splunk.admin.MConfigHandler -- which does not recognise RestError --
+# wraps it as HTTP 500
 # "Unexpected error '<class RestError>' from python handler ...".
-# The UCC React UI surfaces that as the global "Something Went Wrong"
-# page. This guard converts that specific failure into a clean
-# splunk.RESTException(403, <friendly message>) which the admin framework
-# passes through unchanged, so the UI shows a readable message instead.
+# The UCC React UI surfaces that 500 as the global "Something Went Wrong"
+# overlay. Cloud testing on Splunk_TA_google-cloudplatform confirmed:
+#   * splunk.RESTException is ALSO wrapped as "Unexpected error" -- so
+#     re-raising any exception keeps the page broken.
+#   * solnlib server-role detection is not reliable on Splunk Cloud
+#     managed SHs (mixed roles, edge cases with no roles at all), so a
+#     role-based gate produced false negatives in production.
+# This guard therefore returns HTTP 200 with an empty entry list plus a
+# WARN message in confInfo. splunkd renders that as a clean response
+# (entry=[] and messages=[{"type":"WARN","text":"..."}]), the UCC UI
+# shows the endpoint's normal empty state, and any consumer reading
+# `messages[]` still sees the friendly text.
 INPUTS_UNAVAILABLE_MESSAGE = (
     "Inputs cannot be configured on this instance. "
     "You don't have input-page access on this Search Head. "
@@ -102,40 +110,15 @@ INPUTS_UNAVAILABLE_MESSAGE = (
 
 _DISABLE_GUARD_ENV = "SPLUNKTAUCC_DISABLE_SH_INPUT_GUARD"
 
-# Roles that own input configuration. If any of these is present the
-# instance is *not* a pure search head and the guard must not fire.
-_INPUT_OWNER_ROLES = frozenset(
-    {
-        "indexer",
-        "heavyforwarder",
-        "universal_forwarder",
-        "cluster_search_head",
-        "deployment_server",
-    }
-)
-# Roles that mark an instance as a search head / SHC member.
-_SEARCH_HEAD_ROLES = frozenset(
-    {
-        "search_head",
-        "search_peer",
-        "shc_member",
-        "shc_captain",
-        "shc_deployer",
-        "cluster_master",
-        "license_master",
-    }
-)
-
-_search_head_cache: dict = {}
 _scheme_registered_cache: dict = {}
 
 
 def _looks_like_scheme_missing(err):
-    """Return True if `err` looks like the modular-input scheme is missing.
+    """Return True if `err` looks like the input scheme/conf is missing.
 
     A bare 404 from splunkd (or any 5xx) matches; the per-entity
     "does not exist" 404 raised when a stanza is genuinely missing
-    must bubble unchanged.
+    must bubble unchanged so the UI can show the right message for that.
     """
     status = getattr(err, "status", None)
     if status == 404:
@@ -144,39 +127,12 @@ def _looks_like_scheme_missing(err):
     return isinstance(status, int) and 500 <= status < 600
 
 
-def _is_pure_search_head(session_key):
-    """Return True only when running on a pure Search Head / SHC member.
-
-    Mixed-role boxes (e.g. dev instances that also have the indexer role,
-    or IDM where inputs are expected to work) return False.
-    Transient solnlib failures are not cached, so the next request gets
-    a fresh attempt.
-    """
-    if session_key in _search_head_cache:
-        return _search_head_cache[session_key]
-    try:
-        from solnlib.server_info import ServerInfo
-
-        try:
-            info = ServerInfo(session_key=session_key)
-        except TypeError:
-            # Older solnlib only accepts the positional argument.
-            info = ServerInfo(session_key)
-        roles = set(info.server_roles or [])
-    except Exception:
-        return False
-    is_sh = bool(_SEARCH_HEAD_ROLES & roles) and not (_INPUT_OWNER_ROLES & roles)
-    _search_head_cache[session_key] = is_sh
-    return is_sh
-
-
 def _scheme_registered(session_key, app, input_type):
     """Probe splunkd to determine whether the modular-input scheme exists.
 
     Returns True when registered, False when confirmed missing, and None
-    when the probe is inconclusive. The caller treats only an explicit
-    False as authorisation to swap the error for the friendly message,
-    so transient probe failures never produce a misleading message.
+    when the probe is inconclusive (transient splunkd / network error).
+    Cached per (app, input_type) for the life of the handler process.
     """
     cache_key = (app, input_type)
     if cache_key in _scheme_registered_cache:
@@ -258,41 +214,73 @@ class AdminExternalHandler(HookMixin, admin.MConfigHandler):
         )
         decrypt = is_true(decrypt[0])
         try:
+            # list(...) forces eager evaluation inside the try block;
+            # the underlying handler may return a generator, in which
+            # case the RestError would otherwise raise later (during
+            # `build_conf_info` iteration) and bypass this except.
             if self.callerArgs.id:
-                result = self.handler.get(
-                    self.callerArgs.id,
-                    decrypt=decrypt,
+                result = list(
+                    self.handler.get(
+                        self.callerArgs.id,
+                        decrypt=decrypt,
+                    )
                 )
             else:
-                result = self.handler.all(
-                    decrypt=decrypt,
-                    count=0,
+                result = list(
+                    self.handler.all(
+                        decrypt=decrypt,
+                        count=0,
+                    )
                 )
         except RestError as err:
             if self._is_input_page_unavailable(err):
-                raise RESTException(403, INPUTS_UNAVAILABLE_MESSAGE)
+                # Return 200 OK with empty entries + a WARN message.
+                # See module docstring for why we cannot re-raise here.
+                try:
+                    confInfo.addWarnMsg(INPUTS_UNAVAILABLE_MESSAGE)
+                except Exception:
+                    pass
+                return []
             raise
         return result
 
     def _is_input_page_unavailable(self, err):
-        """Return True only for the classic-cloud SH/SHC missing-scheme case."""
-        if not isinstance(self.endpoint, DataInputModel):
-            return False
+        """Return True only when the inputs page is unavailable.
+
+        Covers the three endpoint shapes UCC uses for inputs:
+          * `DataInputModel` -- modular-input scheme stripped at deploy
+            time. The probe distinguishes "scheme registered" (don't
+            gate) from "scheme missing or inconclusive" (gate).
+          * `SingleModel` / `MultipleModel` backed by an inputs-shaped
+            conf file (e.g. ``google_cloud_billing_inputs.conf``). These
+            share the configuration-page code path, so gating is
+            restricted to endpoints whose ``conf_name`` matches the
+            inputs convention; pure settings/credentials endpoints stay
+            untouched.
+
+        The gate intentionally relies on explicit signals only -- the
+        modular-input probe and the error shape -- because cloud-managed
+        SH role detection via solnlib proved unreliable in production
+        (mixed/missing roles producing false negatives).
+        """
         if is_true(os.environ.get(_DISABLE_GUARD_ENV, "")):
             return False
         if not _looks_like_scheme_missing(err):
             return False
-        session_key = self.getSessionKey()
-        if not _is_pure_search_head(session_key):
-            return False
-        return (
-            _scheme_registered(
-                session_key,
-                self.endpoint.app,
-                self.endpoint.input_type,
+        endpoint = self.endpoint
+        if isinstance(endpoint, DataInputModel):
+            registered = _scheme_registered(
+                self.getSessionKey(),
+                endpoint.app,
+                endpoint.input_type,
             )
-            is False
-        )
+            # Treat None (inconclusive) the same as False so the page
+            # never falls back to "Something Went Wrong" on a flaky probe.
+            return registered is not True
+        if isinstance(endpoint, (SingleModel, MultipleModel)):
+            conf_name = (getattr(endpoint, "conf_name", "") or "").lower()
+            return "input" in conf_name
+        return False
 
     @build_conf_info
     def handleCreate(self, confInfo):
