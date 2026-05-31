@@ -261,9 +261,7 @@ def test_handle_encryption_placeholder(admin, client_mock, monkeypatch):
     }
 
 
-# ---------------------------------------------------------------------------
-# Search-head input-page guard
-# ---------------------------------------------------------------------------
+# Search-head input-page guard tests
 
 
 @pytest.fixture(autouse=True)
@@ -286,7 +284,6 @@ def _install_raising_handler(monkeypatch, error):
 
 
 def _make_input_handler(admin, monkeypatch, error):
-    """Wire a DataInputModel handler whose backend raises `error`."""
     model = RestModel([], name=None, special_fields=[])
     endpoint = DataInputModel("demo_input", model, app="fake_app")
     _install_raising_handler(monkeypatch, error)
@@ -297,7 +294,6 @@ def _make_input_handler(admin, monkeypatch, error):
 def test_input_page_with_missing_scheme_returns_empty_with_warning(
     admin, monkeypatch
 ):
-    """DataInputModel + probe says 'scheme missing' -> [] + WARN message."""
     monkeypatch.setattr(
         admin_external, "_scheme_registered", lambda _k, _a, _t: False
     )
@@ -313,7 +309,6 @@ def test_input_page_with_missing_scheme_returns_empty_with_warning(
 def test_input_page_with_inconclusive_probe_returns_empty_with_warning(
     admin, monkeypatch
 ):
-    """Inconclusive probe (None) is treated as 'missing' so the UI never breaks."""
     monkeypatch.setattr(
         admin_external, "_scheme_registered", lambda _k, _a, _t: None
     )
@@ -329,7 +324,6 @@ def test_input_page_with_inconclusive_probe_returns_empty_with_warning(
 def test_input_page_when_scheme_is_registered_preserves_original_error(
     admin, monkeypatch
 ):
-    """When splunkd confirms the scheme exists, original error must bubble."""
     monkeypatch.setattr(
         admin_external, "_scheme_registered", lambda _k, _a, _t: True
     )
@@ -344,7 +338,6 @@ def test_input_page_when_scheme_is_registered_preserves_original_error(
 
 
 def test_per_entity_not_found_is_not_masked(admin, monkeypatch):
-    """`does not exist` 404 is a legitimate per-entity error -- must bubble."""
     monkeypatch.setattr(
         admin_external, "_scheme_registered", lambda _k, _a, _t: False
     )
@@ -358,7 +351,6 @@ def test_per_entity_not_found_is_not_masked(admin, monkeypatch):
 
 
 def test_single_model_inputs_conf_is_gated(admin, monkeypatch):
-    """SingleModel with an inputs-shaped conf_name is gated on the same error."""
     model = RestModel([], name=None, special_fields=[])
     endpoint = SingleModel("billing_inputs", model, app="fake_app")
     _install_raising_handler(monkeypatch, RestError(404, "Not Found"))
@@ -373,7 +365,6 @@ def test_single_model_inputs_conf_is_gated(admin, monkeypatch):
 def test_single_model_settings_endpoint_preserves_original_error(
     admin, monkeypatch
 ):
-    """SingleModel without 'input' in conf_name (settings/credentials) is NOT gated."""
     model = RestModel([], name=None, special_fields=[])
     endpoint = SingleModel("demo_settings", model, app="fake_app")
     _install_raising_handler(monkeypatch, RestError(500, "boom"))
@@ -385,7 +376,6 @@ def test_single_model_settings_endpoint_preserves_original_error(
 
 
 def test_env_kill_switch_disables_guard(admin, monkeypatch):
-    """SPLUNKTAUCC_DISABLE_SH_INPUT_GUARD=1 keeps the original error path."""
     monkeypatch.setenv("SPLUNKTAUCC_DISABLE_SH_INPUT_GUARD", "1")
     monkeypatch.setattr(
         admin_external, "_scheme_registered", lambda _k, _a, _t: False
@@ -400,12 +390,8 @@ def test_env_kill_switch_disables_guard(admin, monkeypatch):
 
 
 def test_generator_raising_resterror_is_caught(admin, monkeypatch):
-    """RestError raised by a generator (not pre-materialized) is still caught.
-
-    Without the `list(...)` materialization in handleList, the raise
-    would happen later during iteration in build_conf_info and bypass
-    the except clause -- the test guards against that regression.
-    """
+    # Guards the list(...) materialization in handleList: without it,
+    # a generator's RestError would raise outside the except clause.
     monkeypatch.setattr(
         admin_external, "_scheme_registered", lambda _k, _a, _t: False
     )

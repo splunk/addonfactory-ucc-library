@@ -80,27 +80,9 @@ def get_splunkd_endpoint():
         return splunkd_uri
 
 
-# Search-head input-page guard.
-#
-# On classic-cloud Search Heads / SHCs the inputs.conf.spec for cloud TAs
-# (AWS, GCP, MSCS, ...) is stripped at deploy time, so splunkd has no
-# scheme registered for the input type. The UCC-generated REST endpoint
-# then returns HTTP 404, splunktaucclib raises RestError(404), and
-# splunk.admin.MConfigHandler -- which does not recognise RestError --
-# wraps it as HTTP 500
-# "Unexpected error '<class RestError>' from python handler ...".
-# The UCC React UI surfaces that 500 as the global "Something Went Wrong"
-# overlay. Cloud testing on Splunk_TA_google-cloudplatform confirmed:
-#   * splunk.RESTException is ALSO wrapped as "Unexpected error" -- so
-#     re-raising any exception keeps the page broken.
-#   * solnlib server-role detection is not reliable on Splunk Cloud
-#     managed SHs (mixed roles, edge cases with no roles at all), so a
-#     role-based gate produced false negatives in production.
-# This guard therefore returns HTTP 200 with an empty entry list plus a
-# WARN message in confInfo. splunkd renders that as a clean response
-# (entry=[] and messages=[{"type":"WARN","text":"..."}]), the UCC UI
-# shows the endpoint's normal empty state, and any consumer reading
-# `messages[]` still sees the friendly text.
+# Inputs-page guard for classic-cloud SH/SHC where inputs.conf.spec is
+# stripped: returns HTTP 200 + empty list + WARN message instead of
+# letting RestError surface as splunkd's "Unexpected error" 500.
 INPUTS_UNAVAILABLE_MESSAGE = (
     "Inputs cannot be configured on this instance. "
     "You don't have input-page access on this Search Head. "
@@ -114,12 +96,8 @@ _scheme_registered_cache: dict = {}
 
 
 def _looks_like_scheme_missing(err):
-    """Return True if `err` looks like the input scheme/conf is missing.
-
-    A bare 404 from splunkd (or any 5xx) matches; the per-entity
-    "does not exist" 404 raised when a stanza is genuinely missing
-    must bubble unchanged so the UI can show the right message for that.
-    """
+    # Bare 404 or any 5xx looks like a missing scheme; per-entity
+    # "does not exist" 404 is a real stanza error and must bubble.
     status = getattr(err, "status", None)
     if status == 404:
         message = (getattr(err, "message", "") or "").lower()
@@ -128,12 +106,7 @@ def _looks_like_scheme_missing(err):
 
 
 def _scheme_registered(session_key, app, input_type):
-    """Probe splunkd to determine whether the modular-input scheme exists.
-
-    Returns True when registered, False when confirmed missing, and None
-    when the probe is inconclusive (transient splunkd / network error).
-    Cached per (app, input_type) for the life of the handler process.
-    """
+    # Returns True/False/None (None = inconclusive). Cached per process.
     cache_key = (app, input_type)
     if cache_key in _scheme_registered_cache:
         return _scheme_registered_cache[cache_key]
@@ -214,10 +187,7 @@ class AdminExternalHandler(HookMixin, admin.MConfigHandler):
         )
         decrypt = is_true(decrypt[0])
         try:
-            # list(...) forces eager evaluation inside the try block;
-            # the underlying handler may return a generator, in which
-            # case the RestError would otherwise raise later (during
-            # `build_conf_info` iteration) and bypass this except.
+            # list(...) so a generator raises inside this try block.
             if self.callerArgs.id:
                 result = list(
                     self.handler.get(
@@ -234,8 +204,6 @@ class AdminExternalHandler(HookMixin, admin.MConfigHandler):
                 )
         except RestError as err:
             if self._is_input_page_unavailable(err):
-                # Return 200 OK with empty entries + a WARN message.
-                # See module docstring for why we cannot re-raise here.
                 try:
                     confInfo.addWarnMsg(INPUTS_UNAVAILABLE_MESSAGE)
                 except Exception:
@@ -245,24 +213,10 @@ class AdminExternalHandler(HookMixin, admin.MConfigHandler):
         return result
 
     def _is_input_page_unavailable(self, err):
-        """Return True only when the inputs page is unavailable.
-
-        Covers the three endpoint shapes UCC uses for inputs:
-          * `DataInputModel` -- modular-input scheme stripped at deploy
-            time. The probe distinguishes "scheme registered" (don't
-            gate) from "scheme missing or inconclusive" (gate).
-          * `SingleModel` / `MultipleModel` backed by an inputs-shaped
-            conf file (e.g. ``google_cloud_billing_inputs.conf``). These
-            share the configuration-page code path, so gating is
-            restricted to endpoints whose ``conf_name`` matches the
-            inputs convention; pure settings/credentials endpoints stay
-            untouched.
-
-        The gate intentionally relies on explicit signals only -- the
-        modular-input probe and the error shape -- because cloud-managed
-        SH role detection via solnlib proved unreliable in production
-        (mixed/missing roles producing false negatives).
-        """
+        # Gate only when: env override is off, the error shape matches a
+        # missing scheme/conf, and the endpoint is an inputs endpoint
+        # (DataInputModel with probe confirming missing/inconclusive, or
+        # a SingleModel/MultipleModel whose conf_name is inputs-shaped).
         if is_true(os.environ.get(_DISABLE_GUARD_ENV, "")):
             return False
         if not _looks_like_scheme_missing(err):
@@ -274,8 +228,6 @@ class AdminExternalHandler(HookMixin, admin.MConfigHandler):
                 endpoint.app,
                 endpoint.input_type,
             )
-            # Treat None (inconclusive) the same as False so the page
-            # never falls back to "Something Went Wrong" on a flaky probe.
             return registered is not True
         if isinstance(endpoint, (SingleModel, MultipleModel)):
             conf_name = (getattr(endpoint, "conf_name", "") or "").lower()
