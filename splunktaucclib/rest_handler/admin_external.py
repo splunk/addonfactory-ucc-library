@@ -83,11 +83,15 @@ def get_splunkd_endpoint():
 # Inputs-page guard for classic-cloud SH/SHC where inputs.conf.spec is
 # stripped: returns HTTP 200 + empty list + WARN message instead of
 # letting RestError surface as splunkd's "Unexpected error" 500.
+#
+# The leading sentence is the contract that UCC's
+# `useInputsAvailability` hook matches on (see
+# addonfactory-ucc-generator constants/inputsAvailability.ts); keep
+# it verbatim when softening the trailing copy.
 INPUTS_UNAVAILABLE_MESSAGE = (
-    "Inputs cannot be configured on this instance. "
-    "You don't have input-page access on this Search Head. "
-    "Inputs for this add-on must be configured on the IDM. "
-    "Please contact your admin or Splunk Support."
+    "Inputs cannot be configured on this Search Head. "
+    "Inputs for this add-on must be configured on the Inputs Data Manager "
+    "(IDM) instance. For more details, refer to the Splunk Cloud documentation."
 )
 
 _DISABLE_GUARD_ENV = "SPLUNKTAUCC_DISABLE_SH_INPUT_GUARD"
