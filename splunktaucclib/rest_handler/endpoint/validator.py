@@ -18,8 +18,8 @@
 Validators for Splunk configuration.
 """
 
-
 import json
+import os
 import re
 import warnings
 from inspect import isfunction
@@ -40,6 +40,7 @@ __all__ = [
     "Datetime",
     "Email",
     "JsonString",
+    "IndexName",
 ]
 
 
@@ -483,3 +484,232 @@ class JsonString(Validator):
             self.put_msg("Invalid JSON string")
             return False
         return True
+
+
+class IndexName(Validator):
+    """
+    Validates a Splunk index name by calling the Splunk core endpoint
+    POST /services/data/indexes/_validateName.
+
+    No arguments are required. The session key and splunkd URI are
+    resolved automatically from the running process context:
+    - session key from __main__.___sessionKey (set by MConfigHandler.__init__)
+    - splunkd URI from SPLUNKD_URI env var (set by AdminExternalHandler.__init__)
+
+    Falls back to local validation rules (mirroring IndexName::validate() in
+    IndexName.cpp) when the endpoint is not available on the running Splunk version.
+
+    Usage::
+
+    >>> from splunktaucclib.rest_handler.endpoint.field import RestField
+    >>> from splunktaucclib.rest_handler.endpoint.validator import IndexName
+    >>>
+    >>> RestField("index", required=True, validator=IndexName())
+
+    """
+
+    _ENDPOINT = "data/indexes/_validateName"
+    _INDEX_NAME_MAX_LEN = 2048
+    _DATASET_NAME_MAX_LEN = 1024
+    _INTERNAL_INDEXES = frozenset(
+        {
+            "_audit",
+            "help",
+            "history",
+            "_internal",
+            "sample",
+            "splunklogger",
+            "summary",
+            "_introspection",
+            "_thefishbucket",
+            "_telemetry",
+            "_metrics",
+            "_configtracker",
+            "_dsphonehome",
+            "_dsappevent",
+            "_dsclient",
+            "_cmc_summary",
+            "_metrics_rollup",
+            "_dm_summary",
+            "_dsevent_index_summary",
+        }
+    )
+    _VALID_CHARS = re.compile(r"^[0-9a-zA-Z_\-]+$")
+    _MSG_INDEX_NAME_NOT_SUPPORTED = (
+        'Argument "index_name" is not supported by this handler.'
+    )
+    # SplunkCore index services prefix — stripped before applying IndexName rules
+    _FEDERATED_INDEX_PREFIX = "federated:"
+    # MDL prefix — routes to dataset name validation instead
+    _FEDERATED_MDL_PREFIX = "~.federated."
+
+    @staticmethod
+    def _validate_as_index_name(name: str) -> tuple:
+        src = (
+            name[len(IndexName._FEDERATED_INDEX_PREFIX) :]
+            if name.startswith(IndexName._FEDERATED_INDEX_PREFIX)
+            else name
+        )
+        src_lower = src.lower()
+
+        if len(src) > IndexName._INDEX_NAME_MAX_LEN:
+            return False, f"index name={src} is too long, please try a shorter name"
+
+        if not src or src[0] == "-":
+            return (
+                False,
+                f"invalid name: '{src}'. name parameter must be "
+                "non-empty and cannot start with '_' or '-'",
+            )
+
+        if src[0] == "_" and src_lower not in IndexName._INTERNAL_INDEXES:
+            return (
+                False,
+                f"invalid name: '{src}'. name parameter must be "
+                "non-empty and cannot start with '_' or '-'",
+            )
+
+        if not IndexName._VALID_CHARS.match(src):
+            return (
+                False,
+                "Invalid name: only lower case alphanumeric characters, '-' and '_' are allowed.",
+            )
+
+        if src_lower == "kvstore":
+            return (
+                False,
+                "Invalid name: cannot use reserved name 'kvstore' as an index name.",
+            )
+
+        return True, ""
+
+    @staticmethod
+    def _validate_as_dataset_name(inner_name: str) -> tuple:
+        if not inner_name:
+            return False, "Dataset name is required"
+
+        if len(inner_name) >= IndexName._DATASET_NAME_MAX_LEN:
+            return False, 'Parameter "name" must be less than 1024 characters.'
+
+        if "." in inner_name:
+            return False, "Dataset name cannot contain '.'"
+
+        if inner_name == "default":
+            return False, "Invalid entity name: default"
+
+        return True, ""
+
+    @staticmethod
+    def validate_fallback(name: str) -> tuple:
+        """
+        Returns (is_valid, reason). Mirrors IndexAdminHandler::validateName() routing
+        to either _validate_as_dataset_name or _validate_as_index_name.
+        reason is empty string when valid.
+        """
+        if name.startswith(IndexName._FEDERATED_MDL_PREFIX):
+            inner = name[len(IndexName._FEDERATED_MDL_PREFIX) :]
+            return IndexName._validate_as_dataset_name(inner)
+        return IndexName._validate_as_index_name(name)
+
+    @staticmethod
+    def _get_session_key():
+        import __main__
+
+        return getattr(__main__, "___sessionKey", None)
+
+    @staticmethod
+    def _get_splunkd_info():
+        import urllib.parse
+
+        from solnlib.splunkenv import get_splunkd_uri
+
+        splunkd_uri = os.environ.get("SPLUNKD_URI") or get_splunkd_uri()
+        return urllib.parse.urlparse(splunkd_uri)
+
+    @staticmethod
+    def _extract_http_error_message(exc):
+        try:
+            return json.loads(exc.body).get("messages", [{}])[0].get("text")
+        except (KeyError, ValueError):
+            return None
+
+    def _call_validate_endpoint(self, value, session_key, splunkd_info):
+        """
+        Returns (result, error_message) where:
+          result=None  — endpoint not present, caller should fall back to local rules
+          result=True  — name is valid
+          result=False — name is invalid or request failed; error_message contains the reason
+        """
+        from solnlib.splunk_rest_client import SplunkRestClient
+        from splunklib import binding
+
+        from ..util import get_base_app_name
+
+        client = SplunkRestClient(
+            session_key,
+            get_base_app_name(),
+            scheme=splunkd_info.scheme,
+            host=splunkd_info.hostname,
+            port=splunkd_info.port,
+        )
+        try:
+            response = client.post(
+                self._ENDPOINT,
+                output_mode="json",
+                body={"index_name": value},
+            )
+        except binding.HTTPError as exc:
+            if exc.status == 404:
+                # endpoint handler not present on this Splunk version — signal caller to fall back
+                return None, None
+
+            error_message = self._extract_http_error_message(exc)
+            if exc.status == 400:
+                if error_message == self._MSG_INDEX_NAME_NOT_SUPPORTED:
+                    return (
+                        None,
+                        None,
+                    )  # endpoint custom action is not supported — fall back to local rules
+
+            if exc.status == 403:
+                return False, "Insufficient permissions to validate index name"
+
+            return (
+                False,
+                f"Index name validation request failed: HTTP {exc.status}, {error_message or exc.body}",
+            )
+        except Exception as exc:
+            return (
+                False,
+                f"Index name validation request failed, unexpected error: {exc}",
+            )
+
+        try:
+            content = json.loads(response.body.read())["entry"][0]["content"]
+        except (KeyError, IndexError, ValueError) as exc:
+            return False, f"Unexpected response from validation endpoint: {exc}"
+
+        if content["is_valid"] == "true":
+            return True, None
+        return False, content.get("reason", "Invalid index name")
+
+    def validate(self, value, data):
+        session_key = self._get_session_key()
+        if not session_key:
+            self.put_msg("Unable to validate index name: session key not available")
+            return False
+
+        result, error = self._call_validate_endpoint(
+            value, session_key, self._get_splunkd_info()
+        )
+
+        if result is None:
+            # endpoint not available — fall back to local rules
+            is_valid, reason = self.validate_fallback(value)
+            if not is_valid:
+                self.put_msg(reason)
+            return is_valid
+
+        if not result:
+            self.put_msg(error)
+        return result
