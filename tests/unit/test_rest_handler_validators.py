@@ -66,6 +66,15 @@ def validator():
     return IndexName()
 
 
+@pytest.fixture
+def mock_ucclog(monkeypatch):
+    from splunktaucclib.common import log as ucclog
+
+    mock_logger = MagicMock()
+    monkeypatch.setattr(ucclog, "logger", mock_logger)
+    return mock_logger
+
+
 # ---------------------------------------------------------------------------
 # validate_fallback — local rules
 # ---------------------------------------------------------------------------
@@ -108,7 +117,7 @@ class TestValidateFallback:
         ],
     )
     def test_valid_names(self, name):
-        assert IndexName.validate_fallback(name) == (True, "")
+        assert IndexName.validate_fallback(name) == ""
 
     @pytest.mark.parametrize(
         "name,reason_contains",
@@ -125,16 +134,21 @@ class TestValidateFallback:
             ("KVSTORE", "kvstore"),  # case-insensitive reserved word check
             ("federated:KVSTORE", "kvstore"),  # case-insensitive after prefix strip
             ("federated:-bad", "cannot start with"),  # hyphen after prefix strip
-            ("", "non-empty"),
-            ("federated:", "non-empty"),  # empty name after prefix strip
+            ("", "empty"),
+            ("federated:", "empty"),  # empty name after prefix strip
             ("~.federated.my.dataset", "cannot contain"),  # dot in dataset name
             ("~.federated.default", "default"),  # reserved dataset name
+            (
+                "~.federated.DEFAULT",
+                "default",
+            ),  # reserved dataset name — case-insensitive
+            ("~.federated.Default", "default"),  # reserved dataset name — mixed case
             ("~.federated." + "x" * 1024, "1024"),  # dataset name >= 1024 chars
         ],
     )
     def test_invalid_names(self, name, reason_contains):
-        valid, reason = IndexName.validate_fallback(name)
-        assert valid is False
+        reason = IndexName.validate_fallback(name)
+        assert reason != ""
         assert reason_contains in reason
 
 
@@ -205,15 +219,21 @@ class TestCallValidateEndpoint:
             "splunktaucclib.rest_handler.util.get_base_app_name",
             lambda: self._APP_NAME,
         )
+        monkeypatch.setattr(
+            IndexName, "_get_session_key", staticmethod(lambda: self._SESSION_KEY)
+        )
+        monkeypatch.setattr(
+            IndexName,
+            "_get_splunkd_info",
+            staticmethod(lambda: self._splunkd_info()),
+        )
         return IndexName()
 
     def test_valid_name_returns_true(self, monkeypatch):
         client = MagicMock()
         client.post.return_value = _make_response(True)
         v = self._make_validator_with_client(monkeypatch, client)
-        result, error = v._call_validate_endpoint(
-            "main", self._SESSION_KEY, self._splunkd_info()
-        )
+        result, error = v._call_validate_endpoint("main")
         assert result is True
         assert error is None
 
@@ -221,7 +241,7 @@ class TestCallValidateEndpoint:
         client = MagicMock()
         client.post.return_value = _make_response(True)
         v = self._make_validator_with_client(monkeypatch, client)
-        v._call_validate_endpoint("main", self._SESSION_KEY, self._splunkd_info())
+        v._call_validate_endpoint("main")
         client.post.assert_called_once_with(
             IndexName._ENDPOINT,
             output_mode="json",
@@ -233,7 +253,7 @@ class TestCallValidateEndpoint:
         client.post.return_value = _make_response(True)
         v = self._make_validator_with_client(monkeypatch, client)
         splunkd_info = self._splunkd_info()
-        v._call_validate_endpoint("main", self._SESSION_KEY, splunkd_info)
+        v._call_validate_endpoint("main")
         self._rest_client_cls.assert_called_once_with(
             self._SESSION_KEY,
             self._APP_NAME,
@@ -248,9 +268,7 @@ class TestCallValidateEndpoint:
             False, "Name contains invalid characters"
         )
         v = self._make_validator_with_client(monkeypatch, client)
-        result, error = v._call_validate_endpoint(
-            "bad:name", self._SESSION_KEY, self._splunkd_info()
-        )
+        result, error = v._call_validate_endpoint("bad:name")
         assert result is False
         assert error == "Name contains invalid characters"
 
@@ -263,9 +281,7 @@ class TestCallValidateEndpoint:
         resp.body.read.return_value = body
         client.post.return_value = resp
         v = self._make_validator_with_client(monkeypatch, client)
-        result, error = v._call_validate_endpoint(
-            "x", self._SESSION_KEY, self._splunkd_info()
-        )
+        result, error = v._call_validate_endpoint("x")
         assert result is False
         assert error == "Invalid index name"
 
@@ -278,49 +294,53 @@ class TestCallValidateEndpoint:
             json.dumps({}).encode(),
         ],
     )
-    def test_malformed_response_returns_false(self, monkeypatch, body):
+    def test_malformed_response_returns_none_for_fallback(
+        self, monkeypatch, body, mock_ucclog
+    ):
         client = MagicMock()
         resp = MagicMock()
         resp.body.read.return_value = body
         client.post.return_value = resp
         v = self._make_validator_with_client(monkeypatch, client)
-        result, error = v._call_validate_endpoint(
-            "main", self._SESSION_KEY, self._splunkd_info()
-        )
-        assert result is False
-        assert "Unexpected response" in error
+        result, error = v._call_validate_endpoint("main")
+        assert result is None
+        assert error is None
+        mock_ucclog.error.assert_called_once()
+        assert "Unexpected response" in mock_ucclog.error.call_args[0][0]
 
-    def test_404_returns_none_for_fallback(self, monkeypatch):
+    def test_404_returns_none_for_fallback(self, monkeypatch, mock_ucclog):
         client = MagicMock()
         client.post.side_effect = _http_error(404)
         v = self._make_validator_with_client(monkeypatch, client)
-        result, error = v._call_validate_endpoint(
-            "main", self._SESSION_KEY, self._splunkd_info()
-        )
+        result, error = v._call_validate_endpoint("main")
         assert result is None
         assert error is None
+        mock_ucclog.warning.assert_called_once()
+        assert "404" in mock_ucclog.warning.call_args[0][0]
 
-    def test_403_returns_false_with_permissions_message(self, monkeypatch):
+    def test_403_returns_false_with_permissions_message(self, monkeypatch, mock_ucclog):
         client = MagicMock()
         client.post.side_effect = _http_error(403)
         v = self._make_validator_with_client(monkeypatch, client)
-        result, error = v._call_validate_endpoint(
-            "main", self._SESSION_KEY, self._splunkd_info()
-        )
+        result, error = v._call_validate_endpoint("main")
         assert result is False
         assert "permissions" in error.lower()
+        mock_ucclog.warning.assert_called_once()
+        assert "403" in mock_ucclog.warning.call_args[0][0]
 
-    def test_500_returns_false_with_status_in_message(self, monkeypatch):
+    def test_500_returns_false_with_status_in_message(self, monkeypatch, mock_ucclog):
         client = MagicMock()
         client.post.side_effect = _http_error(500)
         v = self._make_validator_with_client(monkeypatch, client)
-        result, error = v._call_validate_endpoint(
-            "main", self._SESSION_KEY, self._splunkd_info()
-        )
+        result, error = v._call_validate_endpoint("main")
         assert result is False
         assert "500" in error
+        mock_ucclog.warning.assert_called_once()
+        assert "500" in str(mock_ucclog.warning.call_args)
 
-    def test_400_index_name_not_supported_returns_none_for_fallback(self, monkeypatch):
+    def test_400_index_name_not_supported_returns_none_for_fallback(
+        self, monkeypatch, mock_ucclog
+    ):
         body = json.dumps(
             {
                 "messages": [
@@ -331,34 +351,66 @@ class TestCallValidateEndpoint:
         client = MagicMock()
         client.post.side_effect = _http_error(400, body)
         v = self._make_validator_with_client(monkeypatch, client)
-        result, error = v._call_validate_endpoint(
-            "main", self._SESSION_KEY, self._splunkd_info()
-        )
+        result, error = v._call_validate_endpoint("main")
         assert result is None
         assert error is None
+        mock_ucclog.warning.assert_called_once()
+        assert "400" in mock_ucclog.warning.call_args[0][0]
 
-    def test_400_other_message_returns_false_with_status(self, monkeypatch):
+    def test_400_empty_messages_list_returns_false_with_status(
+        self, monkeypatch, mock_ucclog
+    ):
+        body = json.dumps({"messages": []}).encode()
+        client = MagicMock()
+        client.post.side_effect = _http_error(400, body)
+        v = self._make_validator_with_client(monkeypatch, client)
+        result, error = v._call_validate_endpoint("main")
+        assert result is False
+        assert "400" in error
+
+    def test_400_other_message_returns_false_with_status(
+        self, monkeypatch, mock_ucclog
+    ):
         body = json.dumps(
             {"messages": [{"type": "ERROR", "text": "Some other bad request error"}]}
         ).encode()
         client = MagicMock()
         client.post.side_effect = _http_error(400, body)
         v = self._make_validator_with_client(monkeypatch, client)
-        result, error = v._call_validate_endpoint(
-            "main", self._SESSION_KEY, self._splunkd_info()
-        )
+        result, error = v._call_validate_endpoint("main")
         assert result is False
         assert "400" in error
+        mock_ucclog.warning.assert_called_once()
+        assert "400" in str(mock_ucclog.warning.call_args)
 
-    def test_unexpected_exception_returns_false_with_message(self, monkeypatch):
+    def test_unexpected_exception_returns_false_with_message(
+        self, monkeypatch, mock_ucclog
+    ):
         client = MagicMock()
         client.post.side_effect = RuntimeError("connection refused")
         v = self._make_validator_with_client(monkeypatch, client)
-        result, error = v._call_validate_endpoint(
-            "main", self._SESSION_KEY, self._splunkd_info()
-        )
+        result, error = v._call_validate_endpoint("main")
         assert result is False
         assert "connection refused" in error
+        mock_ucclog.error.assert_called_once()
+        assert "connection refused" in str(mock_ucclog.error.call_args)
+
+    def test_no_session_key_returns_none_for_fallback(self, monkeypatch, mock_ucclog):
+        monkeypatch.setattr(IndexName, "_get_session_key", staticmethod(lambda: None))
+        mock_splunkd = MagicMock()
+        monkeypatch.setattr(IndexName, "_get_splunkd_info", staticmethod(mock_splunkd))
+        result, error = IndexName()._call_validate_endpoint("main")
+        assert result is None
+        assert error is None
+        mock_ucclog.error.assert_called_once()
+        assert "session key" in mock_ucclog.error.call_args[0][0]
+
+    def test_splunkd_info_not_called_when_no_session_key(self, monkeypatch):
+        monkeypatch.setattr(IndexName, "_get_session_key", staticmethod(lambda: None))
+        mock_splunkd = MagicMock()
+        monkeypatch.setattr(IndexName, "_get_splunkd_info", staticmethod(mock_splunkd))
+        IndexName()._call_validate_endpoint("main")
+        mock_splunkd.assert_not_called()
 
 
 # ---------------------------------------------------------------------------
@@ -367,80 +419,32 @@ class TestCallValidateEndpoint:
 
 
 class TestValidate:
-    _SESSION_KEY = "fake_key"
-
     @pytest.fixture
-    def splunkd_info(self):
+    def patched_validator(self, monkeypatch):
         import urllib.parse
 
-        return urllib.parse.urlparse("https://localhost:8089")
-
-    @pytest.fixture
-    def mock_get_session_key(self, monkeypatch):
-        m = MagicMock(return_value=self._SESSION_KEY)
-        monkeypatch.setattr(IndexName, "_get_session_key", staticmethod(m))
-        return m
-
-    @pytest.fixture
-    def mock_get_splunkd_info(self, monkeypatch, splunkd_info):
-        m = MagicMock(return_value=splunkd_info)
-        monkeypatch.setattr(IndexName, "_get_splunkd_info", staticmethod(m))
-        return m
-
-    @pytest.fixture
-    def patched_validator(self, mock_get_session_key, mock_get_splunkd_info):
+        monkeypatch.setattr(
+            IndexName, "_get_session_key", staticmethod(lambda: "fake_key")
+        )
+        monkeypatch.setattr(
+            IndexName,
+            "_get_splunkd_info",
+            staticmethod(lambda: urllib.parse.urlparse("https://localhost:8089")),
+        )
         return IndexName()
 
-    def test_no_session_key_returns_false(self, monkeypatch):
+    def test_no_session_key_falls_back_to_local_rules(self, monkeypatch):
         monkeypatch.setattr(IndexName, "_get_session_key", staticmethod(lambda: None))
         v = IndexName()
-        assert v.validate("main", {}) is False
-        assert "session key" in v.msg.lower()
+        assert v.validate("main", {}) is True
+        assert v.validate("kvstore", {}) is False
+        assert "kvstore" in v.msg
 
-    def test_no_session_key_does_not_call_splunkd_info(self, monkeypatch):
-        monkeypatch.setattr(IndexName, "_get_session_key", staticmethod(lambda: None))
-        mock_info = MagicMock()
-        monkeypatch.setattr(IndexName, "_get_splunkd_info", staticmethod(mock_info))
-        IndexName().validate("main", {})
-        mock_info.assert_not_called()
-
-    def test_get_session_key_called_on_validate(
-        self, patched_validator, mock_get_session_key, monkeypatch
-    ):
-        monkeypatch.setattr(
-            patched_validator,
-            "_call_validate_endpoint",
-            MagicMock(return_value=(True, None)),
-        )
-        patched_validator.validate("main", {})
-        mock_get_session_key.assert_called_once()
-
-    def test_get_splunkd_info_called_on_validate(
-        self, patched_validator, mock_get_splunkd_info, monkeypatch
-    ):
-        monkeypatch.setattr(
-            patched_validator,
-            "_call_validate_endpoint",
-            MagicMock(return_value=(True, None)),
-        )
-        patched_validator.validate("main", {})
-        mock_get_splunkd_info.assert_called_once()
-
-    def test_validate_endpoint_called_with_correct_args(
-        self,
-        patched_validator,
-        mock_get_session_key,
-        mock_get_splunkd_info,
-        monkeypatch,
-    ):
+    def test_validate_endpoint_called_with_value(self, patched_validator, monkeypatch):
         mock_endpoint = MagicMock(return_value=(True, None))
         monkeypatch.setattr(patched_validator, "_call_validate_endpoint", mock_endpoint)
         patched_validator.validate("main", {})
-        mock_endpoint.assert_called_once_with(
-            "main",
-            mock_get_session_key.return_value,
-            mock_get_splunkd_info.return_value,
-        )
+        mock_endpoint.assert_called_once_with("main")
 
     def test_valid_name_via_endpoint(self, patched_validator, monkeypatch):
         monkeypatch.setattr(
@@ -467,7 +471,7 @@ class TestValidate:
             "_call_validate_endpoint",
             MagicMock(return_value=(None, None)),
         )
-        mock_fallback = MagicMock(return_value=(True, ""))
+        mock_fallback = MagicMock(return_value="")
         monkeypatch.setattr(IndexName, "validate_fallback", staticmethod(mock_fallback))
         patched_validator.validate("main", {})
         mock_fallback.assert_called_once_with("main")
@@ -497,10 +501,14 @@ class TestValidate:
             ("KVSTORE", "kvstore"),
             ("federated:KVSTORE", "kvstore"),
             ("federated:-bad", "cannot start with"),
-            ("", "non-empty"),
-            ("federated:", "non-empty"),
+            ("", "empty"),
+            ("federated:", "empty"),
             ("~.federated.my.dataset", "cannot contain"),
             ("~.federated.default", "default"),
+            (
+                "~.federated.DEFAULT",
+                "default",
+            ),  # reserved dataset name — case-insensitive
             ("~.federated." + "x" * 1024, "1024"),  # dataset name >= 1024 chars
         ],
     )
