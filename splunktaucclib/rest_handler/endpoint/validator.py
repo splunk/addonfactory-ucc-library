@@ -619,8 +619,8 @@ class IndexName(Validator):
     @staticmethod
     def _extract_http_error_message(exc):
         try:
-            return json.loads(exc.body).get("messages", [{}])[0].get("text")
-        except (AttributeError, IndexError, KeyError, ValueError):
+            return json.loads(exc.body)["messages"][0]["text"]
+        except (IndexError, KeyError, TypeError, ValueError):
             return None
 
     def _call_validate_endpoint(self, value):
@@ -704,7 +704,7 @@ class IndexName(Validator):
             if content["is_valid"] == "true":
                 return True, None
             return False, content.get("reason", "Invalid index name")
-        except (KeyError, IndexError, ValueError) as exc:
+        except (KeyError, IndexError, TypeError, ValueError) as exc:
             ucclog.logger.error(
                 f"Unexpected response from validation endpoint: response {response_body}, error {exc}"
             )

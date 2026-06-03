@@ -292,6 +292,9 @@ class TestCallValidateEndpoint:
             json.dumps({"entry": []}).encode(),
             json.dumps({"entry": [{}]}).encode(),
             json.dumps({}).encode(),
+            json.dumps(
+                {"entry": [{"content": None}]}
+            ).encode(),  # content: null → TypeError
         ],
     )
     def test_malformed_response_returns_none_for_fallback(
@@ -361,6 +364,17 @@ class TestCallValidateEndpoint:
         self, monkeypatch, mock_ucclog
     ):
         body = json.dumps({"messages": []}).encode()
+        client = MagicMock()
+        client.post.side_effect = _http_error(400, body)
+        v = self._make_validator_with_client(monkeypatch, client)
+        result, error = v._call_validate_endpoint("main")
+        assert result is False
+        assert "400" in error
+
+    def test_400_null_messages_returns_false_with_status(
+        self, monkeypatch, mock_ucclog
+    ):
+        body = json.dumps({"messages": None}).encode()
         client = MagicMock()
         client.post.side_effect = _http_error(400, body)
         v = self._make_validator_with_client(monkeypatch, client)
