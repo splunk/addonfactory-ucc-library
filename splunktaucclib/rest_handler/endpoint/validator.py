@@ -18,8 +18,8 @@
 Validators for Splunk configuration.
 """
 
-
 import json
+import os
 import re
 import warnings
 from inspect import isfunction
@@ -40,6 +40,7 @@ __all__ = [
     "Datetime",
     "Email",
     "JsonString",
+    "IndexName",
 ]
 
 
@@ -483,3 +484,248 @@ class JsonString(Validator):
             self.put_msg("Invalid JSON string")
             return False
         return True
+
+
+class IndexName(Validator):
+    """
+    Validates a Splunk index name by calling the Splunk core endpoint
+    POST /services/data/indexes/_validateName.
+
+    No arguments are required. The session key and splunkd URI are
+    resolved automatically from the running process context:
+    - session key from __main__.___sessionKey (set by MConfigHandler.__init__)
+    - splunkd URI from SPLUNKD_URI env var (set by AdminExternalHandler.__init__)
+
+    Falls back to local validation rules (mirroring IndexName::validate() in
+    IndexName.cpp) when the endpoint is not available on the running Splunk version.
+
+    Usage::
+
+    >>> from splunktaucclib.rest_handler.endpoint.field import RestField
+    >>> from splunktaucclib.rest_handler.endpoint.validator import IndexName
+    >>>
+    >>> RestField("index", required=True, validator=IndexName())
+
+    """
+
+    _ENDPOINT = "data/indexes/_validateName"
+    _INDEX_NAME_MAX_LEN = 2048
+    _DATASET_NAME_MAX_LEN = 1024
+    # Internal indexes from splcore develop branch IndexAdminHandler::validateName()
+    _INTERNAL_INDEXES = frozenset(
+        {
+            "_audit",
+            "help",
+            "history",
+            "_internal",
+            "sample",
+            "splunklogger",
+            "summary",
+            "_introspection",
+            "_thefishbucket",
+            "_telemetry",
+            "_metrics",
+            "_configtracker",
+            "_dsphonehome",
+            "_dsappevent",
+            "_dsclient",
+            "_cmc_summary",
+            "_metrics_rollup",
+            "_dm_summary",
+            "_dsevent_index_summary",
+        }
+    )
+    _VALID_CHARS = re.compile(r"^[0-9a-zA-Z_\-]+$")
+    _MSG_INDEX_NAME_NOT_SUPPORTED = (
+        'Argument "index_name" is not supported by this handler.'
+    )
+    # SplunkCore index services prefix — stripped before applying IndexName rules
+    _FEDERATED_INDEX_PREFIX = "federated:"
+    # MDL prefix — routes to dataset name validation instead
+    _FEDERATED_MDL_PREFIX = "~.federated."
+
+    @staticmethod
+    def _validate_as_index_name(name: str) -> str:
+        src = (
+            name[len(IndexName._FEDERATED_INDEX_PREFIX) :]
+            if name.startswith(IndexName._FEDERATED_INDEX_PREFIX)
+            else name
+        )
+        src_lower = src.lower()
+
+        if len(src) > IndexName._INDEX_NAME_MAX_LEN:
+            return f"Index name '{src}' is too long, please try a shorter name"
+
+        if not src:
+            return "Index name cannot be empty"
+
+        if src[0] == "-":
+            return f"Invalid index name: '{src}'. Index name cannot start with '-'"
+
+        if src[0] == "_" and src_lower not in IndexName._INTERNAL_INDEXES:
+            return f"Invalid index name: '{src}'. Index name cannot start with '_' unless it's one of reserved internal indexes: {', '.join(IndexName._INTERNAL_INDEXES)}"
+
+        if not IndexName._VALID_CHARS.match(src):
+            return f"Invalid index name: '{src}'. Index name allows only alphanumeric characters, '-' and '_'."
+
+        if src_lower == "kvstore":
+            return "Invalid index name: cannot use reserved name 'kvstore' as an index name."
+
+        return ""
+
+    @staticmethod
+    def _validate_as_dataset_name(inner_name: str) -> str:
+        if not inner_name:
+            return "MDL federated dataset name is required"
+
+        if len(inner_name) >= IndexName._DATASET_NAME_MAX_LEN:
+            return "MDL federated dataset name must be less than 1024 characters."
+
+        if "." in inner_name:
+            return "MDL federated dataset name cannot contain '.'"
+
+        if inner_name.lower() == "default":
+            return "Invalid MDL federated dataset name: 'default' is reserved"
+
+        return ""
+
+    @staticmethod
+    def validate_fallback(name: str) -> str:
+        """
+        Returns an error string, or empty string when valid. Mirrors
+        IndexAdminHandler::validateName() routing to either
+        _validate_as_dataset_name or _validate_as_index_name.
+        """
+        if name.startswith(IndexName._FEDERATED_MDL_PREFIX):
+            inner = name[len(IndexName._FEDERATED_MDL_PREFIX) :]
+            return IndexName._validate_as_dataset_name(inner)
+        return IndexName._validate_as_index_name(name)
+
+    @staticmethod
+    def _get_session_key():
+        import __main__
+
+        return getattr(__main__, "___sessionKey", None)
+
+    @staticmethod
+    def _get_splunkd_info():
+        import urllib.parse
+
+        from solnlib.splunkenv import get_splunkd_uri
+
+        splunkd_uri = os.environ.get("SPLUNKD_URI") or get_splunkd_uri()
+        return urllib.parse.urlparse(splunkd_uri)
+
+    @staticmethod
+    def _extract_http_error_message(exc):
+        try:
+            return json.loads(exc.body)["messages"][0]["text"]
+        except (IndexError, KeyError, TypeError, ValueError):
+            return None
+
+    def _call_validate_endpoint(self, value):
+        """
+        Returns (result, error_message) where:
+          result=None  — endpoint not present or session key unavailable; caller falls back to local rules
+          result=True  — name is valid
+          result=False — name is invalid or request failed; error_message contains the reason
+        """
+        from solnlib.splunk_rest_client import SplunkRestClient
+        from splunklib import binding
+
+        from ..util import get_base_app_name
+
+        from splunktaucclib.common import log as ucclog
+
+        session_key = self._get_session_key()
+        if not session_key:
+            ucclog.logger.error(
+                "IndexName: session key not available, cannot call _validateName endpoint"
+            )
+            return None, None
+
+        splunkd_info = self._get_splunkd_info()
+        client = SplunkRestClient(
+            session_key,
+            get_base_app_name(),
+            scheme=splunkd_info.scheme,
+            host=splunkd_info.hostname,
+            port=splunkd_info.port,
+        )
+        try:
+            response = client.post(
+                self._ENDPOINT,
+                output_mode="json",
+                body={"index_name": value},
+            )
+        except binding.HTTPError as exc:
+            if exc.status == 404:
+                ucclog.logger.warning(
+                    "IndexName: indexes endpoint not found (HTTP 404), no custom validation action _validateName supported, falling back to local validation"
+                )
+                return None, None
+
+            error_message = self._extract_http_error_message(exc)
+            if exc.status == 400:
+                if error_message == self._MSG_INDEX_NAME_NOT_SUPPORTED:
+                    ucclog.logger.warning(
+                        "IndexName: indexes endpoint does not have custom validation action _validateName supported (HTTP 400), falling back to local validation"
+                    )
+                    return None, None
+
+            if exc.status == 403:
+                ucclog.logger.warning(
+                    "IndexName: insufficient permissions to call _validateName endpoint (HTTP 403)"
+                )
+                return False, "Insufficient permissions to validate index name"
+
+            ucclog.logger.warning(
+                "IndexName: _validateName endpoint returned HTTP %s: %s",
+                exc.status,
+                error_message or exc.body,
+            )
+            return (
+                False,
+                f"Index name validation request failed: HTTP {exc.status}, {error_message or exc.body}",
+            )
+        except Exception as exc:
+            ucclog.logger.error(
+                "IndexName: unexpected error calling _validateName endpoint: %s",
+                exc,
+            )
+            return (
+                False,
+                f"Index name validation request failed, unexpected error: {exc}",
+            )
+
+        try:
+            response_body = response.body.read()
+            content = json.loads(response_body)["entry"][0]["content"]
+            if content["is_valid"] == "true":
+                return True, None
+            return False, content.get("reason", "Invalid index name")
+        except (KeyError, IndexError, TypeError, ValueError) as exc:
+            ucclog.logger.error(
+                f"Unexpected response from validation endpoint: response {response_body}, error {exc}"
+            )
+            return None, None
+
+    def validate(self, value, data):
+        from splunktaucclib.common import log as ucclog
+
+        self._msg = ""
+        result, error = self._call_validate_endpoint(value)
+
+        if result is None:
+            # endpoint not available — fall back to local rules
+            error = self.validate_fallback(value)
+            if error:
+                ucclog.logger.debug(
+                    "IndexName: local validation rejected '%s': %s", value, error
+                )
+                self.put_msg(error)
+            return not bool(error)
+
+        if not result:
+            self.put_msg(error)
+        return result

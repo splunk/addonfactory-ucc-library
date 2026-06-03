@@ -1,7 +1,17 @@
 import os
+import sys
+import types
 from unittest.mock import MagicMock
 
 import pytest
+
+# Stub solnlib.log before any splunktaucclib module imports it, so that
+# splunktaucclib.common.log can be imported outside a Splunk process.
+_mock_logs_instance = MagicMock()
+_mock_logs_instance.get_logger.return_value = MagicMock()
+_solnlib_log_stub = types.ModuleType("solnlib.log")
+_solnlib_log_stub.Logs = MagicMock(return_value=_mock_logs_instance)
+sys.modules.setdefault("solnlib.log", _solnlib_log_stub)
 
 from tests.unit.fake_module import mock_splunk_module
 
