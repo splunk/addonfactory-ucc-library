@@ -449,6 +449,23 @@ def test_non_sh_instance_passes_error_through(admin, monkeypatch):
     assert exc_info.value.status == 404
 
 
+def test_single_model_inputs_conf_on_non_sh_passes_error_through(admin, monkeypatch):
+    # An "inputs"-named SingleModel conf on a confirmed non-SH (IDM, indexer)
+    # must NOT trigger the guard — the SH primary gate must fire first.
+    monkeypatch.setattr(
+        admin_external, "_is_search_head_instance", lambda _u, _k: False
+    )
+    model = RestModel([], name=None, special_fields=[])
+    endpoint = SingleModel("billing_inputs", model, app="fake_app")
+    _install_raising_handler(monkeypatch, RestError(404, "Not Found"))
+    admin_external.handle(endpoint, handler=AdminExternalHandler)
+    handler = admin.init.call_args[0][0]
+
+    with pytest.raises(RestError) as exc_info:
+        handler.get()
+    assert exc_info.value.status == 404
+
+
 def test_non_sh_instance_5xx_passes_error_through(admin, monkeypatch):
     monkeypatch.setattr(
         admin_external, "_scheme_registered", lambda _k, _a, _t: None
