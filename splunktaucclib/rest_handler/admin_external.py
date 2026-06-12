@@ -24,6 +24,7 @@ from splunk import admin
 
 from .eai import EAI_FIELDS
 from .endpoint import DataInputModel, MultipleModel, SingleModel
+from .error import RestError
 from .handler import RestHandler
 
 try:
@@ -79,6 +80,91 @@ def get_splunkd_endpoint():
         return splunkd_uri
 
 
+# Inputs-page guard for classic-cloud SH/SHC where inputs.conf.spec is
+# stripped: returns HTTP 200 + empty list + WARN message instead of
+# letting RestError surface as splunkd's "Unexpected error" 500.
+#
+# The leading sentence is the contract that UCC's
+# `useInputsAvailability` hook matches on (see
+# addonfactory-ucc-generator constants/inputsAvailability.ts); keep
+# it verbatim when softening the trailing copy.
+INPUTS_UNAVAILABLE_MESSAGE = (
+    "Inputs cannot be configured on this Search Head. "
+    "Inputs for this add-on must be configured on the Inputs Data Manager "
+    "(IDM) instance. For more details, refer to the Splunk Cloud documentation."
+)
+
+_DISABLE_GUARD_ENV = "SPLUNKTAUCC_DISABLE_SH_INPUT_GUARD"
+
+_scheme_registered_cache: dict = {}
+_sh_instance_cache: dict = {}
+
+
+def _is_search_head_instance(splunkd_uri, session_key):
+    """Returns True (confirmed SH/SHC), False (confirmed not SH/SHC), or None (inconclusive).
+
+    Cached per process. On any error returns None so the scheme probe still
+    runs and existing behaviour is preserved for instances where role
+    detection cannot be performed.
+    """
+    key = splunkd_uri or "-"
+    if key in _sh_instance_cache:
+        return _sh_instance_cache[key]
+    try:
+        from solnlib.server_info import ServerInfo
+
+        info = ServerInfo.from_server_uri(splunkd_uri, session_key)
+        result = info.is_search_head() or info.is_shc_member()
+        _sh_instance_cache[key] = result
+        return result
+    except Exception:
+        return None  # inconclusive — do not cache, let scheme probe decide
+
+
+def _looks_like_scheme_missing(err):
+    # Bare 404 or any 5xx looks like a missing scheme; per-entity
+    # "does not exist" 404 is a real stanza error and must bubble.
+    status = getattr(err, "status", None)
+    if status == 404:
+        message = (getattr(err, "message", "") or "").lower()
+        return "does not exist" not in message
+    return isinstance(status, int) and 500 <= status < 600
+
+
+def _scheme_registered(session_key, app, input_type):
+    # Returns True/False/None (None = inconclusive). Cached per process.
+    cache_key = (app, input_type)
+    if cache_key in _scheme_registered_cache:
+        return _scheme_registered_cache[cache_key]
+    try:
+        from solnlib.splunk_rest_client import SplunkRestClient
+
+        client = SplunkRestClient(
+            session_key,
+            app=app or "-",
+            owner="nobody",
+        )
+        response = client.get(
+            "data/modular-inputs/{}".format(input_type),
+            output_mode="json",
+        )
+        status = getattr(response, "status", None)
+        if status == 200:
+            _scheme_registered_cache[cache_key] = True
+            return True
+        if status == 404:
+            _scheme_registered_cache[cache_key] = False
+            return False
+    except Exception as probe_err:
+        status = getattr(probe_err, "status", None) or getattr(
+            probe_err, "statusCode", None
+        )
+        if status == 404:
+            _scheme_registered_cache[cache_key] = False
+            return False
+    return None
+
+
 class AdminExternalHandler(HookMixin, admin.MConfigHandler):
 
     # Leave it for setting REST model
@@ -126,17 +212,67 @@ class AdminExternalHandler(HookMixin, admin.MConfigHandler):
             [False],
         )
         decrypt = is_true(decrypt[0])
-        if self.callerArgs.id:
-            result = self.handler.get(
-                self.callerArgs.id,
-                decrypt=decrypt,
-            )
-        else:
-            result = self.handler.all(
-                decrypt=decrypt,
-                count=0,
-            )
+        try:
+            # list(...) so a generator raises inside this try block.
+            if self.callerArgs.id:
+                result = list(
+                    self.handler.get(
+                        self.callerArgs.id,
+                        decrypt=decrypt,
+                    )
+                )
+            else:
+                result = list(
+                    self.handler.all(
+                        decrypt=decrypt,
+                        count=0,
+                    )
+                )
+        except RestError as err:
+            if self._is_input_page_unavailable(err):
+                try:
+                    confInfo.addWarnMsg(INPUTS_UNAVAILABLE_MESSAGE)
+                except Exception:
+                    pass
+                return []
+            raise
         return result
+
+    def _is_input_page_unavailable(self, err):
+        # Gate only when: env override is off, the error shape matches a
+        # missing scheme/conf, and the endpoint is an inputs endpoint.
+        #
+        # Primary gate: only fire on SH/SHC instances. If role detection
+        # is inconclusive (None) we fall through to the scheme probe so
+        # existing behaviour is preserved for non-reachable splunkd.
+        # Confirmed non-SH instances (IDM, indexer, Victoria, Noah) are
+        # returned False immediately without ever touching the scheme probe.
+        if is_true(os.environ.get(_DISABLE_GUARD_ENV, "")):
+            return False
+        if not _looks_like_scheme_missing(err):
+            return False
+
+        is_sh = _is_search_head_instance(
+            get_splunkd_endpoint(), self.getSessionKey()
+        )
+        if is_sh is False:
+            # Confirmed non-SH/SHC instance — do not fire the guard.
+            return False
+
+        # is_sh is True (confirmed SH/SHC) or None (inconclusive).
+        # Continue to scheme probe / conf-name check for the final decision.
+        endpoint = self.endpoint
+        if isinstance(endpoint, DataInputModel):
+            registered = _scheme_registered(
+                self.getSessionKey(),
+                endpoint.app,
+                endpoint.input_type,
+            )
+            return registered is not True
+        if isinstance(endpoint, (SingleModel, MultipleModel)):
+            conf_name = (getattr(endpoint, "conf_name", "") or "").lower()
+            return "input" in conf_name
+        return False
 
     @build_conf_info
     def handleCreate(self, confInfo):
