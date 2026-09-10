@@ -85,9 +85,8 @@ jobs:
           path: dist/
 
   test-unit:
-    name: test-unit ${{ matrix.python-version }}
+    name: test-unit Python ${{ matrix.python-version }} / urllib3 ${{ matrix.urllib3-version }}
     runs-on: ubuntu-22.04
-    continue-on-error: true
     strategy:
       matrix:
         python-version:
@@ -96,6 +95,13 @@ jobs:
           - "3.11"
           - "3.12"
           - "3.13"
+        urllib3-version:
+          - "1.26.19"
+          - "1.26.20"
+          - "2.6.3"
+        include:
+          - python-version: "3.13"
+            urllib3-version: "2.7.0"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -105,6 +111,8 @@ jobs:
       - name: run tests
         run: |
           poetry install
+          poetry run pip install --force-reinstall --no-deps "urllib3==${{ matrix.urllib3-version }}"
+          poetry run python -c 'import requests, splunktaucclib, urllib3; print(f"requests={requests.__version__} urllib3={urllib3.__version__} splunktaucclib={splunktaucclib.__file__}")'
           poetry run pytest tests/unit
 
   integration-tests:
