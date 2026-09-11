@@ -24,18 +24,14 @@ license = "APACHE-2.0"
 [tool.poetry.dependencies]
 python = ">=3.7,<3.14"
 defusedxml = ">=0.7"
-# Keep the Python 3.7-3.9 integration runtime on the last urllib3 branch
-# compatible with those interpreters, while using the current secure branch
-# on Python 3.10+. The runtime test matrix also exercises 1.26.19 and 2.6.3
-# because older Splunk hosts may provide those versions at runtime.
-urllib3 = [
-    { version = ">=1.26.20,<2", python = ">=3.7,<3.10" },
-    { version = ">=2.7.0,<3", python = ">=3.10,<3.14" },
-]
+# Keep the UCC library compatible with the legacy Splunk runtime dependency
+# while allowing downstream add-ons to select a modern urllib3 copy at runtime.
+# The consuming add-on remains responsible for pinning and packaging the exact
+# version selected for each Python/OpenSSL environment.
+urllib3 = ">=1.26.19,<3"
 PySocks = "^1.7.1"
 splunk-sdk = ">=2.0.2"
 solnlib = ">=5"
-
 [tool.poetry.group.dev.dependencies]
 pytest = ">=7"
 splunk-add-on-ucc-framework = ">=5.53.0"
