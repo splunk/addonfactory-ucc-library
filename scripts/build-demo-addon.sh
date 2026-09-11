@@ -1,4 +1,6 @@
 #!/bin/bash
+set -euo pipefail
+
 # Copyright 2026 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,4 +21,9 @@ poetry run ucc-gen build \
   --config=tests/integration/demo/globalConfig.json \
   --ta-version=0.0.1
 poetry run pip install dist/*.whl --target output/demo/lib
+# urllib3 is supplied by Splunk Core at runtime. Remove the dependency pulled
+# in by the library wheel so this integration package exercises that behavior.
+poetry run python -c 'from pathlib import Path; import shutil; [shutil.rmtree(path) for path in Path("output/demo/lib").glob("urllib3*") if path.is_dir()]'
+test ! -e output/demo/lib/urllib3
+test ! -e output/demo/lib/urllib3-*.dist-info
 poetry run ucc-gen package --path output/demo
