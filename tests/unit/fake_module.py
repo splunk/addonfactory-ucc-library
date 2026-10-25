@@ -30,6 +30,15 @@ class MConfigHandler:
     def handleRemove(self, confInfo: Any):
         raise NotImplementedError()
 
+    def execute(self, confInfo: Any):
+        actions = {
+            ACTION_LIST: self.handleList,
+            ACTION_CREATE: self.handleCreate,
+            ACTION_EDIT: self.handleEdit,
+            ACTION_REMOVE: self.handleRemove,
+        }
+        actions[self.requestedAction](confInfo)
+
     def getSessionKey(self):
         return "abcd"
 
@@ -54,6 +63,15 @@ def mock_splunk_module() -> MagicMock:
     sys.modules["splunk.admin"] = admin
 
     admin.MConfigHandler = MConfigHandler
+
+    for name in (
+        "ArgValidationException",
+        "PermissionsException",
+        "NotFoundException",
+        "AlreadyExistsException",
+        "ServiceUnavailableException",
+    ):
+        setattr(admin, name, type(name, (Exception,), {}))
 
     for action in ("ACTION_LIST", "ACTION_REMOVE", "ACTION_CREATE", "ACTION_EDIT"):
         setattr(admin, action, globals()[action])
