@@ -8,10 +8,82 @@ import pytest
 from splunktaucclib.rest_handler import admin_external
 from splunktaucclib.rest_handler.admin_external import AdminExternalHandler
 from splunktaucclib.rest_handler.credentials import RestCredentials
+from splunktaucclib.rest_handler.error import RestError
 from splunktaucclib.rest_handler.endpoint import RestModel, SingleModel, MultipleModel
 from splunktaucclib.rest_handler.endpoint.field import RestField
 
 Response = namedtuple("Response", ["body", "status"])
+
+
+@pytest.mark.parametrize(
+    "action,method",
+    [
+        ("ACTION_LIST", "handleList"),
+        ("ACTION_CREATE", "handleCreate"),
+        ("ACTION_EDIT", "handleEdit"),
+        ("ACTION_REMOVE", "handleRemove"),
+    ],
+)
+@pytest.mark.parametrize(
+    "status,exception_name",
+    [
+        (400, "ArgValidationException"),
+        (401, "PermissionsException"),
+        (403, "PermissionsException"),
+        (404, "NotFoundException"),
+        (409, "AlreadyExistsException"),
+        (503, "ServiceUnavailableException"),
+    ],
+)
+def test_execute_reports_expected_rest_error(
+    admin, action, method, status, exception_name
+):
+    class CustomHandler(AdminExternalHandler):
+        pass
+
+    custom_method = MagicMock(side_effect=RestError(status, "Request was rejected"))
+    setattr(CustomHandler, method, custom_method)
+    handler = CustomHandler.__new__(CustomHandler)
+    handler.requestedAction = getattr(admin, action)
+    conf_info = MagicMock()
+
+    with pytest.raises(getattr(admin, exception_name)) as exc_info:
+        handler.execute(conf_info)
+
+    assert str(exc_info.value) == "Request was rejected"
+    assert "RestError" not in str(exc_info.value)
+    custom_method.assert_called_once_with(conf_info)
+
+
+@pytest.mark.parametrize(
+    "error", [RestError(500, "Internal failure"), ValueError("Bug")]
+)
+def test_execute_preserves_unexpected_error(admin, error):
+    class CustomHandler(AdminExternalHandler):
+        def handleList(self, confInfo):
+            raise error
+
+    handler = CustomHandler.__new__(CustomHandler)
+    handler.requestedAction = admin.ACTION_LIST
+
+    with pytest.raises(type(error)) as exc_info:
+        handler.execute(MagicMock())
+
+    assert exc_info.value is error
+
+
+def test_execute_preserves_successful_response(admin):
+    class CustomHandler(AdminExternalHandler):
+        def handleList(self, confInfo):
+            confInfo["entry"] = {"value": "unchanged"}
+
+    handler = CustomHandler.__new__(CustomHandler)
+    handler.requestedAction = admin.ACTION_LIST
+    conf_info = {}
+
+    handler.execute(conf_info)
+
+    assert conf_info == {"entry": {"value": "unchanged"}}
 
 
 def eai_response(value, status, name="test"):

@@ -24,6 +24,7 @@ from splunk import admin
 
 from .eai import EAI_FIELDS
 from .endpoint import DataInputModel, MultipleModel, SingleModel
+from .error import RestError
 from .handler import RestHandler
 
 try:
@@ -97,6 +98,25 @@ class AdminExternalHandler(HookMixin, admin.MConfigHandler):
             self.endpoint,
         )
         self.payload = self._convert_payload()
+
+    def execute(self, confInfo):
+        """Report expected REST failures using Splunk's recognized exceptions."""
+        try:
+            return super().execute(confInfo)
+        except RestError as exc:
+            exception_type = {
+                400: admin.ArgValidationException,
+                # Admin handlers report authorization failures as HTTP 403.
+                # Splunk authenticates incoming requests before dispatch.
+                401: admin.PermissionsException,
+                403: admin.PermissionsException,
+                404: admin.NotFoundException,
+                409: admin.AlreadyExistsException,
+                503: admin.ServiceUnavailableException,
+            }.get(exc.status)
+            if exception_type is None:
+                raise
+            raise exception_type(exc.message) from exc
 
     def setup(self):
         # add args for getting clear credentials

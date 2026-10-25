@@ -122,9 +122,7 @@ def test_basic_crud_operations():
     assert response.status_code == 200
     assert len(entry) == 1
 
-    expected_msg = (
-        f"REST Error [404]: Not Found -- Could not find object id={input_name}"
-    )
+    expected_msg = f"Could not find object id={input_name}"
     response = requests.get(
         f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo/{input_name}?output_mode=json",
         auth=HTTPBasicAuth(admin, admin_password),
@@ -134,7 +132,7 @@ def test_basic_crud_operations():
         },
         verify=False,
     )
-    assert response.status_code == 500
+    assert response.status_code == 404
     assert expected_msg in response.text
 
 
@@ -152,9 +150,7 @@ def test_inputs_api_call():
 
 
 def test_400_api_call():
-    expected_msg = """<msg type="ERROR">Unexpected error "&lt;class 'splunktaucclib.rest_handler.error.RestError'&gt;" 
-from python handler: "REST Error [400]: Bad Request -- Object id=demo://test_input cannot be deleted in config=inputs.". 
-See splunkd.log/python.log for more details.</msg>"""
+    expected_msg = "Object id=demo://test_input cannot be deleted in config=inputs."
 
     response = requests.delete(
         f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo/test_input",
@@ -162,12 +158,13 @@ See splunkd.log/python.log for more details.</msg>"""
         verify=False,
     )
     assert expected_msg.replace("\n", "") in response.text
-    assert response.status_code == 500
+    assert response.status_code == 400
+    assert "Unexpected error" not in response.text
+    assert "RestError" not in response.text
 
 
 def test_403_api_call():
-    expected_msg = """<msg type="ERROR">Unexpected error "&lt;class 'splunktaucclib.rest_handler.error.RestError'&gt;" 
-from python handler: "REST Error [403]: Forbidden -- This operation is forbidden.". See splunkd.log/python.log for more details.</msg>"""
+    expected_msg = "This operation is forbidden."
 
     response = requests.post(
         f"https://{host}:{management_port}/servicesNS/-/demo/demo_demo",
@@ -180,7 +177,10 @@ from python handler: "REST Error [403]: Forbidden -- This operation is forbidden
         verify=False,
     )
     assert expected_msg.replace("\n", "") in response.text
-    assert response.status_code == 500
+    assert response.status_code == 403
+    assert "Unexpected error" not in response.text
+    assert "RestError" not in response.text
+    assert "requires capability" not in response.text
 
 
 @pytest.mark.parametrize(
@@ -216,7 +216,7 @@ def test_basic_name_validation_prohibited_char_and_names(value):
     )
 
     assert expected_msg.replace("\n", "") in response.text
-    assert response.status_code == 500
+    assert response.status_code == 400
 
 
 def test_basic_name_validation_too_long_name():
@@ -267,7 +267,7 @@ def test_custom_name_validation_invalid_name():
         verify=False,
     )
     assert expected_msg.replace("\n", "") in response.text
-    assert response.status_code == 500
+    assert response.status_code == 400
 
 
 def test_custom_name_validation_too_long_name():
