@@ -55,7 +55,7 @@ def get_appname_from_path(absolute_path):
 
 def getBaseAppName():
     """Base App name, which this script belongs to."""
-    appName = util.get_appname_from_path(__file__)
+    appName = get_appname_from_path(__file__)
     if appName is None:
         raise Exception("Cannot get app name from file: %s" % __file__)
     return appName
